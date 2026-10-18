@@ -1,7 +1,7 @@
 # Brand
 
 The CandleStack logo is the **tile**: two light candles cut out of a rounded teal square, picked
-in [.github#2](https://github.com/CandleStack-FEI-STU/.github/issues/2). Only the dark variants
+in [.github#2](https://github.com/candlestack-tech/.github/issues/2). Only the dark variants
 are kept.
 
 ## Files
@@ -14,7 +14,7 @@ are kept.
 ## Colors
 
 The colors are the website tokens from
-[`global.css`](https://github.com/CandleStack-FEI-STU/website/blob/main/src/styles/global.css):
+[`global.css`](https://github.com/candlestack-tech/website/blob/main/src/styles/global.css):
 
 | Part | Dark |
 | --- | --- |
