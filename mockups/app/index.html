@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
 <style>
-  /* The page is the app itself, the Workspace dashboard. Colors and controls: the builder artifact's. */
+  /* The page is the app itself: the Workspace dashboard and the backtest builder. */
   :root {
     --bg: #fafaf9; --ink: #141414; --muted: #686868; --rule: #e7e5e2; --accent: #0f766e;
     --warn: #a15c07; --down: #b42318; --up: #1a7f37; --candle-up: #2e9e44; --candle-down: #f23645;
@@ -653,6 +653,108 @@
     *, *::before, *::after { animation: none !important; transition: none !important; }
   }
 
+
+  /* ---------- the backtest builder: five plain steps ---------- */
+  .b-wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+  .b-t { font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.025em; }
+  .b-stp { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; }
+  .b-stp li { display: flex; align-items: center; flex: 1 1 0; min-width: 0; }
+  .b-stp li:last-child { flex: 0 0 auto; }
+  .b-stp li:not(:last-child)::after { content: ""; flex: 1; height: 2px; margin: 0 10px; background: var(--rule); border-radius: 1px; }
+  .b-stp li.done:not(:last-child)::after { background: var(--accent); }
+  .b-stp button, .b-stp span { appearance: none; display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 4px 2px; font: inherit; color: var(--muted); white-space: nowrap; }
+  .b-stp button { cursor: pointer; border-radius: 6px; }
+  .b-stp button:hover b { color: var(--ink); }
+  .b-stp i { width: 26px; height: 26px; border-radius: 999px; display: grid; place-items: center; font: 600 12px var(--mono); font-style: normal; border: 1.5px solid var(--rule); background: var(--bg); flex: none; }
+  .b-stp b { font-size: 13.5px; font-weight: 500; }
+  .b-stp .done i { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .b-stp .on i { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .b-stp .on b, .b-stp .done b { color: var(--ink); }
+  .b-card { background: var(--bg); border: 1px solid var(--rule); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+  .b-in { animation: fx-fade 0.18s ease-out; }
+  .b-h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+  .b-r { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 14px; align-items: center; }
+  .b-rl { font-size: 13.5px; color: var(--muted); }
+  .b-rc { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; min-width: 0; }
+  .b-rc > .b-row, .b-rc > .chips { flex-basis: 100%; }
+  .b-plain { font: 600 13.5px var(--mono); }
+  .b-grow { flex: 1; min-width: 180px; }
+  .b-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .b-err { font-size: 13px; color: var(--down); padding: 10px 12px; border-radius: 8px; background: color-mix(in srgb, var(--down) 9%, var(--bg)); }
+  .b-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-top: 18px; border-top: 1px solid var(--rule); }
+  .b-up { align-self: flex-start; }
+
+  .b-sl { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+  .b-sl input[type=range] { flex: 1; min-width: 0; appearance: none; height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--accent) var(--p), var(--surface2) var(--p)); cursor: pointer; }
+  .b-sl input[type=range]::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; border-radius: 999px; background: var(--bg); border: 2px solid var(--accent); box-shadow: 0 1px 4px var(--shadow); }
+  .b-sl input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 999px; background: var(--bg); border: 2px solid var(--accent); }
+  .b-val { min-width: 52px; text-align: right; font: 600 13.5px var(--mono); color: var(--accent); font-variant-numeric: tabular-nums; }
+  .b-num { display: inline-flex; align-items: center; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); height: 32px; }
+  .b-num button { appearance: none; border: 0; background: none; width: 30px; height: 100%; color: var(--muted); font: 500 16px var(--mono); cursor: pointer; }
+  .b-num button:hover { color: var(--accent); }
+  .b-num span { min-width: 34px; text-align: center; font: 600 13px var(--mono); font-variant-numeric: tabular-nums; }
+  .b-unit { display: inline-flex; align-items: center; height: 32px; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); overflow: hidden; }
+  .b-unit input { width: 70px; border: 0; background: none; height: 100%; padding: 0 8px; font: 13px var(--mono); color: var(--ink); }
+  .b-unit span { padding: 0 9px; font-size: 12px; color: var(--muted); border-left: 1px solid var(--rule); height: 100%; display: grid; place-items: center; background: var(--surface); }
+  .b-date { height: 32px; border: 1px solid var(--rule); border-radius: 6px; padding: 0 8px; background: var(--bg); font: 13px var(--mono); color: var(--ink); min-width: 0; }
+
+  .b-models { display: flex; flex-direction: column; gap: 6px; }
+  .b-mrow { display: flex; align-items: center; gap: 10px; padding-right: 10px; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); }
+  .b-mrow.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .b-mrow.off { background: var(--surface); }
+  .b-mpick { appearance: none; flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 12px; border: 0; background: none; text-align: left; cursor: pointer; }
+  .b-mpick:disabled { cursor: default; }
+  .b-mrow.on .radio { border-color: var(--accent); }
+  .b-mrow.on .radio::after { content: ""; width: 8px; height: 8px; border-radius: 999px; background: var(--accent); }
+  .b-mrow.off .radio { border-style: dashed; }
+  .b-mrow.off .mn, .b-mrow.off .mm { color: var(--muted); }
+  .b-mt { min-width: 0; display: flex; flex-direction: column; }
+  .b-mrow .mm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .b-mrow .dd-fw { flex: none; }
+
+  .b-it { min-width: 0; max-width: 100%; }
+  .b-ip { width: min(340px, calc(100vw - 48px)); display: block; padding: 8px; }
+  .b-ip .inp { height: 32px; margin-bottom: 6px; font-family: var(--sans); }
+  .b-io b { font: 600 13px var(--mono); min-width: 74px; }
+
+  .b-more { appearance: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); text-align: left; cursor: pointer; font-size: 13.5px; }
+  .b-more b { font-weight: 500; }
+  .b-more:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--rule)); }
+  .b-more .fp-chev { transition: transform 0.18s; flex: none; }
+  .b-more.open .fp-chev { transform: rotate(180deg); }
+  .b-extra { display: flex; flex-direction: column; gap: 14px; padding-top: 18px; border-top: 1px solid var(--rule); }
+  .b-h3 { font: 500 11px/16px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+
+  .b-iw { position: relative; display: inline-flex; }
+  .b-info { appearance: none; width: 22px; height: 22px; border-radius: 999px; border: 1px solid var(--rule); background: var(--bg); color: var(--muted); font: 600 11px var(--mono); cursor: pointer; display: inline-grid; place-items: center; padding: 0; }
+  .b-info:hover, .b-info[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
+  .b-ex { position: absolute; right: -8px; top: calc(100% + 8px); z-index: 45; width: min(380px, calc(100vw - 40px)); padding: 14px; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); box-shadow: 0 12px 30px var(--shadow); display: flex; flex-direction: column; gap: 10px; }
+  .b-ex.in { animation: fx-pop 0.14s ease-out; transform-origin: top right; }
+  .b-ex p { font-size: 12.5px; color: var(--muted); }
+  .b-ex svg { width: 100%; height: auto; display: block; }
+  .b-ex .cx { fill: var(--candle-up); } .b-ex .cy { fill: var(--candle-down); } .b-ex .wk { stroke: var(--muted); }
+  .b-ex .dec { stroke: var(--ink); stroke-dasharray: 3 3; }
+  .b-ex .ok { fill: var(--accent); } .b-ex .bad { fill: var(--warn); }
+  .b-ex text { font: 10.5px var(--sans); fill: var(--ink); } .b-ex text.m { fill: var(--muted); font-family: var(--mono); }
+
+  .b-rev { margin: 0; display: flex; flex-direction: column; }
+  .b-rev > div { display: grid; grid-template-columns: 110px minmax(0, 1fr) auto; gap: 12px; align-items: baseline; padding: 12px 0; border-top: 1px solid var(--rule); }
+  .b-rev > div:first-child { border-top: 0; padding-top: 0; }
+  .b-rev dt { font-size: 13px; color: var(--muted); }
+  .b-rev dd { margin: 0; display: flex; flex-direction: column; min-width: 0; }
+  .b-rev dd b { font-size: 14px; font-weight: 500; overflow-wrap: anywhere; }
+  .b-rev dd span { font: 12px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+  .b-warn { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .b-warn li { font-size: 13px; padding: 9px 12px; border-radius: 8px; color: var(--ink); background: color-mix(in srgb, var(--warn) 11%, var(--bg)); }
+
+  @media (max-width: 640px) {
+    .b-card { padding: 16px; }
+    .b-r { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+    .b-stp b { display: none; }
+    .b-stp .on b { display: inline; }
+    .b-rev > div { grid-template-columns: minmax(0, 1fr) auto; }
+    .b-rev dt { grid-column: 1 / -1; }
+  }
 </style>
 <style>
   /* Page basics (an artifact gets these from its host) */
@@ -1327,6 +1429,284 @@ MODALS.delAcct = () => modalShell('Delete account?', `<p>This deletes ${runs().l
   '<button type="button" class="btn" data-act="closeModal">Cancel</button><button type="button" class="btn danger pri" data-act="closeModal">Delete account</button>');
 MODALS.new = () => modalShell('New backtest', `<p class="h">Pick the data, a representation, a model and a rule, then run it against buy and hold.</p>${newSoon()}`);
 MODALS.run = () => { const r = runById(S.run); return modalShell(`Backtest #${r.id}`, `<p class="h">${instList(r.inst)} · ${REP[r.rep]} · ${r.model} · ${when(r)}</p>${runSoon()}`); };
+
+
+// ---------- the backtest builder ----------
+// Five steps, one at a time: model, data, decision, execution, run. Run exists only on the last
+// step, and Next stays off while the step has something to fix. The preprocessing is fixed by the
+// model's manifest, so it is one line under the chosen model.
+const TODAY = '2026-10-18';
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const fmtD = s => { const [y, m, d] = s.split('-'); return `${+d} ${MON[+m - 1]} ${y}`; };
+const dnum = s => Date.parse(`${s}T00:00:00Z`) / 864e5;
+const dstr = n => new Date(n * 864e5).toISOString().slice(0, 10);
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const CHEV = '<svg class="i fp-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+
+const BLESK = { tf: '30m', rep: 'renko', win: 25, n: 23, warm: 600, trained: '2022-12-30', stocks: true, skill: 0.55 };
+const MAN = {
+  b8: BLESK, b9: { ...BLESK, skill: 0.5 },
+  tsm: { tf: '1h', rep: 'windows', win: 25, n: 23, warm: 75, trained: '2023-12-29', stocks: true, skill: 0.4 },
+  stm: { tf: '30m', rep: 'windows', win: 30, n: 23, warm: 80, trained: '2024-06-28', stocks: true, skill: 0.45 },
+};
+MODELS.push({ id: 'lst', name: 'lstm-v2.keras', fw: 'Keras', src: 'up', reads: null, shape: '25 × 5 → 1', runs: 0, size: '6.3 MB', added: 'Today' });
+const MAN_TPL = [
+  { id: 'raw', n: 'Raw candles', shape: '25 × 5', man: { tf: '30m', rep: 'windows', win: 25, n: 5, warm: 25, trained: null, stocks: false, skill: 0.3 } },
+  { id: 'sup', n: 'Supervisor NO-VOL', shape: '25 × 23', man: BLESK },
+];
+// Instruments: market, first candle, a price for the example run, name
+const BI = {
+  AAPL: ['stock', '2016-01-04', 186], MSFT: ['stock', '2016-01-04', 412], NVDA: ['stock', '2016-01-04', 118], SPY: ['stock', '2016-01-04', 562],
+  TSLA: ['stock', '2016-01-04', 243], AMZN: ['stock', '2016-01-04', 191], META: ['stock', '2016-01-04', 522], GOOGL: ['stock', '2016-01-04', 166],
+  BTCUSDT: ['crypto', '2017-08-17', 62400, 'Bitcoin / TetherUS'], ETHUSDT: ['crypto', '2017-08-17', 3120, 'Ether / TetherUS'], SOLUSDT: ['crypto', '2020-08-11', 148, 'Solana / TetherUS'],
+};
+const biName = k => BI[k][3] || INST[k].name;
+['BTCUSDT', 'ETHUSDT', 'SOLUSDT'].forEach(k => { INST[k] = { name: BI[k][3], r: [0, 0, 0, 0, 0, 0] }; });
+BENCH.push(['BTC', 'Bitcoin', 'BTCUSDT on Binance'], ['ETH', 'Ether', 'ETHUSDT on Binance']);
+
+const BDEF = () => ({
+  model: 'b8', inst: 'AAPL', from: '2025-01-02', to: '2025-12-31', the: S.setv.the, dir: S.setv.dir, sl: S.setv.sl,
+  cal: 'none', calw: 500, ema: 1, rule: 'threshold', exit: 0.02, k: 3, kw: 500, kr: 13, confirm: 1, hold: 1, dd: 0,
+  honest: true, fee: 0.1, slip: 0.02, bench: S.setv.bench, step: 0, reach: 0, q: '',
+});
+S.b = BDEF(); S.manFor = null; S.manPick = null;
+
+const bM = () => MODELS.find(m => m.id === S.b.model);
+const bMan = () => MAN[S.b.model];
+const mState = m => MAN[m.id] ? 'ready' : /\.(pt|pth|pkl|joblib)$/.test(m.name) ? 'pickle' : 'setup';
+const bName = k => { const x = BENCH.find(b => b[0] === k); return x ? x[1] : k; };
+const manLine = man => `${REP[man.rep]} · ${man.tf} · ${man.win} × ${man.n}`;
+function warmStart() {
+  const man = bMan(), [mk, since] = BI[S.b.inst];
+  const perDay = { '30m': mk === 'crypto' ? 48 : 13, '1h': mk === 'crypto' ? 24 : 7 }[man.tf] || 13;
+  return dstr(dnum(since) + Math.ceil(man.warm / perDay * 7 / 5) + 1);
+}
+const theScale = () => ({ none: [0, 0.5, 0.01], zscore: [0, 3, 0.1], rank: [0, 1, 0.05] })[S.b.cal];
+
+// What stops a step (only the data step can be wrong), and what to know before the run
+function dataErrors() {
+  const b = S.b, ws = warmStart(), out = [];
+  if (b.from >= b.to) out.push('The period ends before it starts.');
+  if (b.from < ws) out.push(`Start on ${fmtD(ws)} or later: ${b.inst} has candles from ${fmtD(BI[b.inst][1])} and the model needs some before the start to warm up.`);
+  if (b.to > TODAY) out.push(`There are no candles after ${fmtD(TODAY)}.`);
+  return out;
+}
+function warnings() {
+  const b = S.b, man = bMan(), out = [];
+  if (man.trained && b.from <= man.trained) out.push(`The period overlaps the model's training, which ran to ${fmtD(man.trained)}. Results look better there than on new data.`);
+  if (man.stocks && BI[b.inst][0] === 'crypto') out.push('The model learned from stocks. Crypto candles look different.');
+  if (!b.honest) out.push('Filling at the signal\'s close is optimistic.');
+  return out;
+}
+const stepOk = st => (st === 0 ? !!bMan() : st === 1 ? !dataErrors().length : true);
+
+// ---------- the steps ----------
+const STEPS = ['Model', 'Data', 'Decision', 'Execution', 'Run'];
+function bSlider(k, min, max, step, fmt, label) {
+  const v = S.b[k];
+  return `<div class="b-sl"><input type="range" id="b-${k}" min="${min}" max="${max}" step="${step}" value="${v}" data-input="b-${k}" aria-label="${label}" style="--p:${(v - min) / (max - min) * 100}%"><span class="b-val" data-live="bv-${k}">${fmt(v)}</span></div>`;
+}
+const bNum = (k, label) => `<span class="b-num" role="group" aria-label="${label}"><button type="button" data-act="bSet" data-k="${k}" data-val="${clamp(S.b[k] - 1, 1, 50)}" aria-label="Fewer">−</button><span>${S.b[k] > 1 ? S.b[k] : 'Off'}</span><button type="button" data-act="bSet" data-k="${k}" data-val="${clamp(S.b[k] + 1, 1, 50)}" aria-label="More">+</button></span>`;
+const bUnit = (k, u, label) => `<span class="b-unit"><input id="b-${k}" value="${S.b[k]}" data-input="b-${k}" inputmode="decimal" aria-label="${label}"><span>${u}</span></span>`;
+const bSeg = (k, items) => `<div class="seg" role="group">${items.map(([v, l]) => `<button type="button" class="${String(S.b[k]) === String(v) ? 'on' : ''}" data-act="bSet" data-k="${k}" data-val="${v}">${l}</button>`).join('')}</div>`;
+const row = (label, ctl) => `<div class="b-r"><span class="b-rl">${label}</span><div class="b-rc">${ctl}</div></div>`;
+
+function stepModel() {
+  const rows = MODELS.map(m => {
+    const st = mState(m), on = S.b.model === m.id, man = MAN[m.id];
+    const meta = man ? manLine(man) : st === 'pickle' ? 'Export to ONNX to use it' : 'Needs a manifest';
+    const side = st === 'setup' ? `<button type="button" class="btn sm" data-act="manOpen" data-val="${m.id}">Add manifest</button>` : '';
+    return `<div class="b-mrow ${on ? 'on' : ''} ${st !== 'ready' ? 'off' : ''}"><button type="button" class="b-mpick" ${st === 'ready' ? `data-act="bSet" data-k="model" data-val="${m.id}"` : 'disabled'} aria-pressed="${on}"><span class="radio"></span>${fwIcon(m.fw)}<span class="b-mt"><span class="mn">${m.name}</span><span class="mm">${meta}</span></span></button>${side}</div>`;
+  }).join('');
+  return `<div class="b-models">${rows}</div><button type="button" class="btn sm b-up" data-act="upOpen">${qi('up')}Upload model</button>`;
+}
+function instOptions() {
+  const q = S.b.q.trim().toLowerCase();
+  const ks = Object.keys(BI).filter(k => !q || k.toLowerCase().includes(q) || biName(k).toLowerCase().includes(q));
+  return ks.length ? ks.map(k => `<button type="button" class="fp-o b-io ${S.b.inst === k ? 'on' : ''}" data-act="bSet" data-k="inst" data-val="${k}"><b>${k}</b><span>${biName(k)}</span></button>`).join('') : '<p class="hint" style="padding:8px">No match</p>';
+}
+LIVE['b-ilist'] = instOptions;
+INPUT['b-q'] = el => { S.b.q = el.value; };
+const dataErr = () => { const e = dataErrors(); return e.length ? `<p class="b-err">${e[0]}</p>` : ''; };
+LIVE['b-derr'] = dataErr;
+function stepData() {
+  const b = S.b, man = bMan(), open = S.pop === 'b-inst';
+  const inst = `<div class="fp-w" data-pop><button type="button" class="fp-t b-it ${open ? 'open' : ''}" data-act="bPopTo" data-val="${open ? '' : 'b-inst'}" aria-expanded="${open}"><b class="mono">${b.inst}</b><span class="fp-sum">${biName(b.inst)}</span>${CHEV}</button>
+    ${open ? `<div class="fp b-ip ${S.anim && S.anim.pop ? 'in' : ''}" data-pop data-act="stay"><input class="inp" id="b-q" placeholder="Search" value="${esc(b.q)}" data-input="b-q" aria-label="Search instruments"><div data-live="b-ilist">${instOptions()}</div></div>` : ''}</div>`;
+  const period = `<div class="b-row"><input type="date" class="b-date" id="b-from" value="${b.from}" min="${BI[b.inst][1]}" max="${TODAY}" data-input="b-from" aria-label="From"><span class="muted">to</span><input type="date" class="b-date" id="b-to" value="${b.to}" min="${BI[b.inst][1]}" max="${TODAY}" data-input="b-to" aria-label="To"></div>
+    <div class="chips">${[['12m', 'Last 12 months'], ['2025', '2025'], ['all', 'All data']].map(([v, l]) => `<button type="button" class="chip" data-act="bPeriod" data-val="${v}">${l}</button>`).join('')}</div>`;
+  return `${row('Instrument', inst)}${row('Timeframe', `<span class="b-plain">${man.tf}</span><span class="hint">from the model</span>`)}${row('Period', period)}<div data-live="b-derr">${dataErr()}</div>`;
+}
+function stepDecision() {
+  const b = S.b, [lo, hi, st] = theScale();
+  const main = `${b.rule === 'kmeans' ? '' : row(b.rule === 'hysteresis' ? 'Enter at' : 'Threshold', bSlider('the', lo, hi, st, v => (+v).toFixed(2), 'Threshold'))}
+    ${row('Direction', bSeg('dir', [['long', 'Long only'], ['both', 'Long and short']]))}${row('Stop loss', bSlider('sl', 1, 20, 1, v => `${v} %`, 'Stop loss'))}`;
+  const adv = `<div class="b-extra"><h3 class="b-h3">Advanced</h3>
+    ${row('Calibration', `${bSeg('cal', [['none', 'None'], ['zscore', 'Z-score'], ['rank', 'Rank']])}${b.cal !== 'none' ? bUnit('calw', 'window', 'Calibration window') : ''}`)}
+    ${row('Smoothing', bSeg('ema', [[1, 'Off'], [5, 'EMA 5'], [10, 'EMA 10'], [20, 'EMA 20']]))}
+    ${row('Rule', bSeg('rule', [['threshold', 'Threshold'], ['hysteresis', 'Hysteresis'], ['kmeans', 'K-means']]))}
+    ${b.rule === 'hysteresis' ? row('Leave at', bSlider('exit', 0, Math.max(b.the, st), st, v => (+v).toFixed(2), 'Leave at')) : ''}
+    ${b.rule === 'kmeans' ? row('K-means', `${bSeg('k', [[2, '2'], [3, '3'], [4, '4'], [5, '5']])}${bUnit('kw', 'window', 'K-means window')}${bUnit('kr', 'refit', 'Refit every')}`) : ''}
+    ${row('Confirm', `${bNum('confirm', 'Confirm')}<span class="hint">candles</span>`)}${row('Minimum hold', `${bNum('hold', 'Minimum hold')}<span class="hint">candles</span>`)}
+    ${row('Drawdown stop', `<button type="button" class="st-sw ${b.dd ? 'on' : ''}" role="switch" aria-checked="${!!b.dd}" aria-label="Drawdown stop" data-act="bSet" data-k="dd" data-val="${b.dd ? 0 : 20}"><i></i></button>${b.dd ? `<span class="b-grow">${bSlider('dd', 5, 50, 1, v => `−${v} %`, 'Drawdown stop')}</span>` : ''}`)}
+  </div>`;
+  return `${main}${adv}`;
+}
+function fillInfo() {
+  return `<div class="b-ex ${S.anim && S.anim.pop ? 'in' : ''}" data-pop data-act="stay" role="dialog" aria-label="Honest fill">
+    <svg viewBox="0 0 400 112" aria-hidden="true">
+      <line class="wk" x1="70" x2="70" y1="12" y2="92"/><rect class="cx" x="56" y="24" width="28" height="56" rx="2"/>
+      <line class="wk" x1="210" x2="210" y1="26" y2="96"/><rect class="cy" x="196" y="36" width="28" height="48" rx="2"/>
+      <line class="dec" x1="96" x2="96" y1="8" y2="96"/><text x="102" y="16">decides at the close</text>
+      <circle class="ok" cx="196" cy="36" r="5"/><text x="232" y="40">on: buys at the next open</text>
+      <circle class="bad" cx="84" cy="24" r="5"/><text x="102" y="30" class="m">off: at the same close</text>
+      <text x="58" y="108" class="m">candle t</text><text x="190" y="108" class="m">candle t+1</text></svg>
+    <p>A live run can only trade after the candle that made the decision has closed. With the switch off, the backtest buys at that same close, which looks better than it could be.</p></div>`;
+}
+function stepExecution() {
+  const b = S.b, open = S.pop === 'b-fill';
+  const fill = `<button type="button" class="st-sw ${b.honest ? 'on' : ''}" role="switch" aria-checked="${b.honest}" aria-label="Honest fill" data-act="bFlag" data-k="honest" data-val="${b.honest ? 0 : 1}"><i></i></button><span class="b-plain">${b.honest ? 'Next candle\'s open' : 'Same close'}</span>
+    <span class="b-iw" data-pop><button type="button" class="b-info" data-act="bPopTo" data-val="${open ? '' : 'b-fill'}" aria-expanded="${open}" aria-label="What honest fill means">i</button>${open ? fillInfo() : ''}</span>`;
+  const bench = `<div class="seg" role="group">${BENCH.map(([k, n]) => `<button type="button" class="${b.bench === k ? 'on' : ''}" data-act="bSet" data-k="bench" data-val="${k}" title="${n}">${k === 'bh' ? 'Buy and hold' : k}</button>`).join('')}</div>`;
+  return `${row('Honest fill', fill)}${row('Fees', bUnit('fee', '% per side', 'Fees'))}${row('Slippage', bUnit('slip', '%', 'Slippage'))}${row('Benchmark', bench)}`;
+}
+function stepRun() {
+  const b = S.b, m = bM(), man = bMan(), w = warnings();
+  const dec = [b.rule === 'kmeans' ? `k-means, ${b.k} groups` : b.rule === 'hysteresis' ? `in ${b.the.toFixed(2)}, out ${b.exit.toFixed(2)}` : `threshold ${b.the.toFixed(2)}`, b.dir === 'long' ? 'long only' : 'long and short', `stop ${b.sl} %`,
+    b.cal !== 'none' && b.cal, b.ema > 1 && `EMA ${b.ema}`, b.confirm > 1 && `confirm ${b.confirm}`, b.hold > 1 && `hold ${b.hold}`, b.dd && `drawdown stop ${b.dd} %`].filter(Boolean).join(' · ');
+  const lines = [['Model', `${m.name}`, manLine(man), 0], ['Data', `${b.inst}`, `${fmtD(b.from)} – ${fmtD(b.to)}`, 1], ['Decision', dec, '', 2], ['Execution', b.honest ? 'Next candle\'s open' : 'Same close', `fees ${b.fee} % · slippage ${b.slip} % · vs ${bName(b.bench)}`, 3]];
+  return `<dl class="b-rev">${lines.map(([k, a, z, i]) => `<div><dt>${k}</dt><dd><b>${a}</b>${z ? `<span>${z}</span>` : ''}</dd><button type="button" class="link" data-act="bStep" data-val="${i}">Edit</button></div>`).join('')}</dl>
+    ${w.length ? `<ul class="b-warn">${w.map(t => `<li>${t}</li>`).join('')}</ul>` : ''}`;
+}
+const STEP_FN = [stepModel, stepData, stepDecision, stepExecution, stepRun];
+
+function stepper() {
+  const st = S.b.step;
+  return `<ol class="b-stp">${STEPS.map((n, i) => {
+    const done = i < st, can = i <= S.b.reach && i !== st;
+    return `<li class="${i === st ? 'on' : ''} ${done ? 'done' : ''}">${can ? `<button type="button" data-act="bStep" data-val="${i}">` : '<span>'}<i>${done ? '✓' : i + 1}</i><b>${n}</b>${can ? '</button>' : '</span>'}</li>`;
+  }).join('')}</ol>`;
+}
+const nextBtn = st => `<button type="button" class="btn pri" data-act="bNext" ${stepOk(st) ? '' : 'disabled'}>Next</button>`;
+LIVE['b-next'] = () => (S.b.step < 4 ? nextBtn(S.b.step) : '');
+function pageBuilder() {
+  const st = S.b.step;
+  const foot = `<div class="b-foot">${st ? '<button type="button" class="btn" data-act="bBack">Back</button>' : '<span></span>'}${st < 4 ? `<span data-live="b-next">${nextBtn(st)}</span>` : '<button type="button" class="btn pri lg" data-act="bRun">Run backtest</button>'}</div>`;
+  return `${backBtn()}<div class="b-wrap"><h1 class="b-t">New backtest</h1>${stepper()}<section class="b-card ${S.anim && S.anim.page ? '' : 'b-in'}"><h2 class="b-h2">${STEPS[st]}</h2>${STEP_FN[st]()}${foot}</section></div>`;
+}
+PAGES.new = pageBuilder;
+
+// ---------- actions ----------
+// Some viewers deliver one tap as two clicks; the second would undo the first. A switch that
+// changed less than 0.4 s ago keeps its value.
+const bLast = {};
+const bTwice = k => { const now = Date.now(), seen = now - (bLast[k] || 0) < 400; if (!seen) bLast[k] = now; return seen; };
+const bNumOf = v => (v === '' || isNaN(+v) ? v : +v);
+ACT.bSet = (b, v) => {
+  const k = b.dataset.k;
+  if (k === 'dd' && bTwice('dd')) return false;
+  S.b[k] = bNumOf(v);
+  if (k === 'inst') { S.pop = null; S.b.q = ''; if (S.b.from < warmStart()) S.b.from = warmStart(); }
+  if (k === 'cal') { S.b.the = { none: 0.05, zscore: 1, rank: 0.5 }[S.b.cal]; S.b.exit = S.b.cal === 'none' ? 0.02 : S.b.the / 2; }
+  if (k === 'model' && S.b.from < warmStart()) S.b.from = warmStart();
+  return true;
+};
+ACT.bPopTo = (b, v) => { if (bTwice('pop')) return false; S.pop = v || null; return true; };
+ACT.bStep = (b, v) => { if (+v <= S.b.reach) S.b.step = +v; return true; };
+ACT.bNext = () => { if (bTwice('nav')) return false; if (S.b.step < 4 && stepOk(S.b.step)) { S.b.step++; S.b.reach = Math.max(S.b.reach, S.b.step); S.pop = null; } return true; };
+ACT.bBack = () => { if (bTwice('nav')) return false; S.b.step = Math.max(0, S.b.step - 1); S.pop = null; return true; };
+ACT.bFlag = (b, v) => {
+  const k = b.dataset.k;
+  if (bTwice(k)) return false;
+  S.b[k] = v === '1';
+  return true;
+};
+ACT.bPeriod = (b, v) => {
+  const ws = warmStart(), p = { '12m': [dstr(dnum(TODAY) - 365), TODAY], 2025: ['2025-01-02', '2025-12-31'], all: [ws, TODAY] }[v];
+  S.b.from = p[0] < ws ? ws : p[0]; S.b.to = p[1]; return true;
+};
+const bRange = (k, el) => { S.b[k] = +el.value; el.style.setProperty('--p', `${(el.value - el.min) / (el.max - el.min) * 100}%`); };
+INPUT['b-the'] = el => { bRange('the', el); if (S.b.exit > S.b.the) S.b.exit = S.b.the; };
+INPUT['b-sl'] = el => bRange('sl', el);
+INPUT['b-exit'] = el => bRange('exit', el);
+INPUT['b-dd'] = el => bRange('dd', el);
+LIVE['bv-the'] = () => S.b.the.toFixed(2); LIVE['bv-sl'] = () => `${S.b.sl} %`; LIVE['bv-exit'] = () => S.b.exit.toFixed(2); LIVE['bv-dd'] = () => `−${S.b.dd} %`;
+INPUT['b-from'] = el => { if (el.value) S.b.from = el.value; };
+INPUT['b-to'] = el => { if (el.value) S.b.to = el.value; };
+['fee', 'slip'].forEach(k => { INPUT[`b-${k}`] = el => { const v = parseFloat(el.value.replace(',', '.')); if (!isNaN(v) && v >= 0) S.b[k] = v; }; });
+['calw', 'kw', 'kr'].forEach(k => { INPUT[`b-${k}`] = el => { const v = parseInt(el.value, 10); if (v > 1) S.b[k] = v; }; });
+
+function bOpen() {
+  S.b = BDEF(); S.pop = null; const s = S.newSrc;
+  if (s && s.k === 'run') {
+    const r = runById(s.id), m = MODELS.find(x => x.name === r.model);
+    if (m && MAN[m.id]) S.b.model = m.id;
+    if (r.inst[0] && BI[r.inst[0]]) S.b.inst = r.inst[0];
+    S.b.dir = r.dir; S.b.the = r.t; S.b.sl = parseInt(r.sl, 10) || S.b.sl;
+  }
+}
+const coreGo = CORE.go;
+CORE.go = (b, v) => { if (v === 'new') { S.menu = false; S.newSrc = null; bOpen(); go('new'); return; } coreGo(b, v); };
+CORE.newFrom = (b, v) => { S.newSrc = { k: 'run', id: +v }; bOpen(); go('new'); };
+CORE.tpl = () => { S.newSrc = null; bOpen(); go('new'); };
+const upDone0 = ACT.upDone;
+ACT.upDone = (b, v) => {
+  const f = upFile(); upDone0(b, 'models');
+  if (v === 'bt') {
+    const m = MODELS.find(x => x.name === f.name); S.newSrc = null; bOpen(); go('new');
+    if (m && mState(m) === 'setup') { S.manFor = m.id; S.manPick = null; S.modal = 'man'; }
+  }
+  return true;
+};
+
+// A model without a manifest
+MODALS.man = () => {
+  const m = MODELS.find(x => x.id === S.manFor), want = (m.shape || '').split(' → ')[0], stem = m.name.replace(/\.[a-z0-9]+$/i, '');
+  const opts = [{ id: 'file', n: 'Upload manifest.json', shape: want, d: `${stem}.manifest.json` }, ...MAN_TPL.map(t => ({ ...t, d: 'Template' }))];
+  const pick = opts.find(o => o.id === S.manPick), fits = pick && pick.shape === want;
+  const body = `<p class="h">Input of ${m.name}: <b class="mono">${want || '?'}</b></p>
+    <div class="opts">${opts.map(o => `<button type="button" class="opt ${S.manPick === o.id ? 'on' : ''}" data-act="manPick" data-val="${o.id}"><b>${o.n}</b><span>${o.d}</span><span class="mono">${o.shape}</span></button>`).join('')}</div>
+    ${pick ? `<div class="check ${fits ? 'ok' : 'warn'}"><span class="dot"></span><span>${fits ? 'It fits the model.' : `It gives ${pick.shape}, the model takes ${want}.`}</span></div>` : ''}`;
+  return modalShell(`Add a manifest`, body, `<button type="button" class="btn" data-act="closeModal">Cancel</button><button type="button" class="btn pri" data-act="manSave" ${fits ? '' : 'disabled'}>Save</button>`);
+};
+ACT.manOpen = (b, v) => { S.manFor = v; S.manPick = null; S.modal = 'man'; return true; };
+ACT.manPick = (b, v) => { S.manPick = v; return true; };
+ACT.manSave = () => {
+  const m = MODELS.find(x => x.id === S.manFor), want = (m.shape || '25 × 5').split(' → ')[0].split(' × ').map(Number), t = MAN_TPL.find(x => x.id === S.manPick);
+  MAN[m.id] = t ? { ...t.man } : { ...MAN_TPL[0].man, win: want[0], n: want[1] };
+  m.reads = MAN[m.id].rep; S.b.model = m.id; S.modal = null; return true;
+};
+
+// ---------- the run: an example result on made-up prices, after a moment ----------
+function bSeed(s) { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0; }
+function bExample() {
+  const b = S.b, man = bMan(), r = mulberry(bSeed(`${b.model}${b.inst}${b.from}${b.to}`)), N = 260, vol = BI[b.inst][0] === 'crypto' ? 0.018 : 0.013, c = [], o = [];
+  let px = BI[b.inst][2];
+  for (let i = 0; i < N; i++) { const op = px * (1 + gauss(r) * vol * 0.3), cl = op * (1 + gauss(r) * vol); o.push(op); c.push(cl); px = cl; }
+  const p = c.map((v, t) => (t + 4 < N ? Math.tanh((c[t + 4] / v - 1) * 12) * 0.3 * man.skill : 0) + gauss(r) * 0.1);
+  let s = p.map(v => (v >= b.the && v > 0 ? 1 : v <= -b.the && v < 0 ? -1 : 0));
+  if (b.dir === 'long') s = s.map(v => (v > 0 ? 1 : 0));
+  // A decision at the close of candle t fills at the next open (honest) or at that close
+  let cap = 1, side = 0, entry = 0, trades = 0, wins = 0, pk = 1, dd = 0, prev = s[0];
+  const cost = (b.fee + b.slip) / 100;
+  const close = px2 => { const ret = side * (px2 / entry - 1) - 2 * cost; cap *= 1 + ret; trades++; if (ret > 0) wins++; side = 0; };
+  for (let t = 1; t < N - 1; t++) {
+    if (s[t] !== prev) { const px2 = b.honest ? o[t + 1] : c[t]; if (side) close(px2); if (s[t]) { side = s[t]; entry = px2; } }
+    prev = s[t];
+    const e = side ? cap * (1 + side * (c[t] / entry - 1)) : cap; pk = Math.max(pk, e); dd = Math.min(dd, e / pk - 1);
+  }
+  if (side) close(c[N - 1]);
+  return { ret: cap - 1, bh: c[N - 1] / c[0] - 1, dd, trades: trades * 9, win: trades ? wins / trades : 0, sharpe: (cap - 1) / Math.max(0.05, -dd) * 0.6 };
+}
+ACT.bRun = () => {
+  if (!bMan() || dataErrors().length) return true;
+  const b = S.b, m = bM(), man = bMan(), ex = bExample(), id = Math.max(...RUNS.map(r => r.id)) + 1;
+  const r = run(id, 'running', [b.inst], man.rep, m.name, 'Today', '16:12', { tf: man.tf, from: +b.from.slice(0, 4), to: +b.to.slice(0, 4), dir: b.dir, t: b.the, sl: `${b.sl} %`, prog: 8, stage: 'Building the input', eta: 'about 20 s left' });
+  RUNS.unshift(r); m.runs = (m.runs || 0) + 1; S.run = id; S.from = 'dash'; go('run'); toFrame();
+  setTimeout(() => { r.prog = 56; r.stage = 'Running the model'; r.eta = 'about 8 s left'; if (S.page === 'run') render(); }, 900);
+  setTimeout(() => { Object.assign(r, { st: 'done', dur: 19, ret: +(ex.ret * 100).toFixed(1), bh: +(ex.bh * 100).toFixed(1), sharpe: +ex.sharpe.toFixed(2), dd: +(ex.dd * 100).toFixed(1), trades: ex.trades, win: +(ex.win * 100).toFixed(1) }); if (S.page === 'run') render(); }, 2300);
+  return true;
+};
 
 render();
 
