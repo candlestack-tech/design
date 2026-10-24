@@ -1711,5 +1711,516 @@ ACT.bRun = () => {
 render();
 
 </script>
+<style>
+  /* The upload with a manifest, the model states, the model's page and the backtest page */
+  .ck-r.wait .ck-i { background: var(--surface2); color: var(--muted); }
+  .ck-r.wait b { color: var(--muted); font-weight: 400; }
+  .ck-r.off .ck-i { background: var(--surface2); color: var(--muted); }
+  .ck-r.off b { color: var(--muted); }
+  .fw-l .i { width: 14px; height: 14px; }
+  .m3-tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* the upload in three steps */
+  .d4-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .d4-s { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 14px; position: relative; padding-bottom: 20px; }
+  .d4-s:last-child { padding-bottom: 0; }
+  .d4-s:not(:last-child)::before { content: ""; position: absolute; left: 13.5px; top: 30px; bottom: 4px; width: 1px; background: var(--rule); }
+  .d4-s.done:not(:last-child)::before { background: color-mix(in srgb, var(--up) 45%, var(--rule)); }
+  .d4-n { width: 28px; height: 28px; border-radius: 999px; display: grid; place-items: center; font: 600 13px var(--mono); background: var(--surface2); color: var(--muted); }
+  .d4-n .i { width: 14px; height: 14px; }
+  .d4-s.on .d4-n { background: var(--accent); color: var(--on-accent); }
+  .d4-s.done .d4-n { background: color-mix(in srgb, var(--up) 16%, var(--bg)); color: var(--up); }
+  .d4-s.bad .d4-n { background: color-mix(in srgb, var(--down) 15%, var(--bg)); color: var(--down); }
+  .d4-c { min-width: 0; display: flex; flex-direction: column; gap: 10px; padding-top: 3px; }
+  .d4-c h3 { font-size: 15px; font-weight: 600; line-height: 22px; }
+  .d4-s.wait h3 { color: var(--muted); font-weight: 500; }
+  .d4-c p { margin: 0; }
+  .d4-ok { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; min-width: 0; }
+  .d4-ok b { font-weight: 500; overflow-wrap: anywhere; }
+  .d4-facts { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 0; }
+  .d4-facts > div { min-width: 0; }
+  .d4-facts dt { font-size: 11.5px; color: var(--muted); }
+  .d4-facts dd { margin: 1px 0 0; font-size: 13.5px; }
+  .d4-det .d4-facts { padding: 10px 12px; border-radius: 8px; background: var(--surface); }
+  .d4-match { appearance: none; width: 100%; display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--up) 40%, var(--rule)); background: color-mix(in srgb, var(--up) 8%, var(--bg)); color: var(--ink); font: 13px var(--sans); cursor: pointer; text-align: left; }
+  .d4-match:hover { border-color: var(--up); }
+  .d4-match .mono { font-size: 12.5px; }
+  .d4-eq { font: 600 15px var(--mono); color: var(--up); }
+  .d4-tick { width: 20px; height: 20px; border-radius: 999px; display: grid; place-items: center; background: color-mix(in srgb, var(--up) 18%, var(--bg)); color: var(--up); }
+  .d4-tick .i { width: 12px; height: 12px; }
+  .d4-chev { margin-left: auto; color: var(--muted); transition: transform 0.15s; }
+  .d4-match[aria-expanded="true"] .d4-chev { transform: rotate(180deg); }
+  .d4-det { display: flex; flex-direction: column; gap: 10px; }
+  .d4-err { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--down) 40%, var(--rule)); background: color-mix(in srgb, var(--down) 6%, var(--bg)); font-size: 13px; }
+  .d4-err b { font-weight: 600; color: var(--down); }
+  .d4-err > div { margin-top: 6px; }
+
+  /* model states */
+  .m3-st { display: inline-flex; align-items: center; gap: 5px; font: 500 11.5px/18px var(--mono); padding: 1px 7px; border-radius: 999px; border: 1px solid var(--rule); color: var(--muted); white-space: nowrap; }
+  .m3-st i { width: 7px; height: 7px; border-radius: 999px; background: currentColor; }
+  .m3-st.ver { color: var(--up); border-color: color-mix(in srgb, var(--up) 40%, var(--rule)); }
+  .m3-st.set { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, var(--rule)); }
+  .m3-tile { cursor: pointer; text-align: left; font: inherit; color: inherit; appearance: none; }
+  .m3-tile:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--rule)); }
+  .m3-in { font: 12px/17px var(--mono); color: var(--muted); }
+
+  /* the model's page: one screen */
+  .p5-hd { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+  .p5-hd .dd-fw { width: 40px; height: 40px; border-radius: 10px; }
+  .p5-hd .dd-fw svg { width: 20px; height: 20px; }
+  .p5-t { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .p5-t h1 { font-size: 24px; line-height: 30px; font-weight: 600; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+  .p5-t span { font-size: 13px; }
+  .p5-acts { margin-left: auto; }
+  .p5-facts { display: flex; flex-wrap: wrap; gap: 1px; margin: 0 0 16px; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--rule); }
+  .p5-facts > div { flex: 1 1 110px; background: var(--bg); padding: 10px 14px; min-width: 0; }
+  .p5-facts dt { font-size: 12px; color: var(--muted); }
+  .p5-facts dd { margin: 2px 0 0; font: 500 15px var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .p5-two { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(220px, 1fr); gap: 16px; align-items: start; margin-bottom: 16px; }
+  .p5-box, .p5-runs { padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .p5-box h2, .p5-runs h2 { font-size: 15px; font-weight: 600; }
+  .p5-runs .tblwrap { margin: 0 -16px -16px; border-top: 1px solid var(--rule); }
+  .p5-col { display: flex; gap: 8px 24px; flex-wrap: wrap; margin: 0; padding: 10px 12px; border-radius: 8px; background: var(--surface); font-size: 13px; }
+  .p5-col dt { font: 11.5px var(--mono); color: var(--muted); }
+  .p5-col dd { margin: 2px 0 0; }
+  .p5-empty { align-items: flex-start; }
+  @media (max-width: 860px) { .p5-two { grid-template-columns: minmax(0, 1fr); } .p5-acts { margin-left: 0; width: 100%; } }
+
+  /* the input as a matrix */
+  .p6-wrap { padding: 2px; }
+  @media (max-width: 640px) { .p6-wrap { overflow-x: auto; } }
+  .p6-mx { display: grid; grid-template-columns: 46px minmax(calc(var(--n) * 12px), 1fr) auto; gap: 6px 10px; min-width: 0; }
+  .p6-groups { grid-column: 2; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 2px; }
+  .p6-groups span { border-top: 2px solid var(--rule); padding-top: 3px; font: 10.5px var(--mono); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .p6-ax { grid-column: 1; grid-row: 2; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; font: 11px var(--mono); color: var(--muted); }
+  .p6-ax span:last-child { color: var(--ink); }
+  .p6-grid { grid-column: 2; grid-row: 2; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 2px; }
+  .p6-col { appearance: none; border: 0; padding: 0; background: none; display: flex; flex-direction: column; gap: 1px; cursor: pointer; border-radius: 3px; }
+  .p6-col i { display: block; height: 7px; border-radius: 1.5px; background: color-mix(in srgb, var(--accent) var(--a), var(--surface)); }
+  .p6-col i:last-child { height: 9px; }
+  .p6-col:hover i { background: color-mix(in srgb, var(--ink) calc(var(--a) * 0.8), var(--surface)); }
+  .p6-col.on { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .p6-col.on i { background: color-mix(in srgb, var(--ink) calc(var(--a) * 0.9), var(--surface)); }
+  .p6-col:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .p6-out { grid-column: 3; grid-row: 2; display: flex; align-items: flex-end; gap: 8px; color: var(--muted); }
+  .p6-out > div { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 12px; }
+  .p6-out .i { margin-bottom: 26px; }
+  .p6-cell { width: 22px; height: 22px; border-radius: 4px; background: var(--accent); }
+  .p6-out .mono { color: var(--ink); }
+  .p6-foot { grid-column: 2; font: 11px var(--mono); color: var(--muted); text-align: center; }
+
+  /* the backtest page: its parts */
+  .r3-sub { display: flex; gap: 8px 16px; flex-wrap: wrap; color: var(--muted); font-size: 13.5px; }
+  .r3-sub b { color: var(--ink); font-weight: 500; }
+  .r3-hd { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .r3-setup { display: flex; flex-direction: column; gap: 12px; font-size: 13px; }
+  .r3-setup > div { display: flex; flex-direction: column; gap: 3px; }
+  .r3-setup .eyebrow { font-size: 10.5px; }
+  .r3-setup span.v { font-family: var(--mono); font-size: 12.5px; }
+  .r3-tr td.sig { font-family: var(--mono); font-size: 12px; }
+  .r3-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+  .r3-legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; background: var(--accent); }
+  .r3-legend i.b { background: none; border-top: 2px dashed var(--muted); height: 0; }
+  .r3-legend i.dn { background: var(--down); }
+  .r3-ch .pl { fill: none; stroke: var(--ink); stroke-width: 1.4; }
+  .r3-ch .pos { fill: color-mix(in srgb, var(--up) 13%, transparent); }
+  .r3-ch .mk-in { fill: var(--up); }
+  .r3-ch .mk-out { fill: var(--down); }
+  .r3-ch .gl { stroke: var(--grid); }
+  .r3-ch .ax { fill: var(--muted); font: 11px var(--mono); }
+  .r3-ch svg { display: block; width: 100%; height: auto; }
+
+  /* the backtest page: numbers first, compact */
+  .r7-hd { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .r7-t { display: flex; align-items: center; gap: 10px; }
+  .r7-t h1 { font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.02em; }
+  .r7-sub { margin: 4px 0 16px; font-size: 13px; }
+  .r7-json { display: inline-flex; }
+  .r7-json .btn:first-child { border-radius: 6px 0 0 6px; }
+  .r7-json a.btn { border-radius: 0 6px 6px 0; border-left: 0; width: 28px; padding: 0; color: var(--muted); text-decoration: none; font-family: var(--mono); }
+  .r7-json a.btn:hover { color: var(--ink); }
+  .r7-dl { transform: rotate(180deg); }
+  .r7-strip { margin-bottom: 16px; }
+  .r7-grid { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; align-items: start; }
+  .r7-main, .r7-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .r7-box { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .r7-box h2 { font-size: 14px; font-weight: 600; }
+  .r7-box .tblwrap { margin: 0 -16px -14px; border-top: 1px solid var(--rule); }
+  .r7-box .tbl td, .r7-box .tbl th { padding: 6px 12px; font-size: 12.5px; }
+  .r7-ch { position: relative; min-width: 0; }
+  .r7-all { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0; font-size: 13px; }
+  .r7-all > div { display: contents; }
+  .r7-all dt, .r7-all dd { padding: 5px 0; border-bottom: 1px solid var(--rule); }
+  .r7-all > div:last-child dt, .r7-all > div:last-child dd { border-bottom: 0; }
+  .r7-all dt { color: var(--muted); }
+  .r7-all dd { margin: 0; text-align: right; font: 500 13px var(--mono); font-variant-numeric: tabular-nums; }
+  @media (max-width: 980px) { .r7-grid { grid-template-columns: minmax(0, 1fr); } }
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@5.2.1/dist/lightweight-charts.standalone.production.js"></script>
+<script>
+// ===================== the manifest, the model page, the backtest page =====================
+// What the specification (candlestack docs/preprocessing.md) and the backend say, put into the
+// mockup: Keras and ONNX only, 50 MB a file and 100 MB in all, one instrument per backtest, the
+// input fixed by the model's manifest. Then the upload in three steps, the model's page and the
+// backtest page.
+
+// ---------- fixes to the example data ----------
+FORMATS.splice(0, FORMATS.length, 'Keras', 'ONNX');
+FWS.splice(0, FWS.length, 'Keras', 'ONNX');
+USAGE.capMB = 100;
+REP.windows = 'Candles';
+for (const id of ['pst', 'gbm']) { const i = MODELS.findIndex(m => m.id === id); if (i >= 0) MODELS.splice(i, 1); }
+USAGE.modelsMB = 26.4;
+// One instrument per backtest
+const ONE = { 15: 'AMZN', 12: 'MSFT', 7: 'MSFT' };
+RUNS.forEach(r => { if (ONE[r.id]) r.inst = [ONE[r.id]]; });
+const r15 = RUNS.find(r => r.id === 15); Object.assign(r15, { dur: 24, ret: 17.9, bh: 34.6, sharpe: 0.71, dd: -19.4, trades: 205, win: 50.7 });
+const r12 = RUNS.find(r => r.id === 12); Object.assign(r12, { dur: 21, ret: 22.7, bh: 52.4, sharpe: 0.81, dd: -17.3, trades: 198, win: 52.0 });
+// Failures that can still happen once the upload has checked the model and its manifest
+const r13 = RUNS.find(r => r.id === 13); Object.assign(r13, { rep: 'renko', err: 'The model answered NaN for 412 candles from 3 Mar 2024 on. CandleStack stopped the run. Check the model on candles with zero volume.' });
+const r6 = RUNS.find(r => r.id === 6); Object.assign(r6, { rep: 'windows', err: 'The run took longer than 10 minutes, the limit for one backtest. Pick a shorter period.' });
+for (const i of [TEMPLATES.length - 1]) if (TEMPLATES[i] && /Five stocks/.test(TEMPLATES[i].n)) TEMPLATES.splice(i, 1);
+
+// How far each model got: no manifest (setup), manifest and trial run passed (ready), the
+// manifest's example matched too (verified).
+const MSTATE = { b8: 'ver', b9: 'ver', tsm: 'ver', stm: 'ready', lst: 'set' };
+const mSt = m => MAN[m.id] ? (MSTATE[m.id] === 'ver' ? 'ver' : 'ready') : 'set';
+const ST_TXT = { ver: 'Verified', ready: 'Ready', set: 'Needs setup' };
+const ST_WHY = {
+  ver: 'Its manifest is checked and its example gives the expected output.',
+  ready: 'Its manifest is checked and a trial run passed. No example to compare with.',
+  set: 'Add a manifest to tell CandleStack how to build its input.',
+};
+const stPill = m => { const s = mSt(m); return `<span class="m3-st ${s}" title="${ST_WHY[s]}"><i></i>${ST_TXT[s]}</span>`; };
+// The 23 columns of the BLESK NO-VOL models, in their order
+const SUP23 = ['bb_bbh', 'bb_bbl', 'kch_high', 'kch_low', 'squeeze', 'rsi', 'roc', 'tsi', 'atr', 'adx', 'aroon_up', 'aroon', 'aroon_down', 'sma', 'ema20', 'ema50', 'macd_diff', 'direction', 'rel_open', 'rel_high', 'rel_low', 'rel_close', 'is_last_bar'];
+const RAW5 = ['open', 'high', 'low', 'close', 'volume'];
+MAN_TPL.forEach(t => { if (/upervisor/.test(t.n)) t.n = 'BLESK NO-VOL'; });
+// What each column is, in a few words
+const COL_D = {
+  bb_bbh: 'Bollinger Bands, upper band', bb_bbl: 'Bollinger Bands, lower band', kch_high: 'Keltner Channel, upper line', kch_low: 'Keltner Channel, lower line',
+  squeeze: 'Bollinger Bands inside the Keltner Channel: 1 or 0', rsi: 'Relative Strength Index', roc: 'Rate of change', tsi: 'True Strength Index',
+  atr: 'Average True Range', adx: 'Average Directional Index', aroon_up: 'Aroon up', aroon: 'Aroon oscillator', aroon_down: 'Aroon down',
+  sma: 'Simple moving average', ema20: 'Exponential moving average, 20', ema50: 'Exponential moving average, 50', macd_diff: 'MACD histogram',
+  direction: 'Brick direction: up or down', rel_open: 'Open, relative to the brick', rel_high: 'High, relative to the brick', rel_low: 'Low, relative to the brick',
+  rel_close: 'Close, relative to the brick', is_last_bar: 'Last candle of the day: 1 or 0',
+  open: 'Open price', high: 'High price', low: 'Low price', close: 'Close price', volume: 'Volume',
+};
+const COL_P = { bb_bbh: 'window 20, dev 2', bb_bbl: 'window 20, dev 2', rsi: 'window 20', ema20: 'window 20', ema50: 'window 50', atr: 'window 14', adx: 'window 14' };
+const colsOf = man => man.n === 5 ? RAW5 : SUP23.slice(0, man.n).concat(Array.from({ length: Math.max(0, man.n - 23) }, (_, i) => `col_${24 + i}`));
+const repLong = man => man.rep === 'renko' ? 'Renko triples, brick 0.6 × ATR(14)' : 'Every candle a row';
+
+// ---------- checks, as a list ----------
+const ck3 = x => `<li class="ck-r ${x.st}"><span class="ck-i">${qi(x.st === 'ok' ? 'ok' : x.st === 'bad' ? 'x' : x.st === 'wait' ? 'clock' : 'dash')}</span><span><b>${x.t}</b>${x.s ? `<span class="h">${x.s}</span>` : ''}</span></li>`;
+QA_IC.clock = '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 1.5"/>';
+QA_IC.dash = '<path d="M7 12h10"/>';
+QA_IC.file = '<path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7z"/><path d="M14 3v4h4"/>';
+const checkList = list => `<ul class="cks">${list.map(ck3).join('')}</ul>`;
+
+// ---------- the upload: three steps, all in view ----------
+// 1 the model, 2 the manifest, 3 a short summary and Add model. The step in work is open, a
+// done step folds into what was found, a later step shows its title only.
+const MANIFEST_DOCS = 'https://candlestack.tech/docs/manifest';
+function dCase() {
+  const u = S.up, d = u.d, f = u.mode === 'man' ? MODELS.find(m => m.id === u.id) : null;
+  const want = f ? (f.shape || '25 × 5 → 1').split(' → ')[0].split(' × ').map(Number) : [25, 23];
+  const model = f ? { name: f.name, fw: f.fw, mb: f.size, params: null } : { name: d.mfname || 'my-tsmixer.keras', fw: 'Keras', mb: d.mf === 'two' ? '9.8 MB' : '14.2 MB', params: '410 k' };
+  const modelErr = !f && d.m && d.mf === 'two' ? { t: 'The model has 2 inputs', s: 'CandleStack takes models with one input. Join them into one, save the model again and upload that file.' } : null;
+  const mName = d.mname || `${model.name.replace(/\.[a-z]+$/, '')}.manifest.json`, win = d.mm === 'window' ? want[0] - 1 : want[0];
+  let manErr = null;
+  if (d.man === 1 && d.mm === 'catalog') manErr = { t: 'pocket-pivot@1 is not a block CandleStack knows', s: 'Column 14 uses it. Remove the column, or use a block from the list in the format guide.' };
+  if (d.man === 1 && d.mm === 'window') manErr = { t: `The manifest gives [${win}, ${want[1]}], the model takes [${want.join(', ')}]`, s: `Set "window.length" to ${want[0]} in the manifest, or upload the manifest made for this model.` };
+  const man = { name: mName, rep: want[1] === 5 ? 'Every candle a row' : 'Renko triples, brick 0.6 × ATR(14)', short: want[1] === 5 ? 'Candles' : 'Renko 0.6 × ATR', tf: '30m', win: want[0], n: want[1], cols: want[1] === 5 ? RAW5 : SUP23.slice(0, want[1]), example: true };
+  return { f, want, model, modelErr, man, manErr, mDone: !!d.m && !modelErr, manDone: d.man === 1 && !manErr, skip: d.man === 'skip' };
+}
+const dIcon = (st, n) => st === 'done' ? qi('ok') : st === 'bad' ? qi('x') : `<span>${n}</span>`;
+function dStep(n, st, title, body) {
+  return `<li class="d4-s ${st}"><span class="d4-n" aria-hidden="true">${dIcon(st, n)}</span><div class="d4-c"><h3>${title}</h3>${body || ''}</div></li>`;
+}
+const dFacts = list => `<dl class="d4-facts">${list.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
+const dErr = (e, act) => `<div class="d4-err" role="alert"><b>${e.t}</b><span>${e.s}</span><div><button type="button" class="btn sm" data-act="${act}">Choose another file</button></div></div>`;
+function dModalBody() {
+  const x = dCase(), d = S.up.d;
+  // Step 1: the model
+  let s1;
+  if (x.mDone) {
+    s1 = dStep(1, 'done', x.f ? 'The model' : 'Model uploaded', `<p class="d4-ok"><b>${x.model.name}</b>${x.f ? '' : '<button type="button" class="link" data-act="dRedoM">Change</button>'}</p>${dFacts([['Format', x.model.fw], ['Input', `<span class="mono">[${x.want.join(', ')}]</span>`], ['Output', '<span class="mono">[1]</span>'], ...(x.model.params ? [['Size', x.model.mb]] : [])])}`);
+  } else if (x.modelErr) {
+    s1 = dStep(1, 'bad', 'Upload the model', dErr(x.modelErr, 'dRedoM'));
+  } else {
+    s1 = dStep(1, 'on', 'Upload the model', `<p class="h">A trained model in Keras (.keras) or ONNX (.onnx), up to 50 MB.</p>
+      <button type="button" class="up-drop" data-act="dPickerM" aria-expanded="${!!d.pickM}"><span class="qa-i">${qi('up')}</span><b>Drop the model here</b><span class="h">or click to choose a file</span><span class="qa-fws">${FWS.map(f => `<span class="fw-l">${fwMini(f)}${f}</span>`).join('')}</span></button>${d.pickM ? dPicker(MODEL_FILES, 'dPickM') : ''}
+      <p class="h">PyTorch, TensorFlow or scikit-learn? Export the model to ONNX first. <a href="https://onnx.ai/onnx/intro/converters.html" target="_blank" rel="noopener">How to export</a></p>`);
+  }
+  // Step 2: the manifest
+  let s2;
+  if (!x.mDone) s2 = dStep(2, 'wait', 'Upload the manifest');
+  else if (x.manDone) {
+    const what = x.man.n === 5 ? 'candles' : 'Renko bricks', pick = S.mdCol != null && S.mdCol < x.man.cols.length ? S.mdCol : null, c = pick != null ? x.man.cols[pick] : null;
+    const scale = nm => x.man.n === 5 || nm === 'direction' || nm === 'is_last_bar' ? 'as is' : 'BLESK scaling';
+    const det = d.det ? `<div class="d4-det">${inputMatrix({ win: x.man.win }, x.man.cols, pick)}${c ? `<dl class="p5-col"><div><dt>${pick + 1} · ${c}</dt><dd>${COL_D[c] || 'Custom column'}</dd></div><div><dt>Settings</dt><dd>${COL_P[c] || 'none'}</dd></div><div><dt>Scaling</dt><dd>${scale(c)}</dd></div></dl>` : ''}</div>` : '';
+    const sh = `[${x.man.win}, ${x.man.n}]`;
+    s2 = dStep(2, 'done', 'Manifest uploaded', `<p class="d4-ok"><b>${x.man.name}</b><button type="button" class="link" data-act="dRedoMan">Change</button></p>${dFacts([['Input', `<span class="mono">${sh}</span>`], ['Output', '<span class="mono">[1]</span>'], ['Reads', `${x.man.n === 5 ? 'Candles' : 'Renko'} · 30m`], ['Warm-up', x.man.n === 5 ? `${x.man.win} candles` : '≈ 600 candles']])}<button type="button" class="d4-match" data-act="dDet" aria-expanded="${!!d.det}"><span class="mono">model ${sh}</span><span class="d4-eq">=</span><span class="mono">manifest ${sh}</span><span class="d4-tick">${qi('ok')}</span><svg class="i d4-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>${det}`);
+  } else if (x.manErr) {
+    s2 = dStep(2, 'bad', 'Upload the manifest', dErr(x.manErr, 'dRedoMan'));
+  } else if (x.skip) {
+    s2 = dStep(2, 'done', 'No manifest for now', `<p class="h">You can add it later from Models. <button type="button" class="link" data-act="dRedoMan">Add it now</button></p>`);
+  } else {
+    s2 = dStep(2, 'on', 'Upload the manifest', `<p class="h">The manifest tells CandleStack how to build the model's input: which candles, which columns in which order, how many rows. <a href="${MANIFEST_DOCS}" target="_blank" rel="noopener">About the manifest format</a></p>
+      <button type="button" class="up-drop" data-act="dPickerMan" aria-expanded="${!!d.pickMan}"><span class="qa-i">${qi('file')}</span><b>Drop manifest.json here</b><span class="h">or click to choose a file</span></button>${d.pickMan ? dPicker(manFiles(x), 'dPickMan') : ''}
+      ${S.up.mode === 'man' ? '' : '<p class="h"><button type="button" class="link" data-act="dSkip">Add the model without a manifest</button></p>'}`);
+  }
+  // Step 3: the summary
+  const ready = x.mDone && (x.manDone || x.skip);
+  const s3 = !ready ? dStep(3, 'wait', S.up.mode === 'man' ? 'Save' : 'Add the model')
+    : dStep(3, 'on', S.up.mode === 'man' ? 'Save the manifest' : 'Add the model', x.skip
+      ? `<p>${x.model.name} goes to Models as <b>Needs setup</b>. It can run once it has a manifest.</p>`
+      : `<p class="d4-ok"><b>${x.model.name}</b><span class="muted">${x.man.n === 5 ? 'Candles' : 'Renko bricks'}, 30m · ${x.man.win} × ${x.man.n}</span></p>`);
+  return { body: `<ol class="d4-steps">${s1}${s2}${s3}</ol>`, ready, x };
+}
+MODALS.upload = () => {
+  const { body, ready, x } = dModalBody(), man = S.up.mode === 'man';
+  const label = man ? 'Save' : 'Add model';
+  return modalShell(man ? `Add a manifest to ${x.model.name}` : 'Add a model', body, `<button type="button" class="btn" data-act="closeModal">Cancel</button><button type="button" class="btn pri" data-act="dAdd" ${ready ? '' : 'disabled'}>${label}</button>`);
+};
+MODALS.man = () => MODALS.upload();
+const DNEW = () => ({ m: 0, man: 0, det: false });
+ACT.upOpen = () => { S.modal = 'upload'; S.up = { mode: 'new', d: DNEW() }; S.mdCol = null; return true; };
+ACT.manOpen = (b, v) => { S.modal = 'upload'; S.up = { mode: 'man', id: v, d: { ...DNEW(), m: 1 } }; S.manFor = v; return true; };
+// Example files to pick from: each shows one case of the checks
+const MODEL_FILES = [['my-tsmixer.keras', '14.2 MB · Today 15:02', 'ok'], ['two-inputs.keras', '9.8 MB · Yesterday 21:40', 'two']];
+const manFiles = x => { const s = x.model.name.replace(/\.[a-z]+$/, ''); return [[`${s}.manifest.json`, '3 KB · Today 15:02', 'ok'], [`${s}-old.manifest.json`, '3 KB · 12 Oct', 'window'], ['with-pocket-pivot.manifest.json', '3 KB · 9 Oct', 'catalog']]; };
+const dPicker = (files, act) => `<div class="up-pick"><span class="eyebrow">Downloads</span>${files.map(([n, s, v], i) => `<button type="button" class="up-pf" data-act="${act}" data-val="${i}">${qi('file')}<span><b>${n}</b><span class="h">${s}</span></span></button>`).join('')}</div>`;
+ACT.dPickerM = () => { S.up.d.pickM = !S.up.d.pickM; return true; };
+ACT.dPickM = (b, v) => { const [n, , k] = MODEL_FILES[+v]; Object.assign(S.up.d, { m: 1, mf: k, mfname: n, pickM: false }); return true; };
+ACT.dPickerMan = () => { S.up.d.pickMan = !S.up.d.pickMan; return true; };
+ACT.dPickMan = (b, v) => { const [n, , k] = manFiles(dCase())[+v]; Object.assign(S.up.d, { man: 1, mm: k, mname: n, pickMan: false }); return true; };
+ACT.dRedoM = () => { S.up.d = { ...DNEW(), pickM: true }; return true; };
+ACT.dRedoMan = () => { Object.assign(S.up.d, { man: 0, mm: null, mname: null, det: false, pickMan: true }); return true; };
+ACT.dSkip = () => { S.up.d.man = 'skip'; return true; };
+ACT.dDet = () => { S.up.d.det = !S.up.d.det; return true; };
+ACT.dAdd = () => {
+  const x = dCase(); if (!(x.mDone && (x.manDone || x.skip))) return true;
+  if (S.up.mode === 'man') {
+    const m = x.f; MAN[m.id] = { ...(x.want[1] === 5 ? MAN_TPL[0].man : BLESK), win: x.want[0], n: x.want[1] }; MSTATE[m.id] = 'ver'; m.reads = MAN[m.id].rep;
+    if (S.page === 'new') S.b.model = m.id;
+    S.modal = null; return true;
+  }
+  if (!MODELS.find(m => m.id === 'upn')) {
+    MODELS.push({ id: 'upn', name: 'my-tsmixer-2.keras', fw: 'Keras', src: 'up', fresh: true, reads: x.skip ? null : 'renko', shape: '25 × 23 → 1', runs: 0, size: '14.2 MB', added: 'Today' });
+    if (!x.skip) { MAN.upn = { ...BLESK }; MSTATE.upn = 'ver'; }
+    USAGE.modelsMB = +(USAGE.modelsMB + 14.2).toFixed(1);
+  }
+  S.modal = null; go('models'); S.mdPage = 'upn'; S.mdTab = 'input'; go('model');
+  return true;
+};
+
+// ---------- models: the state of each model and its manifest ----------
+const mdRuns = m => runs().filter(r => r.model === m.name);
+// The tiles, each with its state; a tile opens the model's page
+function mdTileA(m) {
+  const { n, best } = mdStat(m), s = mSt(m), man = MAN[m.id];
+  return `<article class="card md-t m3-tile" data-act="mdOpen" data-val="${m.id}" tabindex="0" role="button" aria-label="Open ${m.name}"><div class="md-top">${fwIcon(m.fw)}${stPill(m)}</div>
+    <div class="md-name"><b title="${m.name}">${m.name}</b><span class="hint">${m.fw} · ${m.size}${m.src === 'up' ? ` · added ${m.added}` : ''}</span></div>
+    <div class="m3-in">${man ? `${REP[man.rep]} · ${man.tf} · ${man.win} × ${man.n}` : `in ${m.shape ? m.shape.split(' → ')[0] : '?'} · no manifest`}</div>
+    ${s === 'set' ? `<div style="margin-top:auto"><button type="button" class="btn sm" data-act="manOpen" data-val="${m.id}">Add manifest</button></div>` : `<div class="md-st"><div><b>${best === null ? '–' : num(best)}</b><span class="hint">best Sharpe</span></div><div><b>${n}</b><span class="hint">${n === 1 ? 'backtest' : 'backtests'}</span></div></div>`}</article>`;
+}
+// A page for each model with its manifest, checks and backtests
+// The model's input as a picture: rows down (oldest at the top, now at the bottom), columns
+// across in their groups, then the one number it predicts. Cell shades are example values.
+const COL_G = [['Bands', 5], ['Momentum', 3], ['Trend', 9], ['Brick', 6]];
+function inputMatrix(man, list, pick) {
+  const rnd = mulberry(man.win * 31 + list.length), groups = list.length === 5 ? [['Candle', 5]] : list.length === 23 ? COL_G : [['Columns', list.length]];
+  const colsHtml = list.map((nm, j) => {
+    const cells = Array.from({ length: man.win }, (_, i) => { const v = 0.5 + 0.32 * Math.sin(i * 0.35 + j * 1.9) + (rnd() - 0.5) * 0.3; return `<i style="--a:${Math.round(12 + Math.max(0, Math.min(1, v)) * 62)}%"></i>`; }).join('');
+    return `<button type="button" class="p6-col ${pick === j ? 'on' : ''}" data-act="mdCol" data-val="${j}" aria-pressed="${pick === j}" aria-label="Column ${j + 1}, ${nm}" title="${nm}">${cells}</button>`;
+  }).join('');
+  return `<div class="p6-wrap"><div class="p6-mx" style="--n:${list.length}">
+    <div class="p6-groups">${groups.map(([g, k]) => `<span style="grid-column:span ${k}">${g}</span>`).join('')}</div>
+    <div class="p6-ax"><span>oldest</span><span>${man.win} rows</span><span>now</span></div>
+    <div class="p6-grid">${colsHtml}</div>
+    <div class="p6-out"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M14 7l5 5-5 5"/></svg><div><span class="p6-cell" aria-label="Output, one number"></span><span class="mono">[1]</span><span class="h">prediction</span></div></div>
+    <div class="p6-foot">${list.length} columns</div>
+  </div></div>`;
+}
+// One screen, nothing to switch: the numbers, the columns and the checks side by side, the
+// backtests under them. A column shows its block and settings on click.
+function pageModel() {
+  const m = MODELS.find(x => x.id === S.mdPage) || MODELS[0], s = mSt(m), man = MAN[m.id], rs = mdRuns(m), up = m.src === 'up';
+  const { n, best } = mdStat(m);
+  const shape = man ? [man.win, man.n] : (m.shape || '? × ?').split(' → ')[0].split(' × ');
+  const fact = (k, v) => `<div><dt>${k}</dt><dd>${v}</dd></div>`;
+  const facts = `<dl class="p5-facts">${man ? fact('Reads', `${REP[man.rep]} · ${man.tf}`) + fact('Warm-up', `${man.rep === 'renko' ? '≈ ' : ''}${man.warm} candles`) : fact('Input', `<span class="mono">[${shape.join(', ')}]</span>`)}${fact('Backtests', n)}${fact('Best Sharpe', best === null ? '–' : num(best))}</dl>`;
+  let cols;
+  if (man) {
+    const list = colsOf(man), pick = S.mdCol != null && S.mdCol < list.length ? S.mdCol : null, c = pick != null ? list[pick] : null;
+    const scaling = nm => man.n === 5 || nm === 'direction' || nm === 'is_last_bar' ? 'as is' : 'BLESK scaling';
+    cols = `<section class="card p5-box"><h2>Input <span class="muted mono">[${man.win}, ${list.length}]</span></h2>${inputMatrix(man, list, pick)}
+      ${c ? `<dl class="p5-col"><div><dt>${pick + 1} · ${c}</dt><dd>${COL_D[c] || 'Custom column'}</dd></div><div><dt>Settings</dt><dd>${COL_P[c] || 'none'}</dd></div><div><dt>Scaling</dt><dd>${scaling(c)}</dd></div></dl>` : '<p class="h">Click a column to see what it is.</p>'}</section>`;
+  } else {
+    cols = `<section class="card p5-box p5-empty"><h2>No manifest</h2><button type="button" class="btn pri" data-act="manOpen" data-val="${m.id}">Add manifest</button></section>`;
+  }
+  const c = (st, t) => ({ st, t, s: '' });
+  const ck = [c('ok', 'Opens, no custom code'), c('ok', 'Trained weights'), c('ok', 'One input, one output')];
+  if (s === 'set') ck.push(c('off', 'Manifest'), c('off', 'Trial run'), c('off', 'Example'));
+  else ck.push(c('ok', `Manifest fits [${shape.join(', ')}]`), c('ok', 'Trial run'), s === 'ver' ? c('ok', 'Example matches') : c('off', 'No example'));
+  const checks = `<section class="card p5-box"><h2>Checks</h2>${checkList(ck)}</section>`;
+  const runsBox = `<section class="card p5-runs"><h2>Backtests <span class="muted">${rs.length}</span></h2>${rs.length ? runsTable({ rows: rs, drop: ['setup'] }) : '<p class="muted">None yet</p>'}</section>`;
+  const acts = `${man ? `<button type="button" class="btn sm pri" data-act="mdBt" data-val="${m.id}">Backtest with it</button><button type="button" class="btn sm">Download manifest</button>` : `<button type="button" class="btn sm pri" data-act="manOpen" data-val="${m.id}">Add manifest</button>`}${up ? `<button type="button" class="btn sm ghost" data-act="mdRename" data-val="${m.id}">Rename</button><button type="button" class="btn sm ghost md-del" data-act="mdDelete" data-val="${m.id}">Delete</button>` : ''}`;
+  return `<button type="button" class="back" data-act="go" data-val="models">← Models</button>
+    <div class="p5-hd">${fwIcon(m.fw)}<div class="p5-t"><h1>${m.name}</h1><span class="muted">${m.fw} · ${m.size} · ${up ? `added ${m.added}` : 'built in'}</span></div>${stPill(m)}<div class="chips p5-acts">${acts}</div></div>
+    ${facts}<div class="p5-two">${cols}${checks}</div>${runsBox}`;
+}
+PAGES.model = pageModel;
+ACT.mdCol = (b, v) => { S.mdCol = S.mdCol === +v ? null : +v; return true; };
+ACT.mdPage = (b, v) => { S.mdPage = v; S.mdCol = null; go('model'); return true; };
+ACT.mdOpen = ACT.mdPage;
+
+DIRS.D.owns.push('model');
+ddModels = function () {
+  const list = models(), mb = S.empty ? 0 : USAGE.modelsMB, need = list.filter(m => mSt(m) === 'set').length;
+  const upload = `<button type="button" class="qa-c md-up" data-act="upOpen"><span class="qa-i">${qi('up')}</span><span class="qa-t"><b>Upload model</b><span class="qa-fws">${FWS.map(f => `<span class="fw-l">${fwMini(f)}${f}</span>`).join('')}</span></span></button>`;
+  const head = `<div class="ttl"><div><h1>Models</h1><p>${list.length} ${list.length === 1 ? 'model' : 'models'} · ${mb} MB of ${USAGE.capMB} MB used${need ? ` · <span style="color:var(--warn)">${need} ${need === 1 ? 'needs' : 'need'} a manifest</span>` : ''}</p></div>${upload}</div>`;
+  return `${head}<div class="md-g">${list.map(mdTileA).join('')}</div>`;
+};
+const dfnD = DFN.D;
+DFN.D = () => S.page === 'model' ? `<div class="dd-ws">${ddSide().replace('data-val="models"', 'data-val="models" aria-current="page"').replace(/class="dd-nav "([^>]*data-val="models")/, 'class="dd-nav on"$1')}<div class="dd-main">${pageModel()}</div></div>` : dfnD();
+ACT.mdBt = (b, v) => { S.newSrc = null; bOpen(); S.b.model = v; go('new'); return true; };
+
+// ---------- the backtest page ----------
+const RD = {};
+// Example series of a finished run, from its equity curve: the price is buy and hold scaled to the
+// instrument's price, trades are spans of that price, the drawdown follows the strategy.
+function runData(r) {
+  if (RD[r.id]) return RD[r.id];
+  const e = eqRun(r), rnd = mulberry(r.id * 104729 + 7), p0 = (BI[r.inst[0]] || [0, 0, 100])[2] / (1 + r.bh / 100);
+  const price = e.b.map(v => p0 * v), trades = [];
+  let i = 2;
+  while (i < e.n - 3) { const len = 2 + Math.floor(rnd() * 6); if (rnd() < 0.55) { const j = Math.min(e.n - 1, i + len); trades.push([i, j]); i = j + 1 + Math.floor(rnd() * 3); } else i += 2; }
+  let pk = e.s[0]; const dd = e.s.map(v => { pk = Math.max(pk, v); return v / pk - 1; });
+  const months = (r.to - r.from + 1) * 12, mret = [];
+  for (let k = 0; k < months; k++) { const a = e.s[Math.round(k / months * e.n)], b = e.s[Math.round((k + 1) / months * e.n)]; mret.push((b / a - 1) * 100); }
+  return RD[r.id] = { e, price, trades, dd, mret };
+}
+const yrs = r => Array.from({ length: r.to - r.from + 1 }, (_, k) => r.from + k);
+function priceChart(r, h = 300) {
+  const { e, price, trades } = runData(r), w = 800, pl = 8, pr = 58, pt = 14, pb = 24, iw = w - pl - pr, ih = h - pt - pb;
+  let lo = Math.min(...price), hi = Math.max(...price); const pd = (hi - lo) * 0.08; lo -= pd; hi += pd;
+  const x = i => pl + i / e.n * iw, y = v => pt + (hi - v) / (hi - lo) * ih; let g = '';
+  niceTicks(lo, hi, 4).forEach(t => { const yy = y(t); g += `<line class="gl" x1="${pl}" x2="${pl + iw}" y1="${yy}" y2="${yy}"/><text class="ax" x="${w - pr + 6}" y="${yy + 4}">${Math.round(t)}</text>`; });
+  const ys = yrs(r); ys.forEach((l, k) => { g += `<text class="ax" x="${x(k * e.n / ys.length) + 2}" y="${h - 6}">${l}</text>`; });
+  trades.forEach(([a, b]) => { g += `<rect class="pos" x="${x(a)}" y="${pt}" width="${Math.max(2, x(b) - x(a))}" height="${ih}"/>`; });
+  g += `<path class="pl" d="${price.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join('')}"/>`;
+  trades.forEach(([a, b]) => { const xa = x(a), ya = y(price[a]) + 12, xb = x(b), yb = y(price[b]) - 12; g += `<path class="mk-in" d="M${xa} ${ya - 6}L${xa - 5} ${ya + 3}L${xa + 5} ${ya + 3}Z"/><path class="mk-out" d="M${xb} ${yb + 6}L${xb - 5} ${yb - 3}L${xb + 5} ${yb - 3}Z"/>`; });
+  return `<div class="r3-ch"><svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${r.inst[0]} price with the strategy's trades">${g}</svg></div>`;
+}
+function tradeRows(r, n = 8) {
+  const { price, trades, e } = runData(r), span = (r.to - r.from + 1) * 365, d0 = Date.UTC(r.from, 0, 2);
+  const day = i => { const d = new Date(d0 + i / e.n * span * 864e5); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+  return trades.slice(-n).reverse().map(([a, b], k) => { const ret = (price[b] / price[a] - 1) * 100 - 0.24; const why = k === 2 ? 'stop' : k === 0 && b === e.n - 1 ? 'end' : 'signal'; return `<tr class="r3-tr"><td class="sig">${day(a)}</td><td class="num">${price[a].toFixed(2)}</td><td class="sig">${day(b)}</td><td class="num">${price[b].toFixed(2)}</td><td class="num ${ret >= 0 ? 'up' : 'down'}">${pct(ret)}</td><td class="num">${(b - a) * 11}</td><td class="muted">${why}</td></tr>`; }).join('');
+}
+function tradesTable(r, n = 8) {
+  return `<div class="tblwrap"><table class="tbl"><tr><th>Bought</th><th class="num">at</th><th>Sold</th><th class="num">at</th><th class="num">Return</th><th class="num">Candles</th><th>Why</th></tr>${tradeRows(r, n)}</table></div>`;
+}
+function runSetupOf(r) {
+  const m = MODELS.find(x => x.name === r.model), man = m && MAN[m.id];
+  return [
+    ['Model', r.model, man ? `${REP[man.rep]} · ${man.tf} · ${man.win} × ${man.n}` : ''],
+    ['Data', r.inst[0], `${r.tf} · Jan ${r.from} – Dec ${r.to}`],
+    ['Decision', `threshold ${r.t.toFixed(2)} · ${dirText(r.dir)}`, `stop loss ${r.sl}`],
+    ['Execution', 'next candle\'s open', 'fees 0.1 % · slippage 0.02 % · vs buy and hold'],
+  ];
+}
+const setupList = r => `<div class="r3-setup">${runSetupOf(r).map(([k, a, b]) => `<div><span class="eyebrow">${k}</span><b style="font-weight:500">${a}</b>${b ? `<span class="v muted">${b}</span>` : ''}</div>`).join('')}</div>`;
+const RESULT_DOCS = 'https://candlestack.tech/docs/backtest-json';
+const runHead = r => {
+  const done = r.st === 'done';
+  const acts = r.st === 'running' ? '<button type="button" class="btn sm">Cancel</button>'
+    : done ? `<span class="r7-json"><button type="button" class="btn sm">${qi('up', 'i r7-dl')}Download JSON</button><a class="btn sm" href="${RESULT_DOCS}" target="_blank" rel="noopener" aria-label="About the JSON format" title="About the JSON format">?</a></span><button type="button" class="btn sm" data-act="noop">Compare</button>` : '';
+  const m = MODELS.find(x => x.name === r.model);
+  return `${backBtn()}<div class="r7-hd"><div class="r7-t"><h1>Backtest #${r.id}</h1>${stBadge(r)}</div><div class="chips">${acts}</div></div>
+    <div class="r3-sub r7-sub"><span><b>${r.inst[0]}</b></span><span>${m ? `<button type="button" class="link" data-act="mdPage" data-val="${m.id}">${r.model}</button>` : r.model}</span><span>Jan ${r.from} – Dec ${r.to}</span><span>${when(r)}${r.dur ? ` · ${dur(r.dur)}` : ''}</span></div>`;
+};
+// The engine's stats (docs/engine.md, Metrics), in its order. Example values derived from the run.
+function runStats(r) {
+  const { price, trades, e } = runData(r), rets = trades.map(([a, b]) => (price[b] / price[a] - 1) * 100 - 0.24);
+  const inMarket = trades.reduce((s, [a, b]) => s + b - a, 0) / e.n * 100;
+  return [
+    ['Total return', pct(r.ret), r.ret >= 0 ? 'up' : 'down'], ['Max drawdown', pct(r.dd), 'down'], ['Sharpe', num(r.sharpe), ''], ['Sortino', num(r.sharpe * 1.38), ''],
+    ['Trades', fmtN(r.trades), ''], ['Win rate', `${r.win.toFixed(1)} %`, ''], ['Avg. trade', pct(r.ret / Math.max(1, r.trades) * 1.6), ''],
+    ['Best trade', pct(Math.max(...rets)), 'up'], ['Worst trade', pct(Math.min(...rets)), 'down'], ['Time in market', `${inMarket.toFixed(1)} %`, ''],
+    ['Fees paid', `${(r.trades * 0.24 / 100 * 0.9).toFixed(2)} ×`, ''], ['Buy and hold', pct(r.bh), r.bh >= 0 ? 'up' : 'down'],
+  ];
+}
+function resA(r) {
+  const base = [['Return', pct(r.ret), r.ret >= 0 ? 'up' : 'down'], ['Buy and hold', pct(r.bh), ''], ['Sharpe', num(r.sharpe), ''], ['Max drawdown', pct(r.dd), 'down'], ['Trades', fmtN(r.trades), ''], ['Win rate', `${r.win.toFixed(1)} %`, '']];
+  const strip = `<dl class="p5-facts r7-strip">${base.map(([k, v, c]) => `<div><dt>${k}</dt><dd class="${c}">${v}</dd></div>`).join('')}</dl>`;
+  const all = `<section class="card r7-box"><h2>All metrics</h2><dl class="r7-all">${runStats(r).map(([k, v, c]) => `<div><dt>${k}</dt><dd class="${c}">${v}</dd></div>`).join('')}</dl></section>`;
+  const setup = `<section class="card r7-box"><h2>Setup</h2>${setupList(r)}</section>`;
+  const charts = `<section class="card r7-box"><div class="r3-hd"><h2>Equity</h2><div class="r3-legend"><span><i></i>Strategy</span><span><i class="b"></i>Buy and hold</span></div></div><div class="r7-ch" id="r7-eq" style="height:240px">${equity(eqRun(r), 240)}</div><div class="r7-ch" id="r7-dd" style="height:90px"></div></section>
+    <section class="card r7-box"><div class="r3-hd"><h2>${r.inst[0]}</h2><div class="r3-legend"><span><i style="background:var(--up)"></i>Buy</span><span><i class="dn"></i>Sell</span></div></div><div class="r7-ch" id="r7-px" style="height:220px">${priceChart(r, 220)}</div></section>`;
+  const trades = `<section class="card r7-box"><div class="r3-hd"><h2>Trades <span class="muted">${fmtN(r.trades)}</span></h2><button type="button" class="btn sm ghost">Show all</button></div>${tradesTable(r, 6)}</section>`;
+  return `${strip}<div class="r7-grid"><div class="r7-main">${charts}${trades}</div><aside class="r7-side">${all}${setup}</aside></div>`;
+}
+PAGES.run = function () {
+  const r = runById(S.run);
+  if (r.st === 'running') return `${runHead(r)}<div class="stack"><section class="card pane stack"><div class="run-h"><b>${r.stage}</b><span class="mono muted" style="font-size:12px">${r.eta}</span></div>${progBar(r.prog)}<p class="hint">You can close the page. The backtest keeps going.</p></section><section class="card r7-box"><h2>Setup</h2>${setupList(r)}</section></div>`;
+  if (r.st === 'failed') return `${runHead(r)}<div class="stack"><div class="err"><span class="dot"></span><span>${r.err}</span></div><section class="card r7-box"><h2>Setup</h2>${setupList(r)}</section></div>`;
+  return `${runHead(r)}${resA(r)}`;
+};
+CORE.openRun = (b, v) => { S.run = +v; go('run'); };
+
+// ---------- TradingView Lightweight Charts, read only ----------
+// The app already uses lightweight-charts 5.2.1. The SVG charts above stay as the fallback when
+// the library does not load.
+let LWC = [];
+const tok = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+const rgba = (hex, a) => { const h = hex.replace('#', ''), n = parseInt(h.length === 3 ? h.replace(/./g, '$&$&') : h, 16); return `rgba(${n >> 16 & 255}, ${n >> 8 & 255}, ${n & 255}, ${a})`; };
+function lwDay(r, i, n) { const a = Date.UTC(r.from, 0, 2), z = Date.UTC(r.to, 11, 31), d = new Date(a + i / n * (z - a)); return d.toISOString().slice(0, 10); }
+function mountRunCharts() {
+  LWC.forEach(c => c.remove()); LWC = [];
+  const L = window.LightweightCharts, el = id => document.getElementById(id);
+  if (!L || S.page !== 'run' || !el('r7-eq')) return;
+  const r = runById(S.run); if (!r || r.st !== 'done') return;
+  const { e, price, trades, dd } = runData(r), t = i => lwDay(r, i, e.n);
+  const ink = tok('--ink'), muted = tok('--muted'), grid = rgba(tok('--muted'), 0.14), up = tok('--up'), down = tok('--down'), accent = tok('--accent'), bg = tok('--bg');
+  const base = (h, extra = {}) => ({
+    height: h, autoSize: true, layout: { background: { color: bg }, textColor: muted, fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 11, attributionLogo: true },
+    grid: { vertLines: { visible: false }, horzLines: { color: grid } }, rightPriceScale: { borderVisible: false }, timeScale: { borderVisible: false, fixLeftEdge: true, fixRightEdge: true },
+    handleScroll: false, handleScale: false, crosshair: { mode: 1, vertLine: { color: muted, labelBackgroundColor: ink }, horzLine: { color: muted, labelBackgroundColor: ink } }, ...extra,
+  });
+  const make = (id, h, extra) => { const box = el(id); box.innerHTML = ''; const c = L.createChart(box, base(h, extra)); LWC.push(c); return c; };
+  const pctFmt = { type: 'custom', formatter: v => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(1)}%` };
+  // Equity: above the start green, below red; buy and hold dashed
+  const eq = make('r7-eq', 240);
+  eq.addSeries(L.BaselineSeries, { baseValue: { type: 'price', price: 0 }, topLineColor: up, topFillColor1: rgba(up, 0.22), topFillColor2: rgba(bg, 0), bottomLineColor: down, bottomFillColor1: rgba(bg, 0), bottomFillColor2: rgba(down, 0.22), lineWidth: 2, priceFormat: pctFmt, title: 'Strategy' })
+    .setData(e.s.map((v, i) => ({ time: t(i), value: (v - 1) * 100 })));
+  eq.addSeries(L.LineSeries, { color: muted, lineWidth: 1, lineStyle: 2, priceFormat: pctFmt, lastValueVisible: false, priceLineVisible: false, title: 'Buy and hold' })
+    .setData(e.b.map((v, i) => ({ time: t(i), value: (v - 1) * 100 })));
+  // Drawdown under it, on the same dates
+  const ddc = make('r7-dd', 90, { timeScale: { visible: false, fixLeftEdge: true, fixRightEdge: true } });
+  ddc.addSeries(L.AreaSeries, { lineColor: down, topColor: rgba(down, 0.06), bottomColor: rgba(down, 0.26), lineWidth: 1, priceFormat: pctFmt, priceLineVisible: false, title: 'Drawdown' })
+    .setData(dd.map((v, i) => ({ time: t(i), value: v * 100 })));
+  // The price, a line with the trades on it
+  const px = make('r7-px', 220);
+  const ps = px.addSeries(L.AreaSeries, { lineColor: ink, topColor: rgba(accent, 0.14), bottomColor: rgba(bg, 0), lineWidth: 1.5, priceLineVisible: false });
+  ps.setData(price.map((v, i) => ({ time: t(i), value: +v.toFixed(2) })));
+  const marks = []; trades.forEach(([a, b]) => { marks.push({ time: t(a), position: 'belowBar', color: up, shape: 'arrowUp' }, { time: t(b), position: 'aboveBar', color: down, shape: 'arrowDown' }); });
+  if (L.createSeriesMarkers) L.createSeriesMarkers(ps, marks);
+  [eq, ddc, px].forEach(c => c.timeScale().fitContent());
+}
+
+const render2 = render;
+render = function () {
+  render2();
+  const app = document.getElementById('app');
+  try { mountRunCharts(); } catch (err) { console.warn('charts', err); }
+};
+// The model tiles are whole-card buttons: Enter and Space open them as a click does
+document.addEventListener('keydown', e => { const el = e.target; if ((e.key === 'Enter' || e.key === ' ') && el.matches && el.matches('.m3-tile')) { e.preventDefault(); el.click(); } });
+render();
+</script>
+
 </body>
 </html>
