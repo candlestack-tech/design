@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Instrument page</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap">
+<style>
+/* The signed-in instrument page: the app's header, a back link, then the page as stage has it today, full width like a backtest's page. */
+:root {
+  --bg: #fafaf9; --card: #ffffff; --line: #e7e5e2; --fg: #18181b; --muted: #5f6168; --soft: #f1f1ef;
+  --accent: #0e9f77; --accent-soft: #e3f4ee; --up: #1a7f37; --down: #b42318; --avatar: #e3f4ee;
+  --sans: Geist, system-ui, sans-serif; --mono: "Geist Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0d0e10; --card: #0f1012; --line: #1f2125; --fg: #e8e9eb; --muted: #9ba1a6; --soft: #17181b;
+  --accent: #3cc79f; --accent-soft: #16302a; --up: #43b049; --down: #f0616d; --avatar: #16302a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0d0e10; --card: #0f1012; --line: #1f2125; --fg: #e8e9eb; --muted: #9ba1a6; --soft: #17181b;
+  --accent: #3cc79f; --accent-soft: #16302a; --up: #43b049; --down: #f0616d; --avatar: #16302a; color-scheme: dark }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); }
+.wrap { max-width: 1128px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.bar { border-bottom: 1px solid var(--line); }
+header.bar .wrap { height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { display: flex; align-items: center; gap: 8px; font-size: 19px; font-weight: 600; color: var(--fg); text-decoration: none; }
+.brand i { width: 26px; height: 26px; border-radius: 6px; background: var(--accent); display: grid; place-items: center; }
+.right { display: flex; align-items: center; gap: 16px; }
+.btn { background: var(--accent); color: #0d0e10; border: 0; border-radius: 6px; padding: 8px 14px; font: 600 14px var(--sans); cursor: pointer; }
+.icon { background: none; border: 0; padding: 4px; color: var(--muted); display: grid; cursor: pointer; border-radius: 6px; }
+.icon:focus-visible, .tf button:focus-visible, .btn:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--avatar); color: var(--accent); display: grid; place-items: center; font-size: 11px; font-weight: 700; }
+main.wrap { padding-block: 28px 40px; display: flex; flex-direction: column; gap: 14px; }
+.back { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; font-size: 14px; width: max-content; }
+.back:hover { color: var(--fg); }
+.title { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.logo { width: 60px; height: 60px; flex: none; border-radius: 8px; background: #fff; border: 1px solid var(--line); display: grid; place-items: center; }
+.title small { font: 13px var(--mono); color: var(--muted); }
+.title h1 { margin: 2px 0 0; font-size: 28px; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 32px; font-size: 12.5px; color: var(--muted); }
+.facts div { display: flex; flex-direction: column; gap: 2px; }
+.facts b { font: 600 14px var(--mono); color: var(--fg); }
+.tf { display: flex; flex-wrap: wrap; gap: 6px; }
+.tf button { background: var(--card); border: 1px solid var(--line); color: var(--muted); border-radius: 6px; padding: 5px 11px; font: 500 13px var(--mono); cursor: pointer; }
+.tf button:hover { color: var(--fg); }
+.tf button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.card { position: relative; border: 1px solid var(--line); border-radius: 10px; background: var(--card); padding: 12px 14px; }
+.legend { position: absolute; z-index: 3; top: 14px; left: 16px; font: 12px var(--mono); color: var(--muted); pointer-events: none; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.legend b { font-weight: 500; }
+#chart { height: 480px; }
+.latest { position: absolute; z-index: 3; right: 80px; bottom: 54px; background: var(--card); border: 1px solid var(--line); color: var(--fg); border-radius: 6px; padding: 5px 8px; font: 500 12px var(--sans); cursor: pointer; }
+.foot { margin-top: 8px; font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+@media (max-width: 640px) { #chart { height: 360px; } .title h1 { font-size: 22px; } .btn { display: none; } }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="bar"><div class="wrap">
+  <a class="brand" href="#"><i><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="4" width="3" height="7" rx="1" fill="#0d0e10"/><rect x="8" y="2" width="3" height="9" rx="1" fill="#0d0e10"/></svg></i>CandleStack</a>
+  <div class="right">
+    <button class="btn" type="button">New backtest</button>
+    <button class="icon" type="button" id="theme" aria-label="Switch theme"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+    <span class="avatar">AL</span>
+  </div>
+</div></header>
+
+<main class="wrap">
+  <a class="back" href="#"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8H3M7 4L3 8l4 4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Instruments</a>
+  <div class="title">
+    <span class="logo"><svg width="36" height="20" viewBox="0 0 36 20" aria-hidden="true"><path d="M4 16c0-8 4-13 8-13 5 0 8 13 12 13 3 0 5-3 5-7s-2-6-4-6c-5 0-8 13-13 13-4 0-8-2-8-0z" stroke="#0866ff" stroke-width="3" fill="none" stroke-linecap="round"/></svg></span>
+    <div><small>stock:META</small><h1>Meta Platforms, Inc. Class A Common Stock</h1></div>
+  </div>
+  <div class="facts">
+    <div><span>Symbol</span><b>META</b></div>
+    <div><span>Exchange</span><b>NASDAQ</b></div>
+    <div><span>Source</span><b>alpaca (sip)</b></div>
+    <div><span>Data since</span><b>4 Jan 2016</b></div>
+  </div>
+  <div class="tf" role="group" aria-label="Timeframe"></div>
+  <section class="card" aria-label="Candles of META">
+    <div class="legend" id="legend"></div>
+    <div id="chart"></div>
+    <button class="latest" id="latest" type="button" hidden>Latest ›</button>
+    <div class="foot"><span>Scroll left for older candles, scroll to zoom. Times are New York time.</span><span>Example data in this prototype</span></div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@5.2.1/dist/lightweight-charts.standalone.production.js"></script>
+<script>
+const LC = window.LightweightCharts;
+const FRAMES = [['1m', 60], ['5m', 300], ['15m', 900], ['30m', 1800], ['1h', 3600], ['4h', 14400], ['1d', 86400]];
+let frame = '1d';
+
+// A seeded walk around META's level, so every timeframe has candles that look alike each time.
+function series(seconds) {
+  let seed = seconds % 9973 + 7;
+  const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const count = 260;
+  const end = Math.floor(Date.UTC(2026, 9, 27, 20) / 1000);
+  const scale = Math.sqrt(seconds / 86400);
+  let price = 630 / (1 + 0.25 * scale);
+  const out = [];
+  for (let i = 0; i < count; i += 1) {
+    const open = price;
+    const drift = Math.sin(i / 22) * 0.004 + (rand() - 0.48) * 0.03 * Math.max(scale, 0.12);
+    const close = Math.max(50, open * (1 + drift));
+    const high = Math.max(open, close) * (1 + rand() * 0.012 * Math.max(scale, 0.2));
+    const low = Math.min(open, close) * (1 - rand() * 0.012 * Math.max(scale, 0.2));
+    out.push({ time: end - (count - 1 - i) * seconds, open, high, low, close, volume: Math.round((8 + rand() * 30) * 1e6 * Math.max(scale, 0.05)) });
+    price = close;
+  }
+  return out;
+}
+
+function tokens() {
+  const css = getComputedStyle(document.documentElement);
+  const get = (n) => css.getPropertyValue(n).trim();
+  return { up: get('--up'), down: get('--down'), muted: get('--muted'), line: get('--line'), fg: get('--fg') };
+}
+const rgba = (hex, a) => { const v = parseInt(hex.slice(1), 16); return `rgba(${v >> 16 & 255},${v >> 8 & 255},${v & 255},${a})`; };
+const fmtVol = (v) => v >= 1e9 ? (v / 1e9).toFixed(2) + 'B' : v >= 1e6 ? (v / 1e6).toFixed(0) + 'M' : (v / 1e3).toFixed(0) + 'K';
+
+const box = document.getElementById('chart');
+const chart = LC ? LC.createChart(box, {
+  autoSize: true,
+  layout: { background: { type: 'solid', color: 'transparent' }, attributionLogo: false, fontFamily: 'Geist Mono, monospace' },
+  timeScale: { timeVisible: true, rightOffset: 4 },
+  crosshair: { mode: LC.CrosshairMode.Normal },
+}) : null;
+const candles = chart && chart.addSeries(LC.CandlestickSeries, { borderVisible: false });
+const volume = chart && chart.addSeries(LC.HistogramSeries, { priceScaleId: '', priceFormat: { type: 'volume' } });
+if (volume) volume.priceScale().applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
+let bars = [];
+
+function paint() {
+  if (!chart) return;
+  const t = tokens();
+  chart.applyOptions({
+    layout: { textColor: t.muted },
+    grid: { vertLines: { color: t.line }, horzLines: { color: t.line } },
+    rightPriceScale: { borderColor: t.line }, timeScale: { borderColor: t.line },
+  });
+  candles.applyOptions({ upColor: t.up, downColor: t.down, wickUpColor: t.up, wickDownColor: t.down });
+  volume.setData(bars.map((b) => ({ time: b.time, value: b.volume, color: rgba(b.close >= b.open ? t.up : t.down, 0.4) })));
+}
+
+function legend(bar) {
+  const t = tokens();
+  const prev = bars[bars.indexOf(bar) - 1] || bar;
+  const change = (bar.close - prev.close) / prev.close * 100;
+  const c = bar.close >= bar.open ? t.up : t.down;
+  const v = (x) => `<b style="color:${c}">${x.toFixed(2)}</b>`;
+  document.getElementById('legend').innerHTML =
+    `<span>O ${v(bar.open)}</span><span>H ${v(bar.high)}</span><span>L ${v(bar.low)}</span><span>C ${v(bar.close)}</span>` +
+    `<span><b style="color:${c}">${change >= 0 ? '+' : '−'}${Math.abs(change).toFixed(2)}%</b></span><span>Vol <b style="color:${c}">${fmtVol(bar.volume)}</b></span>`;
+}
+
+function show(name) {
+  frame = name;
+  const seconds = FRAMES.find((f) => f[0] === name)[1];
+  bars = series(seconds);
+  if (chart) {
+    chart.applyOptions({ timeScale: { timeVisible: seconds < 86400 } });
+    candles.setData(bars.map(({ time, open, high, low, close }) => ({ time, open, high, low, close })));
+    paint();
+    chart.timeScale().setVisibleLogicalRange({ from: bars.length - 120, to: bars.length + 3 });
+  }
+  legend(bars[bars.length - 1]);
+  document.querySelectorAll('.tf button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tf === name)));
+}
+
+const group = document.querySelector('.tf');
+for (const [name] of FRAMES) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.dataset.tf = name; b.textContent = name;
+  b.addEventListener('click', () => show(name));
+  group.appendChild(b);
+}
+
+if (chart) {
+  chart.subscribeCrosshairMove((e) => {
+    const bar = e.point && e.time !== undefined ? bars.find((b) => b.time === e.time) : null;
+    legend(bar || bars[bars.length - 1]);
+  });
+  const latest = document.getElementById('latest');
+  chart.timeScale().subscribeVisibleLogicalRangeChange((r) => { latest.hidden = !r || r.to > bars.length - 3; });
+  latest.addEventListener('click', () => chart.timeScale().scrollToRealTime());
+}
+
+document.getElementById('theme').addEventListener('click', () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme = dark ? 'light' : 'dark';
+  paint(); legend(bars[bars.length - 1]);
+});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { paint(); legend(bars[bars.length - 1]); });
+
+show('1d');
+</script>
+</body>
+</html>

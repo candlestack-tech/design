@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market data behind sign-in</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap">
+<style>
+  /* Each screen is a fixed-width frame copied from the approved design canvas; on narrow screens it scrolls inside its box. */
+  body { margin: 0; background: #0b0c0d; color: #e8e9eb; font-family: Geist, Inter, system-ui, sans-serif; }
+  main { max-width: 1320px; margin: 0 auto; padding: 32px 16px 64px; display: flex; flex-direction: column; gap: 36px; }
+  header h1 { margin: 0 0 6px; font-size: 24px; }
+  header p { margin: 0; color: #9a9ea6; font-size: 14px; max-width: 80ch; line-height: 1.5; }
+  .state h2 { margin: 0 0 10px; font-size: 15px; font-weight: 600; color: #c9ccd1; }
+  .frame { overflow-x: auto; border: 1px solid #26282c; border-radius: 10px; width: fit-content; max-width: 100%; }
+  .frame a { color: #e8e9eb; text-decoration: none; } .frame a:hover { color: #ffffff; }
+  a { color: #3ddbb0; text-decoration: none; } a:hover { color: #7fe9cb; }
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>Market data behind sign-in</h1>
+<p>Alpaca's terms allow its market data for our own use, not public display. Signed in, the instrument list moves into the app menu; signed out, the home page keeps one widget of example figures (stocks and crypto pairs mixed) that links nowhere, and the header loses Instruments. The instrument's own page is in <a href="../instrument-page/">instrument-page</a>. Approved on 27 October 2026 for candlestack#340.</p>
+</header>
+<section class="state">
+<h2>Signed in: Instruments in the app menu</h2>
+<div class="frame">
+<div style="width: 1280px; height: 820px; box-sizing: border-box; background: #0d0e10; font-family: Geist, system-ui, sans-serif; color: #e8e9eb; display: flex; flex-direction: column">
+<header style="height: 56px; flex: none; border-bottom: 1px solid #1f2125; display: flex; align-items: center; justify-content: space-between; padding: 0 128px">
+<a href="#" style="display: flex; align-items: center; gap: 8px; font-size: 19px; font-weight: 600"><span style="width: 26px; height: 26px; border-radius: 6px; background: #3cc79f; display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="4" width="3" height="7" rx="1" fill="#0d0e10"></rect><rect x="8" y="2" width="3" height="9" rx="1" fill="#0d0e10"></rect></svg></span>CandleStack</a>
+<div style="display: flex; align-items: center; gap: 18px">
+<button type="button" style="background: #3cc79f; color: #0d0e10; border: 0; border-radius: 6px; padding: 8px 14px; font: 600 14px Geist, sans-serif">New backtest</button>
+<button type="button" aria-label="Switch theme" style="background: none; border: 0; padding: 0; color: #b4b8bf; display: grid"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.4" fill="none"></circle><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg></button>
+<span style="width: 28px; height: 28px; border-radius: 50%; background: #16302a; color: #3cc79f; display: grid; place-items: center; font-size: 11px; font-weight: 700">AL</span>
+</div>
+</header>
+<div style="flex: 1; display: flex; gap: 24px; padding: 28px 128px 0">
+<nav aria-label="App" style="width: 190px; flex: none; align-self: flex-start; background: #111214; border: 1px solid #1f2125; border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 2px; font-size: 14px">
+<a href="#" style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; color: #b4b8bf"><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4" fill="none"></rect><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4" fill="none"></rect><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4" fill="none"></rect><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4" fill="none"></rect></svg>Dashboard</a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; color: #b4b8bf"><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 11l4-4 3 3 5-5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg><span style="flex: 1">Backtests</span><span style="color: #9a9ea6">5</span></a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; color: #b4b8bf"><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8l5.5 3.1v6.2L8 14.2l-5.5-3.1V4.9z M2.5 4.9L8 8l5.5-3.1M8 8v6.2" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linejoin="round"></path></svg><span style="flex: 1">Models</span><span style="color: #9a9ea6">1</span></a>
+<a href="#" aria-current="page" style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: #1c1e22; border-radius: 6px; color: #ffffff; font-weight: 600"><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2v12M12 2v12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"></path><rect x="2.5" y="5" width="3" height="6" rx="0.8" fill="currentColor"></rect><rect x="10.5" y="4" width="3" height="5" rx="0.8" stroke="currentColor" stroke-width="1.3" fill="none"></rect></svg>Instruments</a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; color: #b4b8bf"><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.2" stroke="currentColor" stroke-width="1.4" fill="none"></circle><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg>Settings</a>
+<div style="height: 1px; background: #1f2125; margin: 8px 0"></div>
+<div style="padding: 4px 10px 8px; display: flex; flex-direction: column; gap: 6px">
+<span style="font: 500 11px 'Geist Mono', monospace; letter-spacing: 0.06em; color: #9a9ea6">MODEL STORAGE</span>
+<span style="height: 4px; border-radius: 2px; background: #1f2125; display: block"><span style="display: block; width: 5%; height: 4px; border-radius: 2px; background: #3cc79f"></span></span>
+<span style="font: 500 12px 'Geist Mono', monospace">4.7 MB of 100 MB</span>
+<span style="font-size: 12px; color: #9a9ea6">Market data delayed 15 min</span>
+</div>
+</nav>
+<main style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 700">Instruments</h1>
+<p style="margin: 0; font-size: 14px; color: #b4b8bf; max-width: 620px">Everything you can run a backtest on: US stocks and ETFs from every exchange, and Binance spot pairs. Open one to see its candles.</p>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<span style="border: 1px solid #26282c; border-radius: 999px; padding: 4px 11px; font-size: 13px; color: #b4b8bf"><b style="font: 600 13px 'Geist Mono', monospace; color: #e8e9eb">14,000+</b> instruments</span>
+<span style="border: 1px solid #26282c; border-radius: 999px; padding: 4px 11px; font-size: 13px; color: #b4b8bf"><b style="font: 600 13px 'Geist Mono', monospace; color: #e8e9eb">1m - 1d</b> candles</span>
+<span style="border: 1px solid #26282c; border-radius: 999px; padding: 4px 11px; font-size: 13px; color: #b4b8bf"><b style="font: 600 13px 'Geist Mono', monospace; color: #e8e9eb">Jan 2016</b> first stock candles</span>
+</div>
+<div style="display: flex; gap: 12px; align-items: center">
+<label for="q" style="flex: 0 1 340px; display: flex; align-items: center; gap: 8px; border: 1px solid #26282c; border-radius: 8px; padding: 8px 12px; background: #111214"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" stroke="#9a9ea6" stroke-width="1.5" fill="none"></circle><path d="M10.5 10.5L14 14" stroke="#9a9ea6" stroke-width="1.5" stroke-linecap="round"></path></svg><input id="q" placeholder="Symbol or name, e.g. btc or apple" style="flex: 1; background: none; border: 0; outline: 0; color: #e8e9eb; font: 14px Geist, sans-serif"></label>
+<span style="flex: 1"></span>
+<button type="button" style="display: flex; align-items: center; gap: 8px; background: #111214; border: 1px solid #26282c; border-radius: 8px; padding: 8px 12px; color: #e8e9eb; font: 600 14px Geist, sans-serif">All instruments<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5L6 7.5l3-3" stroke="#9a9ea6" stroke-width="1.4" fill="none"></path></svg></button>
+</div>
+<div style="border: 1px solid #1f2125; border-radius: 10px; background: #0f1012; overflow: hidden">
+<div style="display: grid; grid-template-columns: 110px 72px 70px 104px 84px minmax(0, 1fr) 76px 76px; column-gap: 12px; align-items: center; padding: 9px 12px; border-bottom: 1px solid #1f2125; font-size: 12.5px; color: #9a9ea6">
+<span>Symbol</span><span style="text-align: right">Price</span><span style="text-align: right">24h</span><span>10d</span><span style="text-align: right; color: #e8e9eb; font-weight: 600">Volume 24h ↓</span><span>Name</span><span>Exchange</span><span>Data since</span>
+</div>
+
+<a href="#" style="display: grid; grid-template-columns: 110px 72px 70px 104px 84px minmax(0, 1fr) 76px 76px; column-gap: 12px; align-items: center; padding: 7px 12px; border-bottom: 1px solid #17181b; font-size: 13.5px">
+<span style="display: flex; align-items: center; gap: 9px; font: 600 13.5px 'Geist Mono', monospace"><span style="width: 26px; height: 26px; border-radius: 5px; background: #ffffff; color: #0866ff; display: grid; place-items: center; font: 700 11px Geist, sans-serif">M</span>META</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace">623.53</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace; color: #f0616d">▼1.11%</span>
+<span style="display: flex; align-items: flex-start; gap: 3px; height: 22px">
+<span style="width: 5px; margin-top: 2.0px; height: 3px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 3.6px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 5.2px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 6.8px; height: 3px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 6.8px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 13.2px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 14.8px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span>
+</span>
+<span style="text-align: right; font: 600 13.5px 'Geist Mono', monospace">$21.9B</span>
+<span style="color: #b4b8bf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Meta Platforms, Inc. Class A Common Stock</span>
+<span style="color: #b4b8bf">NASDAQ</span>
+<span style="font-family: 'Geist Mono', monospace; color: #b4b8bf">Jan 2016</span>
+</a>
+
+<a href="#" style="display: grid; grid-template-columns: 110px 72px 70px 104px 84px minmax(0, 1fr) 76px 76px; column-gap: 12px; align-items: center; padding: 7px 12px; border-bottom: 1px solid #17181b; font-size: 13.5px">
+<span style="display: flex; align-items: center; gap: 9px; font: 600 13.5px 'Geist Mono', monospace"><span style="width: 26px; height: 26px; border-radius: 5px; background: #ffffff; color: #1d3b8b; display: grid; place-items: center; font: 700 11px Geist, sans-serif">Q</span>QQQ</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace">721.68</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace; color: #43b049">▲1.33%</span>
+<span style="display: flex; align-items: flex-start; gap: 3px; height: 22px">
+<span style="width: 5px; margin-top: 3.6px; height: 5px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 5.2px; height: 5px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 7px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 5px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 6.8px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 3px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 7px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 13.2px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 5px; border-radius: 1px; background: #f0616d; display: block"></span>
+</span>
+<span style="text-align: right; font: 600 13.5px 'Geist Mono', monospace">$16.6B</span>
+<span style="color: #b4b8bf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Invesco QQQ Trust, Series 1</span>
+<span style="color: #b4b8bf">NASDAQ</span>
+<span style="font-family: 'Geist Mono', monospace; color: #b4b8bf">Jan 2016</span>
+</a>
+
+<a href="#" style="display: grid; grid-template-columns: 110px 72px 70px 104px 84px minmax(0, 1fr) 76px 76px; column-gap: 12px; align-items: center; padding: 7px 12px; border-bottom: 1px solid #17181b; font-size: 13.5px">
+<span style="display: flex; align-items: center; gap: 9px; font: 600 13.5px 'Geist Mono', monospace"><span style="width: 26px; height: 26px; border-radius: 5px; background: #e31937; color: #ffffff; display: grid; place-items: center; font: 700 11px Geist, sans-serif">T</span>TSLA</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace">407.87</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace; color: #43b049">▲4.15%</span>
+<span style="display: flex; align-items: flex-start; gap: 3px; height: 22px">
+<span style="width: 5px; margin-top: 10.0px; height: 5px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 3px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 6.8px; height: 5px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 5.2px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 5.2px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 3.6px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span>
+</span>
+<span style="text-align: right; font: 600 13.5px 'Geist Mono', monospace">$14.5B</span>
+<span style="color: #b4b8bf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Tesla, Inc. Common Stock</span>
+<span style="color: #b4b8bf">NASDAQ</span>
+<span style="font-family: 'Geist Mono', monospace; color: #b4b8bf">Jan 2016</span>
+</a>
+
+<a href="#" style="display: grid; grid-template-columns: 110px 72px 70px 104px 84px minmax(0, 1fr) 76px 76px; column-gap: 12px; align-items: center; padding: 7px 12px; border-bottom: 1px solid #17181b; font-size: 13.5px">
+<span style="display: flex; align-items: center; gap: 9px; font: 600 13.5px 'Geist Mono', monospace"><span style="width: 26px; height: 26px; border-radius: 5px; background: #e9ece6; color: #1d3f2c; display: grid; place-items: center; font: 700 11px Geist, sans-serif">S</span>SPY</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace">770.09</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace; color: #43b049">▲0.62%</span>
+<span style="display: flex; align-items: flex-start; gap: 3px; height: 22px">
+<span style="width: 5px; margin-top: 5.2px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 6.8px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 7px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 7px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 13.2px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span>
+</span>
+<span style="text-align: right; font: 600 13.5px 'Geist Mono', monospace">$13.2B</span>
+<span style="color: #b4b8bf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">State Street SPDR S&amp;P 500 ETF Trust</span>
+<span style="color: #b4b8bf">ARCA</span>
+<span style="font-family: 'Geist Mono', monospace; color: #b4b8bf">Jan 2016</span>
+</a>
+
+<a href="#" style="display: grid; grid-template-columns: 110px 72px 70px 104px 84px minmax(0, 1fr) 76px 76px; column-gap: 12px; align-items: center; padding: 7px 12px; border-bottom: 1px solid #17181b; font-size: 13.5px">
+<span style="display: flex; align-items: center; gap: 9px; font: 600 13.5px 'Geist Mono', monospace"><span style="width: 26px; height: 26px; border-radius: 5px; background: #1b0f2e; color: #ffffff; display: grid; place-items: center; font: 700 11px Geist, sans-serif">m</span>MU</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace">932.45</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace; color: #43b049">▲3.18%</span>
+<span style="display: flex; align-items: flex-start; gap: 3px; height: 22px">
+<span style="width: 5px; margin-top: 6.8px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 6.8px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 5px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 13.2px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span>
+</span>
+<span style="text-align: right; font: 600 13.5px 'Geist Mono', monospace">$13.1B</span>
+<span style="color: #b4b8bf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Micron Technology, Inc. Common Stock</span>
+<span style="color: #b4b8bf">NASDAQ</span>
+<span style="font-family: 'Geist Mono', monospace; color: #b4b8bf">Jan 2016</span>
+</a>
+
+<a href="#" style="display: grid; grid-template-columns: 110px 72px 70px 104px 84px minmax(0, 1fr) 76px 76px; column-gap: 12px; align-items: center; padding: 7px 12px; border-bottom: 1px solid #17181b; font-size: 13.5px">
+<span style="display: flex; align-items: center; gap: 9px; font: 600 13.5px 'Geist Mono', monospace"><span style="width: 26px; height: 26px; border-radius: 5px; background: #76b900; color: #ffffff; display: grid; place-items: center; font: 700 11px Geist, sans-serif">N</span>NVDA</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace">217.79</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace; color: #43b049">▲0.83%</span>
+<span style="display: flex; align-items: flex-start; gap: 3px; height: 22px">
+<span style="width: 5px; margin-top: 3.6px; height: 5px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 6.8px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 7px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 3px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 7px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 13.2px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span>
+</span>
+<span style="text-align: right; font: 600 13.5px 'Geist Mono', monospace">$12.7B</span>
+<span style="color: #b4b8bf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">NVIDIA Corporation Common Stock</span>
+<span style="color: #b4b8bf">NASDAQ</span>
+<span style="font-family: 'Geist Mono', monospace; color: #b4b8bf">Jan 2016</span>
+</a>
+
+<a href="#" style="display: grid; grid-template-columns: 110px 72px 70px 104px 84px minmax(0, 1fr) 76px 76px; column-gap: 12px; align-items: center; padding: 7px 12px; border-bottom: 1px solid #17181b; font-size: 13.5px">
+<span style="display: flex; align-items: center; gap: 9px; font: 600 13.5px 'Geist Mono', monospace"><span style="width: 26px; height: 26px; border-radius: 5px; background: #2a2c30; color: #ffffff; display: grid; place-items: center; font: 700 11px Geist, sans-serif">A</span>AMD</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace">558.67</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace; color: #43b049">▲5.16%</span>
+<span style="display: flex; align-items: flex-start; gap: 3px; height: 22px">
+<span style="width: 5px; margin-top: 5.2px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 6.8px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 7px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 3px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 13.2px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 14.8px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span>
+</span>
+<span style="text-align: right; font: 600 13.5px 'Geist Mono', monospace">$7.97B</span>
+<span style="color: #b4b8bf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Advanced Micro Devices, Inc. Common Stock</span>
+<span style="color: #b4b8bf">NASDAQ</span>
+<span style="font-family: 'Geist Mono', monospace; color: #b4b8bf">Jan 2016</span>
+</a>
+
+<a href="#" style="display: grid; grid-template-columns: 110px 72px 70px 104px 84px minmax(0, 1fr) 76px 76px; column-gap: 12px; align-items: center; padding: 7px 12px; border-bottom: 1px solid #17181b; font-size: 13.5px">
+<span style="display: flex; align-items: center; gap: 9px; font: 600 13.5px 'Geist Mono', monospace"><span style="width: 26px; height: 26px; border-radius: 5px; background: #ffffff; color: #111111; display: grid; place-items: center; font: 700 11px Geist, sans-serif">A</span>AAPL</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace">346.88</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace; color: #43b049">▲0.86%</span>
+<span style="display: flex; align-items: flex-start; gap: 3px; height: 22px">
+<span style="width: 5px; margin-top: 8.4px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 3px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 7px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 6.8px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 6.8px; height: 5px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 5px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 6.8px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 5.2px; height: 5px; border-radius: 1px; background: #43b049; display: block"></span>
+</span>
+<span style="text-align: right; font: 600 13.5px 'Geist Mono', monospace">$7.24B</span>
+<span style="color: #b4b8bf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Apple Inc. Common Stock</span>
+<span style="color: #b4b8bf">NASDAQ</span>
+<span style="font-family: 'Geist Mono', monospace; color: #b4b8bf">Jan 2016</span>
+</a>
+
+</div>
+</main>
+</div>
+</div>
+</div>
+</section>
+<section class="state">
+<h2>Signed out: the home page, an example widget</h2>
+<div class="frame">
+<div style="width: 1280px; height: 980px; box-sizing: border-box; background: #0d0e10; font-family: Geist, system-ui, sans-serif; color: #e8e9eb; display: flex; flex-direction: column">
+<header style="height: 56px; flex: none; border-bottom: 1px solid #1f2125; display: flex; align-items: center; justify-content: space-between; padding: 0 128px">
+<div style="display: flex; align-items: center; gap: 22px">
+<a href="#" style="display: flex; align-items: center; gap: 8px; font-size: 19px; font-weight: 600"><span style="width: 26px; height: 26px; border-radius: 6px; background: #3cc79f; display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="4" width="3" height="7" rx="1" fill="#0d0e10"></rect><rect x="8" y="2" width="3" height="9" rx="1" fill="#0d0e10"></rect></svg></span>CandleStack</a>
+<nav aria-label="Site" style="display: flex; gap: 18px; font-size: 14px"><a href="#" style="font-weight: 600">Product</a><a href="#" style="color: #b4b8bf">API</a></nav>
+</div>
+<div style="display: flex; align-items: center; gap: 18px">
+<button type="button" aria-label="Switch theme" style="background: none; border: 0; padding: 0; color: #b4b8bf; display: grid"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.4" fill="none"></circle><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg></button>
+<a href="#" style="border: 1px solid #34373d; border-radius: 6px; padding: 7px 14px; font-size: 14px; font-weight: 600">Sign in</a>
+</div>
+</header>
+<div style="padding: 56px 128px 0; display: flex; flex-direction: column; gap: 22px">
+<h1 style="margin: 0; font-size: 46px; line-height: 1.05; font-weight: 700; letter-spacing: -0.02em; max-width: 560px">Backtest your models and compare every experiment</h1>
+<p style="margin: 0; font-size: 16px; line-height: 1.55; color: #b4b8bf; max-width: 560px">Run a trained model on real stock and crypto candles, try different configurations and see which one holds up. Every run is measured the same way.</p>
+<div style="display: flex; gap: 10px"><a href="#" style="background: #3cc79f; color: #0d0e10; border-radius: 6px; padding: 10px 18px; font-size: 15px; font-weight: 600">Try Backtest</a></div>
+</div>
+<div style="margin: 48px 128px 0; height: 1px; background: #1a1c1f"></div>
+<section style="padding: 40px 128px 0; display: grid; grid-template-columns: minmax(0, 1fr) 640px; gap: 40px; align-items: start">
+<div style="display: flex; flex-direction: column; gap: 12px; padding-top: 4px">
+<span style="font: 500 11px 'Geist Mono', monospace; letter-spacing: 0.08em; color: #9a9ea6">INSTRUMENTS</span>
+<h2 style="margin: 0; font-size: 22px; line-height: 1.3; font-weight: 700">US stocks and crypto pairs, candles from 1m to 1d</h2>
+<p style="margin: 0; font-size: 14px; line-height: 1.55; color: #b4b8bf">Every US exchange through Alpaca since 2016, Binance spot pairs since their listing. Sign in to browse them and open their candles.</p>
+<a href="#" style="align-self: flex-start; border: 1px solid #34373d; border-radius: 6px; padding: 7px 13px; font-size: 14px; font-weight: 600">Sign in to browse</a>
+</div>
+<div style="border: 1px solid #1f2125; border-radius: 10px; background: #0f1012; overflow: hidden; cursor: default">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 90px 108px 80px 72px; column-gap: 12px; align-items: center; padding: 9px 12px; border-bottom: 1px solid #1f2125; font-size: 12.5px; color: #9a9ea6">
+<span>Symbol</span><span>Exchange</span><span>10d</span><span style="text-align: right">Price</span><span style="text-align: right">24h</span>
+</div>
+
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 90px 108px 80px 72px; column-gap: 12px; align-items: center; padding: 8px 12px; border-bottom: 1px solid #17181b; font-size: 13.5px">
+<span style="display: flex; align-items: center; gap: 9px; font: 600 13.5px 'Geist Mono', monospace"><span style="width: 26px; height: 26px; border-radius: 5px; background: #f7931a; color: #ffffff; display: grid; place-items: center; font: 700 11px Geist, sans-serif">B</span>BTCUSDT</span>
+<span style="color: #b4b8bf">BINANCE</span>
+<span style="display: flex; align-items: flex-start; gap: 3px; height: 22px">
+<span style="width: 5px; margin-top: 3.6px; height: 5px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 5.2px; height: 5px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 6.8px; height: 5px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 5px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 6.8px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 7px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 13.2px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span>
+</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace">68,240.00</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace; color: #43b049">▲2.10%</span>
+</div>
+
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 90px 108px 80px 72px; column-gap: 12px; align-items: center; padding: 8px 12px; border-bottom: 1px solid #17181b; font-size: 13.5px">
+<span style="display: flex; align-items: center; gap: 9px; font: 600 13.5px 'Geist Mono', monospace"><span style="width: 26px; height: 26px; border-radius: 5px; background: #ffffff; color: #111111; display: grid; place-items: center; font: 700 11px Geist, sans-serif">A</span>AAPL</span>
+<span style="color: #b4b8bf">NASDAQ</span>
+<span style="display: flex; align-items: flex-start; gap: 3px; height: 22px">
+<span style="width: 5px; margin-top: 5.2px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 6.8px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 7px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 7px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 13.2px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span>
+</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace">214.30</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace; color: #43b049">▲0.80%</span>
+</div>
+
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 90px 108px 80px 72px; column-gap: 12px; align-items: center; padding: 8px 12px; border-bottom: 1px solid #17181b; font-size: 13.5px">
+<span style="display: flex; align-items: center; gap: 9px; font: 600 13.5px 'Geist Mono', monospace"><span style="width: 26px; height: 26px; border-radius: 5px; background: #3c3c3d; color: #ffffff; display: grid; place-items: center; font: 700 11px Geist, sans-serif">E</span>ETHUSDT</span>
+<span style="color: #b4b8bf">BINANCE</span>
+<span style="display: flex; align-items: flex-start; gap: 3px; height: 22px">
+<span style="width: 5px; margin-top: 10.0px; height: 5px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 3px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 6.8px; height: 5px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 5.2px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 5.2px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 3.6px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span>
+</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace">3,520.00</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace; color: #f0616d">▼1.40%</span>
+</div>
+
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 90px 108px 80px 72px; column-gap: 12px; align-items: center; padding: 8px 12px; border-bottom: 1px solid #17181b; font-size: 13.5px">
+<span style="display: flex; align-items: center; gap: 9px; font: 600 13.5px 'Geist Mono', monospace"><span style="width: 26px; height: 26px; border-radius: 5px; background: #e31937; color: #ffffff; display: grid; place-items: center; font: 700 11px Geist, sans-serif">T</span>TSLA</span>
+<span style="color: #b4b8bf">NASDAQ</span>
+<span style="display: flex; align-items: flex-start; gap: 3px; height: 22px">
+<span style="width: 5px; margin-top: 6.8px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 6.8px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 5px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 13.2px; height: 7px; border-radius: 1px; background: #43b049; display: block"></span>
+</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace">251.70</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace; color: #43b049">▲3.20%</span>
+</div>
+
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 90px 108px 80px 72px; column-gap: 12px; align-items: center; padding: 8px 12px; border-bottom: 1px solid #17181b; font-size: 13.5px">
+<span style="display: flex; align-items: center; gap: 9px; font: 600 13.5px 'Geist Mono', monospace"><span style="width: 26px; height: 26px; border-radius: 5px; background: #e9ece6; color: #1d3f2c; display: grid; place-items: center; font: 700 11px Geist, sans-serif">S</span>SPY</span>
+<span style="color: #b4b8bf">ARCA</span>
+<span style="display: flex; align-items: flex-start; gap: 3px; height: 22px">
+<span style="width: 5px; margin-top: 3.6px; height: 5px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 5.2px; height: 5px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 7px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 8.4px; height: 5px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 6.8px; height: 9px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 3px; border-radius: 1px; background: #43b049; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 3px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 10.0px; height: 7px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 13.2px; height: 9px; border-radius: 1px; background: #f0616d; display: block"></span><span style="width: 5px; margin-top: 11.6px; height: 5px; border-radius: 1px; background: #f0616d; display: block"></span>
+</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace">548.90</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace; color: #43b049">▲0.50%</span>
+</div>
+
+<div style="padding: 8px 12px; font-size: 12px; color: #9a9ea6; display: flex; justify-content: space-between; align-items: center"><span style="border: 1px solid #34373d; border-radius: 999px; padding: 2px 8px; font: 500 11px 'Geist Mono', monospace; letter-spacing: 0.04em">EXAMPLE</span><span>Sample figures, not market data</span></div>
+</div>
+</section>
+</div>
+</div>
+</section>
+</main>
+</body>
+</html>
