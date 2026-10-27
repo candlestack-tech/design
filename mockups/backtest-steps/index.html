@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Backtest steps</title>
+<meta name="robots" content="noindex">
+<style>
+  /* Each state is a fixed-width frame copied from the approved design canvas; on narrow screens it scrolls inside its box. */
+  body { margin: 0; background: #0b0c0d; color: #e8e9eb; font-family: Geist, Inter, system-ui, sans-serif; }
+  main { max-width: 1180px; margin: 0 auto; padding: 32px 16px 64px; display: flex; flex-direction: column; gap: 36px; }
+  header h1 { margin: 0 0 6px; font-size: 24px; }
+  header p { margin: 0; color: #9a9ea6; font-size: 14px; max-width: 70ch; line-height: 1.5; }
+  .state h2 { margin: 0 0 10px; font-size: 15px; font-weight: 600; color: #c9ccd1; }
+  .frame { overflow-x: auto; border: 1px solid #26282c; border-radius: 10px; width: fit-content; max-width: 100%; }
+  a { color: #3ddbb0; text-decoration: none; } a:hover { color: #7fe9cb; }
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>Backtest steps</h1>
+<p>The steps of a running backtest (load candles, wait in the queue, run the model, simulate trades) with the time of each, the wait for the Alpaca request limit, the real failures of each step, and the timings in Setup once it has finished. Approved on 27 October 2026 for candlestack#316; the first frame is the page before the change.</p>
+</header>
+<section class="state">
+<h2>Today: Running</h2>
+<div class="frame">
+<div style="width: 880px; height: 620px; box-sizing: border-box; padding: 28px; background: #0f1012; font-family: Inter, system-ui, sans-serif; color: #e8e9eb; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 10px">
+<h2 style="margin: 0; font-size: 22px; font-weight: 700">Backtest #4</h2>
+<span style="font-size: 12px; color: #3ddbb0; border: 1px solid #1f5a4a; border-radius: 4px; padding: 2px 6px">Running</span>
+</div>
+<div style="display: flex; align-items: center; gap: 14px; font-size: 13px; color: #9a9ea6">
+<span style="display: flex; align-items: center; gap: 6px; color: #e8e9eb; font-weight: 600"><span aria-hidden="true" style="width: 20px; height: 20px; border-radius: 3px; background: #1f4e9e; color: #fff; display: inline-grid; place-items: center; font-size: 11px; font-weight: 700">S</span>SPY</span>
+<a href="#" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px">BLESK_ATR06_R8_OHLC_LAM08_EOD_SPLIT_ATR_NO-VOL_OPT1_8_M25x23.keras</a>
+<span style="white-space: nowrap">30m · 4 Jan 2016 – 26 Oct 2026</span>
+</div>
+<section style="background: #141518; border: 1px solid #26282c; border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px">
+<b style="font-size: 14px; font-weight: 600">Running</b>
+<div style="height: 6px; border-radius: 3px; background: #23252a; overflow: hidden"><div style="width: 33%; height: 100%; margin-left: 30%; border-radius: 3px; background: #3ddbb0"></div></div>
+<p style="margin: 0; font-size: 12.5px; color: #8b9098">You can close the page. The backtest keeps going.</p>
+</section>
+<section style="background: #141518; border: 1px solid #26282c; border-radius: 10px; padding: 14px 18px; display: flex; gap: 40px">
+<div style="display: flex; flex-direction: column; gap: 3px; min-width: 0"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">SETUP · MODEL</span><b style="font-size: 13px; font-weight: 500">BLESK NO-VOL 25 × 23</b></div>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">DATA</span><b style="font-size: 13px; font-weight: 500">SPY · 30m</b></div>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">DECISION</span><b style="font-size: 13px; font-weight: 500">threshold 0.05 · long and short</b></div>
+</section>
+<p style="margin: 0; font-size: 12.5px; color: #8b9098">The bar only moves back and forth. Nothing says what is happening, how far it got or how long is left.</p>
+</div>
+</div>
+</section>
+<section class="state">
+<h2>Running: loading candles</h2>
+<div class="frame">
+<div style="width: 880px; height: 620px; box-sizing: border-box; padding: 28px; background: #0f1012; font-family: Inter, system-ui, sans-serif; color: #e8e9eb; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 10px">
+<h2 style="margin: 0; font-size: 22px; font-weight: 700">Backtest #4</h2>
+<span style="font-size: 12px; color: #3ddbb0; border: 1px solid #1f5a4a; border-radius: 4px; padding: 2px 6px">Running · 1m 05s</span>
+</div>
+<div style="display: flex; align-items: center; gap: 14px; font-size: 13px; color: #9a9ea6">
+<span style="display: flex; align-items: center; gap: 6px; color: #e8e9eb; font-weight: 600"><span aria-hidden="true" style="width: 20px; height: 20px; border-radius: 3px; background: #1f4e9e; color: #fff; display: inline-grid; place-items: center; font-size: 11px; font-weight: 700">S</span>SPY</span>
+<a href="#" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px">BLESK_ATR06_R8_OHLC_LAM08_EOD_SPLIT_ATR_NO-VOL_OPT1_8_M25x23.keras</a>
+<span style="white-space: nowrap">30m · 4 Jan 2016 – 26 Oct 2026</span>
+</div>
+<section style="background: #141518; border: 1px solid #26282c; border-radius: 10px; padding: 6px 18px 14px; display: flex; flex-direction: column">
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid #23252a">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="#2c2f34" stroke-width="2.5" fill="none"></circle><path d="M10 2a8 8 0 0 1 8 8" stroke="#3ddbb0" stroke-width="2.5" fill="none" stroke-linecap="round"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 8px; min-width: 0">
+<span style="font-size: 14px; font-weight: 600">Load candles</span>
+<div style="height: 6px; border-radius: 3px; background: #23252a; overflow: hidden"><div style="width: 29%; height: 100%; border-radius: 3px; background: #3ddbb0"></div></div>
+<span style="font-size: 12.5px; color: #9a9ea6">37 of 128 months · Jan 2016 – Jan 2019</span>
+<span style="font-size: 12.5px; color: #8b9098">The first load of a long period takes a few minutes. Later backtests take it from the cache.</span>
+</div>
+<span style="text-align: right; font-family: ui-monospace, monospace; font-size: 13px; color: #e8e9eb">1m 05s</span>
+</div>
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid #23252a">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="#3a3d43" stroke-width="2" fill="none"></circle></svg>
+<span style="font-size: 14px; color: #8b9098">Wait in the queue</span>
+<span></span>
+</div>
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid #23252a">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="#3a3d43" stroke-width="2" fill="none"></circle></svg>
+<span style="font-size: 14px; color: #8b9098">Run the model</span>
+<span></span>
+</div>
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: center; padding: 12px 0">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="#3a3d43" stroke-width="2" fill="none"></circle></svg>
+<span style="font-size: 14px; color: #8b9098">Simulate trades</span>
+<span></span>
+</div>
+<p style="margin: 4px 0 0; font-size: 12.5px; color: #8b9098">You can close the page. The backtest keeps going.</p>
+</section>
+<section style="background: #141518; border: 1px solid #26282c; border-radius: 10px; padding: 14px 18px; display: flex; gap: 40px">
+<div style="display: flex; flex-direction: column; gap: 3px; min-width: 0"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">SETUP · MODEL</span><b style="font-size: 13px; font-weight: 500">BLESK NO-VOL 25 × 23</b></div>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">DATA</span><b style="font-size: 13px; font-weight: 500">SPY · 30m</b></div>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">DECISION</span><b style="font-size: 13px; font-weight: 500">threshold 0.05 · long and short</b></div>
+</section>
+</div>
+</div>
+</section>
+<section class="state">
+<h2>Running: waiting for the Alpaca limit</h2>
+<div class="frame">
+<div style="width: 880px; height: 620px; box-sizing: border-box; padding: 28px; background: #0f1012; font-family: Inter, system-ui, sans-serif; color: #e8e9eb; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 10px">
+<h2 style="margin: 0; font-size: 22px; font-weight: 700">Backtest #4</h2>
+<span style="font-size: 12px; color: #3ddbb0; border: 1px solid #1f5a4a; border-radius: 4px; padding: 2px 6px">Running · 2m 36s</span>
+</div>
+<div style="display: flex; align-items: center; gap: 14px; font-size: 13px; color: #9a9ea6">
+<span style="display: flex; align-items: center; gap: 6px; color: #e8e9eb; font-weight: 600"><span aria-hidden="true" style="width: 20px; height: 20px; border-radius: 3px; background: #1f4e9e; color: #fff; display: inline-grid; place-items: center; font-size: 11px; font-weight: 700">S</span>SPY</span>
+<a href="#" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px">BLESK_ATR06_R8_OHLC_LAM08_EOD_SPLIT_ATR_NO-VOL_OPT1_8_M25x23.keras</a>
+<span style="white-space: nowrap">30m · 4 Jan 2016 – 26 Oct 2026</span>
+</div>
+<section style="background: #141518; border: 1px solid #26282c; border-radius: 10px; padding: 6px 18px 14px; display: flex; flex-direction: column">
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid #23252a">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="#2c2f34" stroke-width="2.5" fill="none"></circle><path d="M10 2a8 8 0 0 1 8 8" stroke="#3ddbb0" stroke-width="2.5" fill="none" stroke-linecap="round"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 8px; min-width: 0">
+<span style="font-size: 14px; font-weight: 600">Load candles</span>
+<div style="height: 6px; border-radius: 3px; background: #23252a; overflow: hidden"><div style="width: 78%; height: 100%; border-radius: 3px; background: #3ddbb0"></div></div>
+<span style="font-size: 12.5px; color: #9a9ea6">100 of 128 months · Jan 2016 – Apr 2024</span>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: #f0b35a"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="#f0b35a" stroke-width="1.5" fill="none"></circle><path d="M7 4v3.2l2 1.3" stroke="#f0b35a" stroke-width="1.5" fill="none" stroke-linecap="round"></path></svg>Waiting for the Alpaca request limit. Continues in 24 s.</span>
+</div>
+<span style="text-align: right; font-family: ui-monospace, monospace; font-size: 13px; color: #e8e9eb">2m 36s</span>
+</div>
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid #23252a">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="#3a3d43" stroke-width="2" fill="none"></circle></svg>
+<span style="font-size: 14px; color: #8b9098">Wait in the queue</span>
+<span></span>
+</div>
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid #23252a">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="#3a3d43" stroke-width="2" fill="none"></circle></svg>
+<span style="font-size: 14px; color: #8b9098">Run the model</span>
+<span></span>
+</div>
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: center; padding: 12px 0">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="#3a3d43" stroke-width="2" fill="none"></circle></svg>
+<span style="font-size: 14px; color: #8b9098">Simulate trades</span>
+<span></span>
+</div>
+<p style="margin: 4px 0 0; font-size: 12.5px; color: #8b9098">You can close the page. The backtest keeps going.</p>
+</section>
+<section style="background: #141518; border: 1px solid #26282c; border-radius: 10px; padding: 14px 18px; display: flex; gap: 40px">
+<div style="display: flex; flex-direction: column; gap: 3px; min-width: 0"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">SETUP · MODEL</span><b style="font-size: 13px; font-weight: 500">BLESK NO-VOL 25 × 23</b></div>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">DATA</span><b style="font-size: 13px; font-weight: 500">SPY · 30m</b></div>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">DECISION</span><b style="font-size: 13px; font-weight: 500">threshold 0.05 · long and short</b></div>
+</section>
+</div>
+</div>
+</section>
+<section class="state">
+<h2>Running: the model</h2>
+<div class="frame">
+<div style="width: 880px; height: 620px; box-sizing: border-box; padding: 28px; background: #0f1012; font-family: Inter, system-ui, sans-serif; color: #e8e9eb; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 10px">
+<h2 style="margin: 0; font-size: 22px; font-weight: 700">Backtest #4</h2>
+<span style="font-size: 12px; color: #3ddbb0; border: 1px solid #1f5a4a; border-radius: 4px; padding: 2px 6px">Running · 3m 19s</span>
+</div>
+<div style="display: flex; align-items: center; gap: 14px; font-size: 13px; color: #9a9ea6">
+<span style="display: flex; align-items: center; gap: 6px; color: #e8e9eb; font-weight: 600"><span aria-hidden="true" style="width: 20px; height: 20px; border-radius: 3px; background: #1f4e9e; color: #fff; display: inline-grid; place-items: center; font-size: 11px; font-weight: 700">S</span>SPY</span>
+<a href="#" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px">BLESK_ATR06_R8_OHLC_LAM08_EOD_SPLIT_ATR_NO-VOL_OPT1_8_M25x23.keras</a>
+<span style="white-space: nowrap">30m · 4 Jan 2016 – 26 Oct 2026</span>
+</div>
+<section style="background: #141518; border: 1px solid #26282c; border-radius: 10px; padding: 6px 18px 14px; display: flex; flex-direction: column">
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid #23252a">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#173d33"></circle><path d="M6 10.5l2.6 2.6L14 7.6" stroke="#3ddbb0" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 14px; font-weight: 600">Load candles</span><span style="font-size: 12.5px; color: #9a9ea6">35 912 candles · 128 months, 3 from the cache</span></div>
+<span style="text-align: right; font-family: ui-monospace, monospace; font-size: 13px; color: #9a9ea6">3m 12s</span>
+</div>
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid #23252a">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#173d33"></circle><path d="M6 10.5l2.6 2.6L14 7.6" stroke="#3ddbb0" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span style="font-size: 14px; font-weight: 600">Wait in the queue</span>
+<span style="text-align: right; font-family: ui-monospace, monospace; font-size: 13px; color: #9a9ea6">0 s</span>
+</div>
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid #23252a">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="#2c2f34" stroke-width="2.5" fill="none"></circle><path d="M10 2a8 8 0 0 1 8 8" stroke="#3ddbb0" stroke-width="2.5" fill="none" stroke-linecap="round"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 14px; font-weight: 600">Run the model</span><span style="font-size: 12.5px; color: #9a9ea6">Loads the model, builds its input, predicts</span></div>
+<span style="text-align: right; font-family: ui-monospace, monospace; font-size: 13px; color: #e8e9eb">7s</span>
+</div>
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: center; padding: 12px 0">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="#3a3d43" stroke-width="2" fill="none"></circle></svg>
+<span style="font-size: 14px; color: #8b9098">Simulate trades</span>
+<span></span>
+</div>
+<p style="margin: 4px 0 0; font-size: 12.5px; color: #8b9098">You can close the page. The backtest keeps going.</p>
+</section>
+<section style="background: #141518; border: 1px solid #26282c; border-radius: 10px; padding: 14px 18px; display: flex; gap: 40px">
+<div style="display: flex; flex-direction: column; gap: 3px; min-width: 0"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">SETUP · MODEL</span><b style="font-size: 13px; font-weight: 500">BLESK NO-VOL 25 × 23</b></div>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">DATA</span><b style="font-size: 13px; font-weight: 500">SPY · 30m</b></div>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">DECISION</span><b style="font-size: 13px; font-weight: 500">threshold 0.05 · long and short</b></div>
+</section>
+</div>
+</div>
+</section>
+<section class="state">
+<h2>Failed: loading candles</h2>
+<div class="frame">
+<div style="width: 880px; height: 620px; box-sizing: border-box; padding: 28px; background: #0f1012; font-family: Inter, system-ui, sans-serif; color: #e8e9eb; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 10px">
+<h2 style="margin: 0; font-size: 22px; font-weight: 700">Backtest #4</h2>
+<span style="font-size: 12px; color: #f08a83; border: 1px solid #6b2f2b; border-radius: 4px; padding: 2px 6px">Failed</span>
+</div>
+<div style="display: flex; align-items: center; gap: 14px; font-size: 13px; color: #9a9ea6">
+<span style="display: flex; align-items: center; gap: 6px; color: #e8e9eb; font-weight: 600"><span aria-hidden="true" style="width: 20px; height: 20px; border-radius: 3px; background: #1f4e9e; color: #fff; display: inline-grid; place-items: center; font-size: 11px; font-weight: 700">S</span>SPY</span>
+<a href="#" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px">BLESK_ATR06_R8_OHLC_LAM08_EOD_SPLIT_ATR_NO-VOL_OPT1_8_M25x23.keras</a>
+<span style="white-space: nowrap">30m · 4 Jan 2016 – 26 Oct 2026</span>
+</div>
+<section style="background: #141518; border: 1px solid #26282c; border-radius: 10px; padding: 6px 18px 14px; display: flex; flex-direction: column">
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid #23252a">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#4a1f1c"></circle><path d="M7 7l6 6M13 7l-6 6" stroke="#f08a83" stroke-width="2" stroke-linecap="round"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 8px; min-width: 0">
+<span style="font-size: 14px; font-weight: 600; color: #f08a83">Load candles</span>
+<span style="font-size: 12.5px; color: #9a9ea6">Stopped at 37 of 128 months</span>
+<div role="alert" style="display: flex; flex-direction: column; gap: 4px; border: 1px solid #5a2a27; border-radius: 6px; padding: 10px 12px; font-size: 13px">
+<span>The market data source (Alpaca) is unavailable, so the candles could not be loaded. Alpaca did not answer in time. Try again in a minute.</span>
+<span style="color: #9a9ea6">The loaded part is kept, so the next run is faster.</span>
+</div>
+</div>
+<span style="text-align: right; font-family: ui-monospace, monospace; font-size: 13px; color: #f08a83">1m 05s</span>
+</div>
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid #23252a">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="#3a3d43" stroke-width="2" fill="none" stroke-dasharray="2 3"></circle></svg>
+<span style="font-size: 14px; color: #8b9098">Wait in the queue</span>
+<span style="text-align: right; font-size: 12px; color: #8b9098">not run</span>
+</div>
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid #23252a">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="#3a3d43" stroke-width="2" fill="none" stroke-dasharray="2 3"></circle></svg>
+<span style="font-size: 14px; color: #8b9098">Run the model</span>
+<span style="text-align: right; font-size: 12px; color: #8b9098">not run</span>
+</div>
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: center; padding: 12px 0">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="#3a3d43" stroke-width="2" fill="none" stroke-dasharray="2 3"></circle></svg>
+<span style="font-size: 14px; color: #8b9098">Simulate trades</span>
+<span style="text-align: right; font-size: 12px; color: #8b9098">not run</span>
+</div>
+</section>
+<section style="background: #141518; border: 1px solid #26282c; border-radius: 10px; padding: 14px 18px; display: flex; gap: 40px">
+<div style="display: flex; flex-direction: column; gap: 3px; min-width: 0"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">SETUP · MODEL</span><b style="font-size: 13px; font-weight: 500">BLESK NO-VOL 25 × 23</b></div>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">DATA</span><b style="font-size: 13px; font-weight: 500">SPY · 30m</b></div>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">DECISION</span><b style="font-size: 13px; font-weight: 500">threshold 0.05 · long and short</b></div>
+</section>
+</div>
+</div>
+</section>
+<section class="state">
+<h2>Failed: the model</h2>
+<div class="frame">
+<div style="width: 880px; height: 620px; box-sizing: border-box; padding: 28px; background: #0f1012; font-family: Inter, system-ui, sans-serif; color: #e8e9eb; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 10px">
+<h2 style="margin: 0; font-size: 22px; font-weight: 700">Backtest #5</h2>
+<span style="font-size: 12px; color: #f08a83; border: 1px solid #6b2f2b; border-radius: 4px; padding: 2px 6px">Failed</span>
+</div>
+<div style="display: flex; align-items: center; gap: 14px; font-size: 13px; color: #9a9ea6">
+<span style="display: flex; align-items: center; gap: 6px; color: #e8e9eb; font-weight: 600"><span aria-hidden="true" style="width: 20px; height: 20px; border-radius: 3px; background: #1f4e9e; color: #fff; display: inline-grid; place-items: center; font-size: 11px; font-weight: 700">S</span>SPY</span>
+<a href="#" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px">BLESK_ATR06_R8_OHLC_LAM08_EOD_SPLIT_ATR_NO-VOL_OPT1_8_M25x23.keras</a>
+<span style="white-space: nowrap">30m · 20 Oct 2026 – 26 Oct 2026</span>
+</div>
+<section style="background: #141518; border: 1px solid #26282c; border-radius: 10px; padding: 6px 18px 14px; display: flex; flex-direction: column">
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid #23252a">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#173d33"></circle><path d="M6 10.5l2.6 2.6L14 7.6" stroke="#3ddbb0" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 14px; font-weight: 600">Load candles</span><span style="font-size: 12.5px; color: #9a9ea6">412 candles · from the cache</span></div>
+<span style="text-align: right; font-family: ui-monospace, monospace; font-size: 13px; color: #9a9ea6">0.3 s</span>
+</div>
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid #23252a">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#173d33"></circle><path d="M6 10.5l2.6 2.6L14 7.6" stroke="#3ddbb0" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span style="font-size: 14px; font-weight: 600">Wait in the queue</span>
+<span style="text-align: right; font-family: ui-monospace, monospace; font-size: 13px; color: #9a9ea6">0 s</span>
+</div>
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid #23252a">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#4a1f1c"></circle><path d="M7 7l6 6M13 7l-6 6" stroke="#f08a83" stroke-width="2" stroke-linecap="round"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 8px; min-width: 0">
+<span style="font-size: 14px; font-weight: 600; color: #f08a83">Run the model</span>
+<div role="alert" style="display: flex; flex-direction: column; gap: 4px; border: 1px solid #5a2a27; border-radius: 6px; padding: 10px 12px; font-size: 13px">
+<span>The 412 candles make no sample: the manifest needs at least 501.</span>
+<span style="color: #9a9ea6">Choose a longer period.</span>
+</div>
+</div>
+<span style="text-align: right; font-family: ui-monospace, monospace; font-size: 13px; color: #f08a83">1.9 s</span>
+</div>
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: center; padding: 12px 0">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="#3a3d43" stroke-width="2" fill="none" stroke-dasharray="2 3"></circle></svg>
+<span style="font-size: 14px; color: #8b9098">Simulate trades</span>
+<span style="text-align: right; font-size: 12px; color: #8b9098">not run</span>
+</div>
+</section>
+<section style="background: #141518; border: 1px solid #26282c; border-radius: 10px; padding: 14px 18px; display: flex; gap: 40px">
+<div style="display: flex; flex-direction: column; gap: 3px; min-width: 0"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">SETUP · MODEL</span><b style="font-size: 13px; font-weight: 500">BLESK NO-VOL 25 × 23</b></div>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">DATA</span><b style="font-size: 13px; font-weight: 500">SPY · 30m</b></div>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">DECISION</span><b style="font-size: 13px; font-weight: 500">threshold 0.05 · long and short</b></div>
+</section>
+</div>
+</div>
+</section>
+<section class="state">
+<h2>Finished: timings in Setup</h2>
+<div class="frame">
+<div style="width: 880px; height: 620px; box-sizing: border-box; padding: 28px; background: #0f1012; font-family: Inter, system-ui, sans-serif; color: #e8e9eb; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-content: start">
+<div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 10px">
+<h2 style="margin: 0; font-size: 22px; font-weight: 700">Backtest #4</h2>
+<span style="font-size: 12px; color: #3ddbb0; border: 1px solid #1f5a4a; border-radius: 4px; padding: 2px 6px">Finished</span>
+</div>
+<div style="display: flex; align-items: center; gap: 14px; font-size: 13px; color: #9a9ea6">
+<span style="display: flex; align-items: center; gap: 6px; color: #e8e9eb; font-weight: 600"><span aria-hidden="true" style="width: 20px; height: 20px; border-radius: 3px; background: #1f4e9e; color: #fff; display: inline-grid; place-items: center; font-size: 11px; font-weight: 700">S</span>SPY</span>
+<a href="#" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px">BLESK_ATR06_R8_OHLC_LAM08_EOD_SPLIT_ATR_NO-VOL_OPT1_8_M25x23.keras</a>
+<span style="white-space: nowrap">30m · 4 Jan 2016 – 26 Oct 2026</span>
+</div>
+</div>
+<section style="background: #141518; border: 1px dashed #2c2f34; border-radius: 10px; display: grid; place-items: center; min-height: 460px; font-size: 13px; color: #8b9098">Metrics, charts and trades, as today</section>
+<section style="background: #141518; border: 1px solid #26282c; border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; align-self: start">
+<h3 style="margin: 0; font-size: 15px; font-weight: 650">Setup</h3>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">MODEL</span><b style="font-size: 13px; font-weight: 500">BLESK_ATR06_R8_OHLC_LAM08…keras</b><span style="font-family: ui-monospace, monospace; font-size: 12.5px; color: #9a9ea6">BLESK NO-VOL · 30m · 25 × 23</span></div>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">DATA</span><span style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600"><span aria-hidden="true" style="width: 20px; height: 20px; border-radius: 3px; background: #1f4e9e; color: #fff; display: inline-grid; place-items: center; font-size: 11px; font-weight: 700">S</span>SPY</span><span style="font-family: ui-monospace, monospace; font-size: 12.5px; color: #9a9ea6">30m · 4 Jan 2016 – 26 Oct 2026</span></div>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">DECISION</span><b style="font-size: 13px; font-weight: 500">threshold 0.05 · long and short</b></div>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">EXECUTION</span><b style="font-size: 13px; font-weight: 500">next open · fee 0.1 %</b></div>
+<div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #23252a; padding-top: 12px">
+<span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">RUN</span>
+<b style="font-size: 13px; font-weight: 500">3m 31s in total</b>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; row-gap: 3px; column-gap: 12px; font-size: 12.5px; color: #9a9ea6">
+<span>Load candles</span><span style="font-family: ui-monospace, monospace; text-align: right">3m 12s</span>
+<span>Wait in the queue</span><span style="font-family: ui-monospace, monospace; text-align: right">0 s</span>
+<span>Run the model</span><span style="font-family: ui-monospace, monospace; text-align: right">10.3 s</span>
+<span>Simulate trades</span><span style="font-family: ui-monospace, monospace; text-align: right">1.2 s</span>
+</div>
+</div>
+</section>
+</div>
+</div>
+</section>
+<section class="state">
+<h2>Failed: the server restarted</h2>
+<div class="frame">
+<div style="width: 880px; height: 620px; box-sizing: border-box; padding: 28px; background: #0f1012; font-family: Inter, system-ui, sans-serif; color: #e8e9eb; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 10px">
+<h2 style="margin: 0; font-size: 22px; font-weight: 700">Backtest #4</h2>
+<span style="font-size: 12px; color: #f08a83; border: 1px solid #6b2f2b; border-radius: 4px; padding: 2px 6px">Failed</span>
+</div>
+<div style="display: flex; align-items: center; gap: 14px; font-size: 13px; color: #9a9ea6">
+<span style="display: flex; align-items: center; gap: 6px; color: #e8e9eb; font-weight: 600"><span aria-hidden="true" style="width: 20px; height: 20px; border-radius: 3px; background: #1f4e9e; color: #fff; display: inline-grid; place-items: center; font-size: 11px; font-weight: 700">S</span>SPY</span>
+<a href="#" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px">BLESK_ATR06_R8_OHLC_LAM08_EOD_SPLIT_ATR_NO-VOL_OPT1_8_M25x23.keras</a>
+<span style="white-space: nowrap">30m · 4 Jan 2016 – 26 Oct 2026</span>
+</div>
+<section style="background: #141518; border: 1px solid #26282c; border-radius: 10px; padding: 6px 18px 14px; display: flex; flex-direction: column">
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid #23252a">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#173d33"></circle><path d="M6 10.5l2.6 2.6L14 7.6" stroke="#3ddbb0" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 14px; font-weight: 600">Load candles</span><span style="font-size: 12.5px; color: #9a9ea6">35 912 candles · 128 months, 3 from the cache</span></div>
+<span style="text-align: right; font-family: ui-monospace, monospace; font-size: 13px; color: #9a9ea6">3m 12s</span>
+</div>
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid #23252a">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#173d33"></circle><path d="M6 10.5l2.6 2.6L14 7.6" stroke="#3ddbb0" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span style="font-size: 14px; font-weight: 600">Wait in the queue</span>
+<span style="text-align: right; font-family: ui-monospace, monospace; font-size: 13px; color: #9a9ea6">0 s</span>
+</div>
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid #23252a">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#4a1f1c"></circle><path d="M7 7l6 6M13 7l-6 6" stroke="#f08a83" stroke-width="2" stroke-linecap="round"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 8px; min-width: 0">
+<span style="font-size: 14px; font-weight: 600; color: #f08a83">Run the model</span>
+<div role="alert" style="display: flex; flex-direction: column; gap: 4px; border: 1px solid #5a2a27; border-radius: 6px; padding: 10px 12px; font-size: 13px">
+<span>The server restarted while the backtest ran, so it stopped. Run it again.</span>
+</div>
+</div>
+<span style="text-align: right; font-family: ui-monospace, monospace; font-size: 13px; color: #f08a83">4s</span>
+</div>
+<div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 64px; gap: 12px; align-items: center; padding: 12px 0">
+<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="#3a3d43" stroke-width="2" fill="none" stroke-dasharray="2 3"></circle></svg>
+<span style="font-size: 14px; color: #8b9098">Simulate trades</span>
+<span style="text-align: right; font-size: 12px; color: #8b9098">not run</span>
+</div>
+</section>
+<section style="background: #141518; border: 1px solid #26282c; border-radius: 10px; padding: 14px 18px; display: flex; gap: 40px">
+<div style="display: flex; flex-direction: column; gap: 3px; min-width: 0"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">SETUP · MODEL</span><b style="font-size: 13px; font-weight: 500">BLESK NO-VOL 25 × 23</b></div>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">DATA</span><b style="font-size: 13px; font-weight: 500">SPY · 30m</b></div>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #8b9098">DECISION</span><b style="font-size: 13px; font-weight: 500">threshold 0.05 · long and short</b></div>
+</section>
+</div>
+</div>
+</section>
+</main>
+</body>
+</html>
