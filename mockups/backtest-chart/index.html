@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Backtest result chart</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@5.2.1/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+  :root {
+    --page: #0f1012; --card: #141518; --ink: #e8e9eb; --muted: #9a9ea6; --faint: #8b9098; --grid: #1f2125;
+    --rule: #26282d; --accent: #3ddbb0; --down: #f08a83; --blue: #5b9cff;
+    --sans: 'Geist', system-ui, sans-serif; --mono: 'Geist Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink); font-family: var(--sans); }
+  a { color: var(--accent); text-decoration: none; } a:hover { color: #7fe9cb; }
+  .top { height: 56px; border-bottom: 1px solid var(--rule); display: flex; align-items: center; justify-content: space-between; padding: 0 max(16px, calc((100vw - 1152px) / 2)); }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+  .brand i { width: 26px; height: 26px; border-radius: 6px; background: var(--accent); display: inline-block; }
+  .primary { height: 34px; padding: 0 14px; border: 0; border-radius: 8px; background: var(--accent); color: #0b0c0e; font: inherit; font-size: 14px; font-weight: 600; }
+  main { max-width: 1152px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 16px; }
+  .back { font-size: 13px; color: var(--muted); }
+  .title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .title h1 { margin: 0; font-size: 24px; font-weight: 700; }
+  .pill { font-family: var(--mono); font-size: 11.5px; color: var(--accent); border: 1px solid #1f5a4a; border-radius: 4px; padding: 1px 6px; }
+  .sub { display: flex; align-items: center; gap: 14px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+  .sym { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); font-weight: 600; }
+  .sym b { width: 18px; height: 18px; border-radius: 4px; background: #f7931a; display: inline-block; }
+  .stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); background: var(--card); border: 1px solid var(--rule); border-radius: 10px; }
+  .stat { padding: 12px 16px; display: flex; flex-direction: column; gap: 4px; border-left: 1px solid var(--rule); }
+  .stat:first-child { border-left: 0; }
+  .stat span { font-size: 12px; color: var(--muted); }
+  .stat b { font-family: var(--mono); font-size: 16px; font-weight: 500; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .card { background: var(--card); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+  .card h2 { margin: 0; font-size: 14px; font-weight: 600; }
+  .head { display: flex; align-items: baseline; justify-content: space-between; padding: 12px 16px 6px; }
+  .head .hint { font-size: 12px; color: var(--muted); }
+  .chart-wrap { position: relative; height: 420px; }
+  #chart { position: absolute; inset: 0; }
+  .legend { position: absolute; left: 12px; top: 8px; z-index: 3; pointer-events: none; font-size: 12px; line-height: 20px; }
+  .legend .row { display: flex; gap: 10px; align-items: center; white-space: nowrap; }
+  .legend .name { font-size: 13px; font-weight: 500; }
+  .legend .k { color: var(--muted); font-family: var(--mono); }
+  .legend .v { font-family: var(--mono); }
+  .legend .item { pointer-events: auto; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; border-radius: 4px; padding: 0 4px; margin-left: -4px; user-select: none; }
+  .legend .item:hover { background: rgba(255,255,255,0.06); }
+  .legend .item.off { opacity: 0.4; }
+  .legend .item.off .v { visibility: hidden; }
+  .legend .swatch { width: 12px; height: 2px; border-radius: 1px; display: inline-block; }
+  .legend .swatch.dash { background: repeating-linear-gradient(90deg, var(--muted) 0 3px, transparent 3px 5px) !important; }
+  .legend .trade { background: rgba(20,21,24,0.85); border-radius: 4px; padding: 0 6px; margin-left: -6px; }
+  .legend .note { color: var(--muted); }
+  .legend .box { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: rgba(61,219,176,0.22); vertical-align: -1px; }
+  .bar { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--rule); padding: 4px 8px; font-size: 12px; gap: 8px; flex-wrap: wrap; }
+  .seg { display: flex; gap: 2px; align-items: center; }
+  .seg button { font: inherit; font-family: var(--mono); background: none; border: 0; color: var(--muted); padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+  .seg button:hover { color: var(--ink); background: rgba(255,255,255,0.05); }
+  .seg button.on { color: var(--accent); }
+  .seg .sep { width: 1px; height: 14px; background: var(--rule); margin: 0 6px; }
+  .tz { color: var(--muted); font-family: var(--mono); padding: 0 8px; }
+  .kind { display: flex; gap: 2px; padding: 2px; border-radius: 6px; background: rgba(255,255,255,0.04); }
+  .kind button { display: grid; place-items: center; width: 28px; height: 24px; padding: 0; }
+  .kind button.on { background: #2a2d33; }
+  .kind button:not(.on) svg { opacity: 0.55; }
+  .switch-row { display: inline-flex !important; align-items: center; gap: 8px; color: var(--ink) !important; font-family: var(--sans) !important; }
+  .switch { position: relative; width: 28px; height: 16px; border-radius: 8px; background: #3a3d43; transition: background 0.15s; }
+  .knob { position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #e8e9eb; transition: transform 0.15s; }
+  .switch-row[aria-checked="true"] .switch { background: var(--accent); }
+  .switch-row[aria-checked="true"] .knob { transform: translateX(12px); background: #0b0c0e; }
+  .switch-row[aria-checked="false"] svg { opacity: 0.4; }
+  @media (prefers-reduced-motion: reduce) { .switch, .knob { transition: none; } }
+  .list { padding: 4px 16px 12px; display: flex; flex-direction: column; }
+  .list div { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #1d1f23; font-size: 13px; }
+  .list div:last-child { border-bottom: 0; }
+  .list span { color: var(--muted); }
+  .list b { font-family: var(--mono); font-weight: 500; }
+  .setup { padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 12px; font-size: 13px; }
+  .setup .lab { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; color: var(--faint); }
+  .setup b { font-weight: 500; display: block; overflow-wrap: anywhere; }
+  .setup .det { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+  .setup { padding: 0 16px 6px; gap: 0; }
+  .group { display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-top: 1px solid #1d1f23; }
+  .group:first-child { border-top: 0; padding-top: 4px; }
+  .ident { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .setup .clamp { font-weight: 500; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; line-height: 1.35; }
+  .two { display: flex; flex-direction: column; min-width: 0; }
+  .two span { color: var(--muted); font-size: 12.5px; }
+  dl { margin: 0; display: grid; grid-template-columns: auto 1fr; row-gap: 5px; column-gap: 12px; }
+  dt { color: var(--muted); }
+  dd { margin: 0; text-align: right; font-family: var(--mono); font-size: 12.5px; }
+  /* The app's marks: the framework on a square tinted with its colour, the instrument's logo on a white tile. */
+  .fw-tile { flex: none; width: 28px; height: 28px; border-radius: 7px; display: grid; place-items: center; background: color-mix(in srgb, #D00000 12%, transparent); }
+  .fw-tile svg { width: 15px; height: 15px; fill: color-mix(in srgb, #D00000, #fff 25%); }
+  .fw-tile.sm { width: 20px; height: 20px; border-radius: 5px; } .fw-tile.sm svg { width: 11px; height: 11px; }
+  .tile { flex: none; width: 28px; height: 28px; border-radius: 10%; background: #fff; box-shadow: inset 0 0 0 1px #33383d; display: grid; place-items: center; overflow: hidden; }
+  .tile svg { width: 82%; height: 82%; }
+  .tile.sm { width: 18px; height: 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; font-weight: 500; color: var(--muted); padding: 8px 16px; border-bottom: 1px solid var(--rule); }
+  td { padding: 9px 16px; border-bottom: 1px solid #1d1f23; font-family: var(--mono); font-size: 12.5px; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.r, th.r { text-align: right; }
+  .up { color: var(--accent); } .dn { color: var(--down); }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } .stat:nth-child(4) { border-left: 0; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <span class="brand"><i></i>CandleStack</span>
+  <button type="button" class="primary">New backtest</button>
+</header>
+<main>
+  <a class="back" href="#">← Backtests</a>
+  <div class="title"><h1>Backtest #3</h1><span class="pill">Finished</span></div>
+  <div class="sub">
+    <span class="sym"><span class="tile sm" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#f7931a"></circle><text x="12" y="16.5" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="Geist, sans-serif">₿</text></svg></span>BTCUSDT</span>
+    <span class="sym" style="font-weight:400"><span class="fw-tile sm" title="Keras"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M24 0H0v24h24V0zM8.45 5.16l.2.17v6.24l6.46-6.45h1.96l.2.4-5.14 5.1 5.47 7.94-.2.3h-1.94l-4.65-6.88-2.16 2.08v4.6l-.19.2H7l-.2-.2V5.33l.17-.17h1.48z"></path></svg></span><a href="#">BLESK_ATR06_R8_OHLC_LAM08_EOD_SPLIT_ATR_NO-VOL_OPT1_8_M25x23.keras</a></span>
+    <span id="period"></span>
+    <span>Today 12:56 · 1 min 23 s</span>
+  </div>
+  <section class="stats" aria-label="Results">
+    <div class="stat"><span>Return</span><b id="s-ret"></b></div>
+    <div class="stat"><span>Buy and hold</span><b id="s-bh"></b></div>
+    <div class="stat"><span>Sharpe</span><b id="s-sharpe"></b></div>
+    <div class="stat"><span>Max drawdown</span><b id="s-dd" class="dn"></b></div>
+    <div class="stat"><span>Trades</span><b id="s-trades"></b></div>
+    <div class="stat"><span>Win rate</span><b id="s-win"></b></div>
+  </section>
+  <div class="grid">
+    <div class="col">
+      <section class="card">
+        <div class="head"><h2>Price and trades</h2><span class="hint">Scroll to zoom, drag to move</span></div>
+        <div class="chart-wrap">
+          <div id="chart"></div>
+          <div class="legend">
+            <div class="row">
+              <span class="name">BTCUSDT · <span id="lg-iv">1D</span> · Binance</span>
+              <span><span class="k">O</span> <span class="v" id="lg-o"></span></span>
+              <span><span class="k">H</span> <span class="v" id="lg-h"></span></span>
+              <span><span class="k">L</span> <span class="v" id="lg-l"></span></span>
+              <span><span class="k">C</span> <span class="v" id="lg-c"></span></span>
+              <span class="v" id="lg-chg"></span>
+            </div>
+            <div class="row"><span class="k">Vol</span> <span class="v" id="lg-vol"></span></div>
+            <div class="row" id="lg-trade-row"><span id="lg-trade" class="note"></span></div>
+          </div>
+          <div class="legend" id="legend2">
+            <div class="row">
+              <span class="item" id="tg-eq" title="Show or hide"><span class="swatch" style="background:var(--accent)"></span>Strategy <span class="v" id="lg-eq"></span></span>
+              <span class="item" id="tg-bh" title="Show or hide"><span class="swatch dash"></span>Buy and hold <span class="v" id="lg-bh"></span></span>
+              <span><span class="k">Drawdown</span> <span class="v dn" id="lg-dd"></span></span>
+            </div>
+          </div>
+        </div>
+        <div class="bar">
+          <div class="seg" id="ranges">
+            <button data-days="7">1W</button>
+            <button data-days="30">1M</button>
+            <button data-days="90">3M</button>
+            <button data-days="365">1Y</button>
+            <button data-days="0">All</button>
+          </div>
+          <div class="seg">
+            <span class="tz" id="iv-note" title="Candles grow as you zoom out">1D</span>
+            <div class="kind" role="group" aria-label="Chart type">
+              <button type="button" id="kind-candles" class="on" aria-pressed="true" aria-label="Candles" title="Candles"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2v2.5M4.5 11v3" stroke="#3ddbb0" stroke-width="1.3" stroke-linecap="round"></path><rect x="2.5" y="4.5" width="4" height="6.5" rx="1" fill="#3ddbb0"></rect><path d="M11.5 1.5v3M11.5 10v4.5" stroke="#f08a83" stroke-width="1.3" stroke-linecap="round"></path><rect x="9.5" y="4.5" width="4" height="5.5" rx="1" fill="#f08a83"></rect></svg></button>
+              <button type="button" id="kind-line" aria-pressed="false" aria-label="Line" title="Line"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 12l4-4.5 3 2.5 6-6.5" stroke="#5b9cff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+            </div>
+            <span class="sep"></span>
+            <button type="button" id="show-trades" class="switch-row" role="switch" aria-checked="true" title="Show or hide the trades on the chart">
+              <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M4 1.5l3 4.5H1z" fill="#3ddbb0"></path><path d="M10 12.5L7 8h6z" fill="#f08a83"></path></svg>
+              <span>Trades</span>
+              <span class="switch" aria-hidden="true"><span class="knob"></span></span>
+            </button>
+          </div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="head"><h2>Trades <span style="color:var(--muted);font-weight:400" id="t-count"></span></h2><a href="#" style="font-size:13px">Show all</a></div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Side</th><th>Opened</th><th class="r">at</th><th>Closed</th><th class="r">at</th><th class="r">Return</th><th class="r">Candles</th><th>Why</th></tr></thead>
+            <tbody id="t-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+    <div class="col">
+      <section class="card">
+        <div class="head"><h2>All metrics</h2></div>
+        <div class="list" id="metrics"></div>
+      </section>
+      <section class="card">
+        <div class="head"><h2>Setup</h2></div>
+        <div class="setup">
+          <div class="group">
+            <div class="lab">MODEL</div>
+            <div class="ident"><span class="fw-tile" title="Keras"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M24 0H0v24h24V0zM8.45 5.16l.2.17v6.24l6.46-6.45h1.96l.2.4-5.14 5.1 5.47 7.94-.2.3h-1.94l-4.65-6.88-2.16 2.08v4.6l-.19.2H7l-.2-.2V5.33l.17-.17h1.48z"></path></svg></span><b class="clamp">BLESK_ATR06_R8_OHLC_LAM08_EOD_SPLIT_ATR_NO-VOL_OPT1_8_M25x23.keras</b></div>
+            <dl><dt>Reads</dt><dd>Renko</dd><dt>Timeframe</dt><dd>30m</dd><dt>Input</dt><dd>25 × 23</dd></dl>
+          </div>
+          <div class="group">
+            <div class="lab">DATA</div>
+            <div class="ident"><span class="tile" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#f7931a"></circle><text x="12" y="16.5" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="Geist, sans-serif">₿</text></svg></span><span class="two"><b>BTCUSDT</b><span>Bitcoin / Tether</span></span></div>
+            <dl><dt>From</dt><dd id="setup-from"></dd><dt>To</dt><dd id="setup-to"></dd><dt>Candles</dt><dd id="setup-candles"></dd></dl>
+          </div>
+          <div class="group">
+            <div class="lab">DECISION</div>
+            <dl><dt>Threshold</dt><dd>0.05</dd><dt>Positions</dt><dd>Long and short</dd></dl>
+          </div>
+          <div class="group">
+            <div class="lab">EXECUTION</div>
+            <dl><dt>Fills at</dt><dd>Next candle's open</dd><dt>Stop loss</dt><dd>7 %</dd><dt>Fees</dt><dd>0.1 %</dd><dt>Slippage</dt><dd>0.02 %</dd></dl>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<script>
+const LW = LightweightCharts;
+const C = { ink: '#e8e9eb', muted: '#9a9ea6', grid: '#1f2125', up: '#3ddbb0', down: '#f08a83', blue: '#5b9cff', card: '#141518' };
+const alpha = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; };
+
+// ---------- synthetic run: 2 years of 30m candles, seeded ----------
+let seed = 7;
+const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+const gauss = () => { let u = 0, v = 0; while (!u) u = rnd(); while (!v) v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+const STEP = 1800, START = Date.UTC(2023, 0, 2) / 1000, N = 2 * 365 * 48;
+const bars = [];
+let price = 16800, vol = 0.0035, drift = 0;
+for (let i = 0; i < N; i++) {
+  if (i % 480 === 0) drift = (rnd() - 0.40) * 0.00022;
+  vol = Math.min(0.009, Math.max(0.0018, vol * (1 + gauss() * 0.04)));
+  const o = price, c = o * Math.exp(drift + gauss() * vol);
+  const h = Math.max(o, c) * (1 + Math.abs(gauss()) * vol * 0.5), l = Math.min(o, c) * (1 - Math.abs(gauss()) * vol * 0.5);
+  bars.push({ time: START + i * STEP, open: o, high: h, low: l, close: c, volume: 400 * (1 + Math.abs(gauss()) * 1.6) * (vol / 0.0035) });
+  price = c;
+}
+const avgCycle = N / 700, trades = [];
+for (let i = 2; i < N - 30;) {
+  i += 1 + Math.floor(rnd() * avgCycle * 0.9);
+  const hold = 2 + Math.floor(-Math.log(1 - rnd()) * avgCycle * 0.45);
+  const o = i, x = Math.min(N - 1, i + hold);
+  if (o >= N - 2) break;
+  const right = rnd() < 0.56, side = ((bars[x].close / bars[o].open - 1) >= 0) === right ? 1 : -1;
+  const ret = side * (bars[x].close / bars[o].open - 1) - 0.0008;
+  trades.push({ o, x, side, open_ts: bars[o].time, close_ts: bars[x].time, open_price: bars[o].open, close_price: bars[x].close, ret, reason: rnd() < 0.14 ? 'stop' : 'signal', candles: x - o + 1 });
+  i = x + 1;
+}
+const equity = new Float64Array(N), bh = new Float64Array(N), dd = new Float64Array(N), pos = new Int8Array(N);
+{
+  let eq = 1, t = 0, peak = 1;
+  for (const tr of trades) for (let i = tr.o; i <= tr.x; i++) pos[i] = tr.side;
+  for (let i = 0; i < N; i++) {
+    const tr = trades[t];
+    let cur = eq;
+    if (tr && i >= tr.o && i <= tr.x) {
+      if (i === tr.x) { eq *= 1 + tr.ret; cur = eq; t++; } else cur = eq * (1 + tr.side * (bars[i].close / tr.open_price - 1));
+    }
+    equity[i] = (cur - 1) * 100; peak = Math.max(peak, cur); dd[i] = (cur / peak - 1) * 100; bh[i] = (bars[i].close / bars[0].open - 1) * 100;
+  }
+}
+
+// ---------- formats ----------
+const fmtPrice = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtPct = (v, d = 1) => `${v < 0 ? '−' : '+'}${Math.abs(v).toFixed(d)} %`;
+const fmtVol = (v) => v >= 1e6 ? (v / 1e6).toFixed(2) + 'M' : v >= 1e3 ? (v / 1e3).toFixed(2) + 'K' : v.toFixed(0);
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const p2 = (n) => String(n).padStart(2, '0');
+const day = (t) => { const d = new Date(t * 1000); return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+const fmtShort = (t) => { const d = new Date(t * 1000); return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${p2(d.getUTCHours())}:${p2(d.getUTCMinutes())}`; };
+const fmtDate = (t, withTime) => { const d = new Date(t * 1000); const s = `${DAYS[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} '${String(d.getUTCFullYear()).slice(2)}`; return withTime ? `${s} ${p2(d.getUTCHours())}:${p2(d.getUTCMinutes())}` : s; };
+const $ = (id) => document.getElementById(id);
+const colored = (el, v) => { el.textContent = fmtPct(v); el.className = v >= 0 ? 'up' : 'dn'; };
+
+// ---------- the page around the chart, from the same run ----------
+{
+  const wins = trades.filter((t) => t.ret > 0).length, rets = trades.map((t) => t.ret * 100);
+  const daily = []; for (let i = 48; i < N; i += 48) daily.push((1 + equity[i] / 100) / (1 + equity[i - 48] / 100) - 1);
+  const mean = daily.reduce((a, b) => a + b, 0) / daily.length, sd = Math.sqrt(daily.reduce((a, b) => a + (b - mean) ** 2, 0) / daily.length);
+  const sharpe = mean / sd * Math.sqrt(365), maxDd = Math.min(...dd), inMarket = pos.reduce((a, p) => a + (p !== 0), 0) / N * 100;
+  const period = `${day(bars[0].time)} – ${day(bars[N - 1].time)}`;
+  $('period').textContent = period;
+  $('setup-from').textContent = day(bars[0].time); $('setup-to').textContent = day(bars[N - 1].time);
+  $('setup-candles').textContent = N.toLocaleString('en-US');
+  colored($('s-ret'), equity[N - 1]); colored($('s-bh'), bh[N - 1]);
+  $('s-sharpe').textContent = sharpe.toFixed(2); $('s-dd').textContent = fmtPct(maxDd);
+  $('s-trades').textContent = trades.length.toLocaleString('en-US'); $('s-win').textContent = (wins / trades.length * 100).toFixed(1) + ' %';
+  const rows = [
+    ['Total return', fmtPct(equity[N - 1]), equity[N - 1] >= 0], ['Max drawdown', fmtPct(maxDd), false], ['Sharpe', sharpe.toFixed(2)],
+    ['Trades', trades.length.toLocaleString('en-US')], ['Win rate', (wins / trades.length * 100).toFixed(1) + ' %'],
+    ['Avg. trade', fmtPct(rets.reduce((a, b) => a + b, 0) / rets.length, 2)], ['Best trade', fmtPct(Math.max(...rets)), true],
+    ['Worst trade', fmtPct(Math.min(...rets)), false], ['Time in market', inMarket.toFixed(1) + ' %'], ['Buy and hold', fmtPct(bh[N - 1]), bh[N - 1] >= 0],
+  ];
+  $('metrics').innerHTML = rows.map(([k, v, good]) => `<div><span>${k}</span><b class="${good === undefined ? '' : good ? 'up' : 'dn'}">${v}</b></div>`).join('');
+  $('t-count').textContent = trades.length.toLocaleString('en-US');
+  $('t-body').innerHTML = trades.slice(-6).reverse().map((t) => `<tr><td class="${t.side > 0 ? 'up' : 'dn'}">${t.side > 0 ? 'Long' : 'Short'}</td><td>${fmtShort(t.open_ts)}</td><td class="r">${fmtPrice.format(t.open_price)}</td><td>${fmtShort(t.close_ts)}</td><td class="r">${fmtPrice.format(t.close_price)}</td><td class="r ${t.ret >= 0 ? 'up' : 'dn'}">${fmtPct(t.ret * 100)}</td><td class="r">${t.candles}</td><td style="font-family:var(--sans)">${t.reason}</td></tr>`).join('');
+}
+
+// ---------- intervals: coarser candles when zoomed out ----------
+const IV = { '30m': { sec: 1800, max: 420 }, '4h': { sec: 14400, max: 480 }, '1D': { sec: 86400, max: 1100 }, '1W': { sec: 604800, max: Infinity } };
+const ORDER = ['30m', '4h', '1D', '1W'];
+const bucket = (t, iv) => iv === '1W' ? Math.floor((t - 345600) / 604800) * 604800 + 345600 : Math.floor(t / IV[iv].sec) * IV[iv].sec;
+const cache = {};
+function dataFor(iv) {
+  if (cache[iv]) return cache[iv];
+  const candles = [], volume = [], eq = [], bhs = [], dds = [], shade = [];
+  let cur = null;
+  for (let i = 0; i < N; i++) {
+    const b = bars[i], t = bucket(b.time, iv);
+    if (!cur || cur.time !== t) {
+      cur = { time: t, open: b.open, high: b.high, low: b.low, close: b.close, volume: 0, pos: 0 };
+      candles.push(cur); eq.push({ time: t, value: 100 }); bhs.push({ time: t, value: 100 }); dds.push(dd[i]);
+    }
+    cur.high = Math.max(cur.high, b.high); cur.low = Math.min(cur.low, b.low); cur.close = b.close; cur.volume += b.volume;
+    if (pos[i] && !cur.pos) cur.pos = pos[i];
+    eq[eq.length - 1].value = 100 + equity[i]; bhs[bhs.length - 1].value = 100 + bh[i]; dds[dds.length - 1] = Math.min(dds[dds.length - 1], dd[i]);
+  }
+  for (const c of candles) {
+    volume.push({ time: c.time, value: c.volume, color: alpha(c.close >= c.open ? C.up : C.down, 0.2) });
+    shade.push({ time: c.time, pos: c.pos });
+  }
+  return (cache[iv] = { candles, volume, eq, bh: bhs, dd: dds, shade, index: new Map(candles.map((c, k) => [c.time, k])) });
+}
+
+// ---------- the chart ----------
+let current = '1D';
+const chartEl = $('chart');
+const chart = LW.createChart(chartEl, {
+  autoSize: true,
+  layout: { background: { type: LW.ColorType.Solid, color: C.card }, textColor: C.muted, fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 11, attributionLogo: false, panes: { separatorColor: C.grid } },
+  grid: { vertLines: { color: C.grid }, horzLines: { color: C.grid } },
+  crosshair: { mode: LW.CrosshairMode.Normal, vertLine: { color: '#5d6169', style: LW.LineStyle.Dashed, labelBackgroundColor: '#2a2d33' }, horzLine: { color: '#5d6169', style: LW.LineStyle.Dashed, labelBackgroundColor: '#2a2d33' } },
+  rightPriceScale: { borderColor: C.grid, scaleMargins: { top: 0.24, bottom: 0.2 } },
+  timeScale: { borderColor: C.grid, rightOffset: 4, minBarSpacing: 0.02, fixLeftEdge: true, timeVisible: false },
+  localization: { locale: 'en-GB', timeFormatter: (t) => fmtDate(t, IV[current].sec < 86400) },
+});
+// In a position: a tinted band behind those candles (a stepped area, 1 in a position, 0 out),
+// one for longs and one for shorts, behind everything else.
+const band = (color) => chart.addSeries(LW.AreaSeries, { priceScaleId: 'pos', lineType: LW.LineType.WithSteps, lineVisible: false, topColor: color, bottomColor: color, lastValueVisible: false, priceLineVisible: false, crosshairMarkerVisible: false, autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 1 } }) });
+const longBand = band(alpha(C.up, 0.1)), shortBand = band(alpha(C.down, 0.1));
+chart.priceScale('pos').applyOptions({ scaleMargins: { top: 0, bottom: 0 }, visible: false });
+const shadeSeries = { setData: (d) => { longBand.setData(d.length ? d.map((p) => ({ time: p.time, value: p.pos > 0 ? 1 : 0 })) : []); shortBand.setData(d.length ? d.map((p) => ({ time: p.time, value: p.pos < 0 ? 1 : 0 })) : []); } };
+const priceFmt = { type: 'custom', minMove: 0.01, formatter: (v) => v <= 0 ? '' : fmtPrice.format(v) };
+const candleSeries = chart.addSeries(LW.CandlestickSeries, { upColor: C.up, downColor: C.down, borderVisible: false, wickUpColor: C.up, wickDownColor: C.down, priceFormat: priceFmt });
+const lineSeries = chart.addSeries(LW.LineSeries, { color: C.blue, lineWidth: 2, visible: false, priceFormat: priceFmt, crosshairMarkerRadius: 3 });
+const volumeSeries = chart.addSeries(LW.HistogramSeries, { priceScaleId: 'vol', priceFormat: { type: 'volume' }, lastValueVisible: false, priceLineVisible: false });
+chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.86, bottom: 0 }, visible: false });
+const pctFormat = { type: 'price', precision: 2, minMove: 0.01 };
+const bhSeries = chart.addSeries(LW.LineSeries, { color: alpha(C.muted, 0.8), lineWidth: 1, lineStyle: LW.LineStyle.Dashed, priceFormat: pctFormat, priceLineVisible: false, crosshairMarkerVisible: false, baseLineVisible: false }, 1);
+const eqSeries = chart.addSeries(LW.LineSeries, { color: C.up, lineWidth: 2, priceFormat: pctFormat, priceLineVisible: false, crosshairMarkerRadius: 3, baseLineColor: '#3a3e46', baseLineStyle: LW.LineStyle.Dashed }, 1);
+chart.panes()[1].setHeight(110);
+eqSeries.priceScale().applyOptions({ mode: LW.PriceScaleMode.Percentage, scaleMargins: { top: 0.3, bottom: 0.08 } });
+const placeLegend2 = () => { $('legend2').style.top = (chart.panes()[0].getHeight() + 5) + 'px'; };
+new ResizeObserver(() => requestAnimationFrame(placeLegend2)).observe(chartEl);
+const linkSeries = chart.addSeries(LW.LineSeries, { color: C.up, lineWidth: 1, lineStyle: LW.LineStyle.Dashed, lastValueVisible: false, priceLineVisible: false, crosshairMarkerVisible: false, autoscaleInfoProvider: () => null, pointMarkersVisible: true, pointMarkersRadius: 2 });
+let lineMode = false;
+const candleMarkers = LW.createSeriesMarkers(candleSeries, []), lineMarkers = LW.createSeriesMarkers(lineSeries, []);
+const setMarkers = (list) => { (lineMode ? lineMarkers : candleMarkers).setMarkers(list); (lineMode ? candleMarkers : lineMarkers).setMarkers([]); };
+
+// ---------- markers: Buy and Sell only, when few enough trades are in view ----------
+const MARK_MAX = 50, TEXT_MAX = 14, DENSE_MAX = 160;
+const lowerBound = (arr, key, v) => { let lo = 0, hi = arr.length; while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m][key] < v) lo = m + 1; else hi = m; } return lo; };
+let hovered = null, inView = 0, showTrades = true;
+const buy = (time, size, text) => ({ time, position: 'belowBar', shape: 'arrowUp', color: C.up, size, text });
+const sell = (time, size, text) => ({ time, position: 'aboveBar', shape: 'arrowDown', color: C.down, size, text });
+function tradeMarkers(tr, withText, big, scale) {
+  const size = big ? 1.6 : scale, open = bucket(tr.open_ts, current), close = bucket(tr.close_ts, current);
+  const r = big ? ` ${fmtPct(tr.ret * 100)}` : '';
+  const t1 = withText || big, t2 = withText || big;
+  return tr.side > 0
+    ? [buy(open, size, t1 ? 'Buy' : ''), sell(close, size, t2 ? `Sell${r}` : '')]
+    : [sell(open, size, t1 ? 'Sell' : ''), buy(close, size, t2 ? `Buy${r}` : '')];
+}
+function refreshMarkers() {
+  const r = chart.timeScale().getVisibleRange();
+  if (!r) return;
+  const a = lowerBound(trades, 'open_ts', r.from), b = lowerBound(trades, 'open_ts', r.to + IV[current].sec);
+  inView = b - a;
+  const list = [], text = inView <= TEXT_MAX, scale = inView <= MARK_MAX ? 1 : 0.6;
+  if (showTrades) for (let k = Math.max(0, a - 3); k < Math.min(trades.length, b + 3); k++) {
+    if (inView > DENSE_MAX && trades[k] !== hovered) continue;
+    list.push(...tradeMarkers(trades[k], text, trades[k] === hovered, scale));
+  }
+  list.sort((m, n) => m.time - n.time);
+  setMarkers(list);
+  renderTradeLine();
+}
+function renderTradeLine() {
+  const el = $('lg-trade');
+  if (hovered) {
+    const t = hovered;
+    el.className = 'trade';
+    el.innerHTML = `<span style="color:${t.side > 0 ? C.up : C.down}">${t.side > 0 ? '▲ Long' : '▼ Short'}</span> &nbsp;${fmtShort(t.open_ts)} → ${fmtShort(t.close_ts)} &nbsp;<span class="v">${fmtPrice.format(t.open_price)} → ${fmtPrice.format(t.close_price)}</span> &nbsp;<span class="v" style="color:${t.ret >= 0 ? C.up : C.down}">${fmtPct(t.ret * 100, 2)}</span> &nbsp;<span class="k">${t.candles} candles · ${t.reason}</span>`;
+    return;
+  }
+  el.className = 'note';
+  const key = `<span style="color:${C.up}">▲</span> Buy &nbsp;<span style="color:${C.down}">▼</span> Sell &nbsp;<span class="box"></span> In a position`;
+  el.innerHTML = inView <= DENSE_MAX ? `${key} &nbsp;·&nbsp; ${inView.toLocaleString('en-US')} trades in view` : `${key} &nbsp;·&nbsp; ${inView.toLocaleString('en-US')} trades in view, zoom in or pick 1M to see each one`;
+}
+function setHovered(tr) {
+  if (!showTrades) tr = null;
+  if (tr === hovered) return;
+  hovered = tr;
+  if (tr) {
+    const pts = [{ time: bucket(tr.open_ts, current), value: tr.open_price }, { time: bucket(tr.close_ts, current), value: tr.close_price }];
+    linkSeries.applyOptions({ color: tr.ret >= 0 ? C.up : C.down });
+    linkSeries.setData(pts[0].time === pts[1].time ? [pts[1]] : pts);
+  } else linkSeries.setData([]);
+  refreshMarkers();
+}
+function tradeAt(time) {
+  const k = lowerBound(trades, 'open_ts', time + IV[current].sec) - 1, t = trades[k];
+  return t && t.close_ts >= time ? t : null;
+}
+
+// ---------- legend ----------
+function renderLegend(k) {
+  const d = dataFor(current);
+  if (k == null || k < 0) k = d.candles.length - 1;
+  const c = d.candles[k], prev = d.candles[k - 1] || c, col = c.close >= c.open ? C.up : C.down;
+  for (const [id, v] of [['lg-o', c.open], ['lg-h', c.high], ['lg-l', c.low], ['lg-c', c.close]]) { $(id).textContent = fmtPrice.format(v); $(id).style.color = col; }
+  const chg = c.close - prev.close;
+  $('lg-chg').textContent = `${chg < 0 ? '−' : '+'}${fmtPrice.format(Math.abs(chg))} (${fmtPct(chg / prev.close * 100, 2)})`; $('lg-chg').style.color = col;
+  $('lg-vol').textContent = fmtVol(c.volume); $('lg-vol').style.color = col;
+  $('lg-eq').textContent = fmtPct(d.eq[k].value - 100); $('lg-eq').style.color = C.up;
+  $('lg-bh').textContent = fmtPct(d.bh[k].value - 100); $('lg-bh').style.color = C.muted;
+  $('lg-dd').textContent = fmtPct(d.dd[k]);
+  $('lg-iv').textContent = current;
+}
+chart.subscribeCrosshairMove((p) => {
+  if (!p.time || !p.point || p.point.x < 0) { renderLegend(null); setHovered(null); return; }
+  renderLegend(dataFor(current).index.get(p.time));
+  setHovered(tradeAt(p.time));
+});
+for (const [id, s] of [['tg-eq', eqSeries], ['tg-bh', bhSeries]]) $(id).addEventListener('click', (e) => s.applyOptions({ visible: !e.currentTarget.classList.toggle('off') }));
+
+// ---------- the interval follows the zoom ----------
+let switching = false;
+function load(iv, range) {
+  switching = true; current = iv;
+  const d = dataFor(iv);
+  shadeSeries.setData(showTrades ? d.shade : []);
+  candleSeries.setData(d.candles);
+  lineSeries.setData(d.candles.map((c) => ({ time: c.time, value: c.close })));
+  volumeSeries.setData(d.volume);
+  eqSeries.setData(d.eq); bhSeries.setData(d.bh);
+  linkSeries.setData([]); hovered = null;
+  chart.applyOptions({ timeScale: { timeVisible: IV[iv].sec < 86400 } });
+  if (range) chart.timeScale().setVisibleRange(range); else chart.timeScale().fitContent();
+  requestAnimationFrame(() => { switching = false; refreshMarkers(); renderLegend(null); placeLegend2(); });
+  $('iv-note').textContent = iv;
+}
+function pick(span) {
+  const ci = ORDER.indexOf(current);
+  for (let i = 0; i < ORDER.length; i++) if (span / IV[ORDER[i]].sec <= IV[ORDER[i]].max * (i < ci ? 0.85 : 1)) return ORDER[i];
+  return '1W';
+}
+let raf = 0;
+chart.timeScale().subscribeVisibleTimeRangeChange((r) => {
+  if (switching || !r) return;
+  cancelAnimationFrame(raf);
+  raf = requestAnimationFrame(() => {
+    const range = chart.timeScale().getVisibleRange();
+    if (!range) return;
+    const want = pick(range.to - range.from + IV[current].sec);
+    if (want !== current) { load(want, range); return; }
+    refreshMarkers();
+    document.querySelectorAll('#ranges button').forEach((b) => b.classList.remove('on'));
+  });
+});
+const LAST = bars[N - 1].time, FIRST = bars[0].time;
+function showDays(days) {
+  const from = days ? LAST - days * 86400 : FIRST, iv = pick(LAST - from);
+  if (days) { if (iv !== current) load(iv, { from, to: LAST }); else chart.timeScale().setVisibleRange({ from, to: LAST }); } else load(iv, null);
+  requestAnimationFrame(() => requestAnimationFrame(() => document.querySelectorAll('#ranges button').forEach((b) => b.classList.toggle('on', Number(b.dataset.days) === days))));
+}
+document.querySelectorAll('#ranges button').forEach((b) => b.addEventListener('click', () => showDays(Number(b.dataset.days))));
+$('show-trades').addEventListener('click', (e) => {
+  showTrades = e.currentTarget.getAttribute('aria-checked') !== 'true';
+  e.currentTarget.setAttribute('aria-checked', String(showTrades));
+  $('lg-trade-row').style.visibility = showTrades ? 'visible' : 'hidden';
+  shadeSeries.setData(showTrades ? dataFor(current).shade : []);
+  setHovered(null); refreshMarkers();
+});
+function setKind(line) {
+  lineMode = line;
+  candleSeries.applyOptions({ visible: !line }); lineSeries.applyOptions({ visible: line });
+  for (const [id, on] of [['kind-candles', !line], ['kind-line', line]]) { $(id).classList.toggle('on', on); $(id).setAttribute('aria-pressed', String(on)); }
+  refreshMarkers();
+}
+$('kind-candles').addEventListener('click', () => setKind(false));
+$('kind-line').addEventListener('click', () => setKind(true));
+
+// start on the last month, where each trade is easy to see
+current = pick(LAST - FIRST);
+load(current, null);
+requestAnimationFrame(() => showDays(30));
+</script>
+</body>
+</html>

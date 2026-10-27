@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Starred backtests mini chart</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Geist+Mono:wght@400;600&display=swap">
+<style>
+/* The dashboard widget at the app's real width (356 px): two lines per row, a 64 x 28 chart beside the return. */
+:root {
+  --bg: #fafaf9; --card: #ffffff; --line: #e4e4e1; --fg: #18181b; --muted: #5f6168;
+  --box: #f4f4f2; --up: #1a7f37; --down: #b42318; --star: #d99a1e; --zero: #a1a1a6;
+  --sans: Geist, system-ui, sans-serif; --mono: "Geist Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0b0c0d; --card: #111214; --line: #26282c; --fg: #e8e9eb; --muted: #9a9ea6;
+  --box: #17181b; --up: #43b049; --down: #f0616d; --star: #f2b54b; --zero: #4a4d53; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0b0c0d; --card: #111214; --line: #26282c; --fg: #e8e9eb; --muted: #9a9ea6;
+  --box: #17181b; --up: #43b049; --down: #f0616d; --star: #f2b54b; --zero: #4a4d53; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); }
+main { padding-block: 32px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-wrap: wrap; gap: 32px; justify-content: center; }
+figure { margin: 0; display: flex; flex-direction: column; gap: 10px; width: 356px; max-width: 100%; }
+figcaption { font-size: 13px; color: var(--muted); }
+figcaption b { color: var(--fg); font-weight: 600; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 14px 10px; }
+.head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; padding-inline: 2px; }
+.head .ico { width: 32px; height: 32px; border-radius: 8px; background: color-mix(in srgb, var(--up) 14%, transparent); display: grid; place-items: center; }
+.head h2 { margin: 0; font-size: 17px; font-weight: 700; flex: 1; }
+.head span { font-size: 13px; color: var(--muted); }
+.row { display: grid; column-gap: 10px; row-gap: 4px; align-items: center; padding: 8px 4px; border-radius: 8px; }
+.row:hover { background: var(--box); }
+.row + .row { border-top: 1px solid var(--line); border-radius: 0; }
+.a .row { grid-template-columns: 22px minmax(0, 1fr) 64px 86px; }
+.b .row { grid-template-columns: 22px minmax(0, 1fr) auto; }
+.star { grid-row: span 2; align-self: start; margin-top: 2px; width: 22px; height: 22px; display: grid; place-items: center; background: none; border: 0; padding: 0; cursor: pointer; }
+.b .star { grid-row: span 3; }
+.who { overflow: hidden; display: flex; align-items: center; gap: 6px; font: 600 13.5px var(--mono); white-space: nowrap; min-width: 0; }
+.who .rep { font: 400 12px var(--sans); color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+.logo { width: 16px; height: 16px; flex: none; border-radius: 4px; display: grid; place-items: center; font: 700 10px var(--sans); }
+.ret { text-align: right; font: 600 14px var(--mono); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ret.up { color: var(--up); } .ret.down { color: var(--down); }
+.model { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 12px; color: var(--muted); }
+.model .k { width: 14px; height: 14px; flex: none; border-radius: 3px; background: #d43c33; color: #fff; display: grid; place-items: center; font: 700 9px var(--sans); }
+.model .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sharpe { text-align: right; font: 11.5px var(--mono); color: var(--muted); white-space: nowrap; }
+.chart { overflow: hidden; box-sizing: border-box; border: 1px solid color-mix(in srgb, var(--line) 70%, transparent); border-radius: 5px; }
+.a .chart { height: 28px; }
+.b .chart { grid-column: 2 / -1; height: 52px; }
+.a .model { grid-column: 2 / 4; }
+.a .sharpe { grid-column: 4; }
+.b .model { grid-column: 2; }
+.row:focus-within { outline: 2px solid var(--up); outline-offset: 1px; }
+</style>
+</head>
+<body>
+
+<main>
+  <figure class="a">
+    <section class="card" aria-label="Starred backtests">
+      <div class="head"><span class="ico"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 11l4-4 3 3 5-5M10 5h4v4" stroke="var(--up)" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h2>Starred backtests</h2><span>by Sharpe</span></div>
+      <div class="rows"></div>
+    </section>
+  </figure>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@5.2.1/dist/lightweight-charts.standalone.production.js"></script>
+<script>
+// Real equity series of stage backtests #4, #3 and #2 (cumulative return of the strategy, 60 points).
+const MODEL = 'BLESK_ATR06_R8_OHLC_LAM08_EOD_SPLIT_ATR_NO-VOL_OPT1_8_M25x23.keras';
+const RUNS = [
+  { n: 4, sym: 'AAPL', ret: 0.2234, sharpe: 1.27, logo: ['#e8e9eb', '#18181b', ''],
+    s: [0,-0.025,-0.0249,-0.0554,-0.0798,-0.0795,-0.0359,-0.0129,-0.0029,-0.037,-0.0341,0.0023,-0.0135,-0.0176,-0.0396,-0.0599,-0.0465,-0.0526,-0.0241,-0.039,-0.0295,-0.0168,-0.0196,0.05,0.0304,0.0236,0.0424,0.0965,0.1085,0.1371,0.1485,0.1767,0.185,0.181,0.1906,0.223,0.2015,0.2188,0.2227,0.1586,0.1911,0.2296,0.2646,0.2641,0.3167,0.3224,0.3319,0.1819,0.1725,0.1687,0.1553,0.1681,0.1356,0.1515,0.1593,0.205,0.2123,0.2053,0.2141,0.2234] },
+  { n: 3, sym: 'MSFT', ret: -0.9974, sharpe: -2.53, logo: 'ms',
+    s: [0,-0.2149,-0.3148,-0.2963,-0.3843,-0.4417,-0.4618,-0.4877,-0.5434,-0.5983,-0.5788,-0.548,-0.6031,-0.6493,-0.6685,-0.7251,-0.7548,-0.7596,-0.7582,-0.7721,-0.7936,-0.804,-0.8109,-0.8465,-0.8519,-0.8526,-0.8652,-0.8836,-0.9008,-0.9086,-0.9118,-0.9265,-0.9269,-0.9426,-0.9473,-0.9469,-0.9508,-0.9558,-0.959,-0.9632,-0.9656,-0.9705,-0.9754,-0.9745,-0.9762,-0.9788,-0.982,-0.9849,-0.9873,-0.9894,-0.9911,-0.9908,-0.9907,-0.992,-0.9936,-0.995,-0.9961,-0.9964,-0.9969,-0.9974] },
+  { n: 2, sym: 'SPY', ret: -0.985, sharpe: -2.89, logo: ['#1f4e9e', '#ffffff', 'S'],
+    s: [0,-0.0459,-0.148,-0.1888,-0.2865,-0.2941,-0.3094,-0.3527,-0.3843,-0.4221,-0.4508,-0.4363,-0.4763,-0.5205,-0.533,-0.5847,-0.6301,-0.6253,-0.6591,-0.6763,-0.7135,-0.7259,-0.7216,-0.7156,-0.7264,-0.7404,-0.7418,-0.7664,-0.7946,-0.8102,-0.8177,-0.8402,-0.84,-0.8641,-0.8842,-0.8965,-0.9007,-0.904,-0.917,-0.9304,-0.9329,-0.9348,-0.945,-0.9469,-0.9479,-0.9513,-0.9551,-0.9575,-0.962,-0.967,-0.9717,-0.9711,-0.9724,-0.9743,-0.9763,-0.9784,-0.9813,-0.9813,-0.9832,-0.985] },
+];
+
+const pct = (v) => (v >= 0 ? '+' : '−') + Math.abs(v * 100).toFixed(1) + ' %';
+const num = (v) => (v < 0 ? '−' : '') + Math.abs(v).toFixed(2);
+const MS = '<svg class="logo" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="3" fill="#fff"/><rect x="2.5" y="2.5" width="5" height="5" fill="#f25022"/><rect x="8.5" y="2.5" width="5" height="5" fill="#7fba00"/><rect x="2.5" y="8.5" width="5" height="5" fill="#00a4ef"/><rect x="8.5" y="8.5" width="5" height="5" fill="#ffb900"/></svg>';
+const APPLE = '<svg viewBox="0 0 16 16" width="10" height="10" aria-hidden="true"><path fill="currentColor" d="M11 8.4c0-1.5 1.2-2.2 1.3-2.3-.7-1-1.8-1.2-2.2-1.2-.9-.1-1.8.6-2.3.6-.5 0-1.2-.5-2-.5C4.7 5 3.7 5.6 3.2 6.6c-1.1 1.9-.3 4.7.8 6.2.5.8 1.1 1.6 1.9 1.6.8 0 1-.5 2-.5s1.2.5 2 .5 1.3-.8 1.8-1.5c.6-.8.8-1.6.8-1.7 0 0-1.5-.6-1.5-2.8zM9.6 3.9c.4-.5.7-1.2.6-1.9-.6 0-1.3.4-1.7.9-.4.4-.7 1.1-.6 1.8.6 0 1.3-.3 1.7-.8z"/></svg>';
+const star = (n) => `<button class="star" type="button" aria-label="Unstar backtest ${n}"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5l1.9 4.1 4.4.5-3.3 3 .9 4.4L8 11.3l-3.9 2.2.9-4.4-3.3-3 4.4-.5z" fill="var(--star)"/></svg></button>`;
+const logo = (r) => r.logo === 'ms' ? MS : `<span class="logo" style="background:${r.logo[0]};color:${r.logo[1]}">${r.logo[2] || APPLE}</span>`;
+
+function rowHtml(r, variant) {
+  const who = `<span class="who">#${r.n} ${logo(r)}${r.sym}</span>`;
+  const ret = `<span class="ret ${r.ret >= 0 ? 'up' : 'down'}">${pct(r.ret)}</span>`;
+  const model = `<span class="model" title="${MODEL} · Renko"><span class="k">K</span><span class="n">${MODEL}</span></span>`;
+  const sharpe = `<span class="sharpe">Sharpe ${num(r.sharpe)}</span>`;
+  const chart = `<div class="chart" data-n="${r.n}" role="img" aria-label="Return of backtest ${r.n} over the test period"></div>`;
+  return variant === 'a'
+    ? `<div class="row">${star(r.n)}${who}${chart}${ret}${model}${sharpe}</div>`
+    : `<div class="row">${star(r.n)}${who}${ret}${chart}${model}${sharpe}</div>`;
+}
+for (const variant of ['a']) {
+  document.querySelector(`.${variant} .rows`).innerHTML = RUNS.map((r) => rowHtml(r, variant)).join('');
+}
+
+const LC = window.LightweightCharts;
+const charts = [];
+function tokens() {
+  const css = getComputedStyle(document.documentElement);
+  const get = (name) => css.getPropertyValue(name).trim();
+  return { up: get('--up'), down: get('--down'), zero: get('--zero'), muted: get('--muted') };
+}
+const alpha = (hex, a) => hex + Math.round(a * 255).toString(16).padStart(2, '0');
+
+function paint() {
+  const t = tokens();
+  for (const { series, zero } of charts) {
+    series.applyOptions({
+      topLineColor: t.up, topFillColor1: alpha(t.up, 0.18), topFillColor2: alpha(t.up, 0),
+      bottomLineColor: t.down, bottomFillColor1: alpha(t.down, 0), bottomFillColor2: alpha(t.down, 0.18),
+    });
+    zero.applyOptions({ color: t.zero });
+  }
+}
+
+if (LC) {
+  document.querySelectorAll('.chart').forEach((el) => {
+    const run = RUNS.find((r) => r.n === Number(el.dataset.n));
+    const chart = LC.createChart(el, {
+      autoSize: true,
+      layout: { background: { type: 'solid', color: 'transparent' }, attributionLogo: false },
+      grid: { vertLines: { visible: false }, horzLines: { visible: false } },
+      rightPriceScale: { visible: false, scaleMargins: { top: 0.1, bottom: 0.1 } },
+      leftPriceScale: { visible: false },
+      timeScale: { visible: false, borderVisible: false, fixLeftEdge: true, fixRightEdge: true },
+      crosshair: { vertLine: { visible: false, labelVisible: false }, horzLine: { visible: false, labelVisible: false } },
+      handleScroll: false,
+      handleScale: false,
+    });
+    const series = chart.addSeries(LC.BaselineSeries, {
+      baseValue: { type: 'price', price: 0 }, lineWidth: 1.5, lastValueVisible: false, priceLineVisible: false,
+      crosshairMarkerVisible: false,
+    });
+    series.setData(run.s.map((v, i) => ({ time: 1704067200 + i * 86400, value: v * 100 })));
+    const zero = series.createPriceLine({ price: 0, lineWidth: 1, lineStyle: LC.LineStyle.Dotted, axisLabelVisible: false });
+    chart.timeScale().fitContent();
+    charts.push({ chart, series, zero });
+  });
+  paint();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', paint);
+  new MutationObserver(paint).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+}
+</script>
+</body>
+</html>
