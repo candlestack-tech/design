@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home page Compare section</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body { margin: 0; }
+.cs-dark {
+  --bg: #0d0f11; --ink: #ecedee; --muted: #9ba1a6; --rule: #23272b; --accent: #3cc7a6; --on-accent: #0d0f11;
+  --down: #f0616d; --up: #43b049; --grid: rgb(230 232 234 / 0.075);
+  --s0: #5b9cf6; --s1: #f2a33c; --s2: #b794f6;
+  color-scheme: dark;
+}
+.cs-light {
+  --bg: #fafaf9; --ink: #141414; --muted: #686868; --rule: #e7e5e2; --accent: #0f766e; --on-accent: #fafaf9;
+  --down: #b42318; --up: #1a7f37; --grid: rgb(28 25 23 / 0.09);
+  --s0: #1d5fd1; --s1: #b86e00; --s2: #7a4fd0;
+  color-scheme: light;
+}
+.cs {
+  --surface: color-mix(in srgb, var(--ink) 5%, var(--bg));
+  --surface2: color-mix(in srgb, var(--ink) 9%, var(--bg));
+  --up-soft: color-mix(in srgb, var(--up) 14%, transparent);
+  --down-soft: color-mix(in srgb, var(--down) 14%, transparent);
+  --mono: 'Geist Mono', ui-monospace, monospace;
+  font-family: 'Geist', ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 1.5; color: var(--ink); -webkit-font-smoothing: antialiased;
+}
+.cs *, .cs *::before, .cs *::after { box-sizing: border-box; }
+.cs h2, .cs p { margin: 0; }
+.eyebrow { font: 500 11px/16px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.sec { padding: 36px 0; border-top: 1px solid var(--rule); display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 32px; align-items: start; }
+.btn { appearance: none; display: inline-flex; align-items: center; justify-content: center; height: 34px; padding: 0 14px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--on-accent); font: inherit; font-weight: 500; cursor: pointer; }
+.btn:hover { background: color-mix(in srgb, var(--accent) 86%, var(--ink)); }
+.ic { appearance: none; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; }
+.ic:hover { background: var(--surface2); color: var(--ink); }
+.row { display: grid; grid-template-columns: minmax(96px, 1fr) repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--rule); }
+.row > div { padding: 8px 12px; min-width: 0; font-size: 13px; }
+.row > .lb { color: var(--muted); }
+.row > .v { font-family: var(--mono); font-size: 12.5px; white-space: nowrap; }
+.chk { display: flex; align-items: center; gap: 8px; color: var(--muted); }
+.bar { height: 10px; border-radius: 3px; background: var(--surface2); }
+@media (max-width: 980px) { .sec { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 480px) { .row > div { padding: 8px; } .row > .v { font-size: 11.5px; } .row { grid-template-columns: 74px repeat(3, minmax(0, 1fr)); } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<template id="page">
+<div class="cs {{themeClass}}" style="min-height: 100vh; background-color: var(--bg); background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 40px 40px;">
+  <div style="max-width: 1140px; margin: 0 auto; padding: 16px 16px 48px;">
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
+      <button type="button" class="ic" onClick="{{toggleTheme}}" aria-label="Change the theme">
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"></path></svg>
+      </button>
+    </div>
+
+    <section class="sec">
+      <div>
+        <span class="eyebrow">Compare</span>
+        <h2 style="margin-top: 6px; font-size: 22px; font-weight: 700; letter-spacing: -0.02em;">See which setup holds up</h2>
+        <p style="margin-top: 6px; color: var(--muted); max-width: 62ch;">Put up to 4 backtests side by side. Every run gets the same metrics, so the best and the worst value stand out.</p>
+        <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+          <span class="chk"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; flex: none;"><path d="M5 12l4 4 10-10"></path></svg>Equity and drawdown on one chart</span>
+          <span class="chk"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; flex: none;"><path d="M5 12l4 4 10-10"></path></svg>Any model, rule and position size</span>
+        </div>
+        <button type="button" class="btn" style="margin-top: 20px;">Try Backtest</button>
+      </div>
+
+      <div>
+        <div style="background: var(--bg); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden;">
+          <div style="padding: 14px 16px 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+            <span style="font-size: 14px; font-weight: 600;">Equity</span>
+            <div style="display: flex; flex-wrap: wrap; gap: 4px 12px;">
+              <sc-for list="{{runs}}" as="r" hint-placeholder-count="3">
+                <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted);"><span style="width: 14px; height: 3px; border-radius: 2px; background: var({{r.color}});"></span>{{r.name}}</span>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; padding: 0 16px;">
+            <div style="position: relative; flex: 1; min-width: 0; height: 170px;">
+              <sc-for list="{{ticks}}" as="t" hint-placeholder-count="4">
+                <div style="position: absolute; left: 0; right: 0; top: {{t.top}}%; height: 1px; background: var({{t.line}});"></div>
+              </sc-for>
+              <sc-for list="{{runs}}" as="r" hint-placeholder-count="3">
+                <svg viewBox="0 0 1000 240" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;">
+                  <path d="{{r.path}}" style="fill: none; stroke: var({{r.color}}); stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round;"></path>
+                </svg>
+              </sc-for>
+            </div>
+            <div style="position: relative; width: 46px; flex: none; height: 170px;">
+              <sc-for list="{{ticks}}" as="t" hint-placeholder-count="4">
+                <span style="position: absolute; right: 0; top: {{t.top}}%; transform: translateY(-50%); font: 11px var(--mono); color: var(--muted); white-space: nowrap;">{{t.label}}</span>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 8px 70px 12px 16px; font: 11px var(--mono); color: var(--muted);">
+            <span>Year 1</span><span>Year 2</span><span>Year 3</span>
+          </div>
+          <div class="row">
+            <div class="lb"></div>
+            <sc-for list="{{runs}}" as="r" hint-placeholder-count="3">
+              <div style="display: flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; overflow: hidden;"><span style="width: 8px; height: 8px; border-radius: 999px; background: var({{r.color}}); flex: none;"></span>{{r.short}}</div>
+            </sc-for>
+          </div>
+          <sc-for list="{{rows}}" as="m" hint-placeholder-count="5">
+            <div class="row">
+              <div class="lb">{{m.label}}</div>
+              <sc-for list="{{m.cells}}" as="c" hint-placeholder-count="3">
+                <div class="v" style="{{c.style}}">{{c.text}}</div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+        <p class="eyebrow" style="margin-top: 8px;">Example</p>
+      </div>
+    </section>
+
+    <section class="sec">
+      <div>
+        <span class="eyebrow">Experiments</span>
+        <h2 style="margin-top: 6px; font-size: 22px; font-weight: 700; letter-spacing: -0.02em;">Unchanged section below it</h2>
+        <p style="margin-top: 6px; color: var(--muted);">Public experiments stay Coming soon.</p>
+      </div>
+      <div style="position: relative; background: var(--bg); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 14px; opacity: 0.6;">
+        <div class="bar" style="width: 70%;"></div><div class="bar" style="width: 90%;"></div><div class="bar" style="width: 55%;"></div>
+        <span class="eyebrow" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 6px 12px; background: var(--bg); border: 1px solid var(--rule); border-radius: 999px;">Coming soon</span>
+      </div>
+    </section>
+  </div>
+</div>
+</template>
+<script>
+// A small renderer for the template above: {{holes}}, <sc-if> and <sc-for>, so this one file runs by itself.
+class DCLogic {
+  constructor(props) { this.props = props || {}; this.state = {}; }
+  setState(patch) { Object.assign(this.state, patch); draw(); }
+}
+const EVENTS = { onclick: 'click', onmousemove: 'mousemove', onmouseleave: 'mouseleave', onchange: 'input' };
+const lookup = (path, scope) => {
+  const key = path.trim();
+  if (key === 'true') return true;
+  if (key === 'false') return false;
+  return key.split('.').reduce((value, part) => (value === null || value === undefined ? undefined : value[part]), scope);
+};
+const fill = (text, scope) => {
+  const whole = text.match(/^\s*\{\{([^}]+)\}\}\s*$/);
+  if (whole) return lookup(whole[1], scope);
+  return text.replace(/\{\{([^}]+)\}\}/g, (_, path) => {
+    const value = lookup(path, scope);
+    return value === null || value === undefined ? '' : String(value);
+  });
+};
+function build(node, scope, parent) {
+  if (node.nodeType === Node.TEXT_NODE) {
+    const value = fill(node.nodeValue, scope);
+    parent.appendChild(document.createTextNode(value === null || value === undefined ? '' : String(value)));
+    return;
+  }
+  if (node.nodeType !== Node.ELEMENT_NODE) return;
+  const name = node.localName;
+  if (name === 'sc-if') {
+    if (fill(node.getAttribute('value'), scope)) node.childNodes.forEach((child) => build(child, scope, parent));
+    return;
+  }
+  if (name === 'sc-for') {
+    const as = node.getAttribute('as');
+    (fill(node.getAttribute('list'), scope) || []).forEach((item, index) => {
+      const inner = Object.assign(Object.create(scope), { [as]: item, $index: index });
+      node.childNodes.forEach((child) => build(child, inner, parent));
+    });
+    return;
+  }
+  const element = document.createElementNS(node.namespaceURI, name);
+  for (const { name: attr, value: raw } of node.attributes) {
+    if (attr.startsWith('hint-')) continue;
+    const value = fill(raw, scope);
+    if (EVENTS[attr]) element.addEventListener(EVENTS[attr], value);
+    else if (attr === 'disabled') element.disabled = !!value;
+    else if (attr === 'value') element.value = value;
+    else if (value !== null && value !== undefined) element.setAttribute(attr, String(value));
+  }
+  node.childNodes.forEach((child) => build(child, scope, element));
+  parent.appendChild(element);
+}
+let app;
+function draw() {
+  const root = document.getElementById('app');
+  const search = document.activeElement && document.activeElement.type === 'search' ? document.activeElement.selectionStart : null;
+  const scrolled = [...root.querySelectorAll('.scroll')].map((box) => box.scrollTop);
+  const page = document.createDocumentFragment();
+  const vals = app.renderVals();
+  document.getElementById('page').content.childNodes.forEach((child) => build(child, vals, page));
+  root.replaceChildren(page);
+  root.querySelectorAll('.scroll').forEach((box, index) => { box.scrollTop = scrolled[index] || 0; });
+  if (search !== null) {
+    const input = root.querySelector('input[type=search]');
+    if (input) { input.focus(); input.setSelectionRange(search, search); }
+  }
+}
+
+// Example figures, written here: market data is for signed-in accounts only.
+var N = 80;
+function walk(seed, drift, vol) {
+  var x = seed, out = [], eq = 1;
+  for (var i = 0; i < N; i++) {
+    if (i > 0) {
+      x = (x * 1664525 + 1013904223) % 4294967296;
+      var a = x / 4294967296;
+      x = (x * 1664525 + 1013904223) % 4294967296;
+      var b = x / 4294967296;
+      eq *= 1 + drift + vol * (a + b - 1) * 1.7;
+    }
+    out.push(eq);
+  }
+  return out;
+}
+function worstFall(series) {
+  var peak = 0, worst = 0;
+  series.forEach(function (v) { peak = Math.max(peak, v); worst = Math.min(worst, v / peak - 1); });
+  return worst;
+}
+var pct = function (v) { return (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v * 100).toFixed(1) + ' %'; };
+var RUNS = [
+  { name: 'LSTM · Threshold', short: 'LSTM', color: '--s0', eq: walk(11, 0.0072, 0.032), sharpe: 1.18, win: 0.541, fees: 0.031 },
+  { name: 'TSMixer · K-means', short: 'TSMixer', color: '--s1', eq: walk(29, 0.0121, 0.058), sharpe: 0.87, win: 0.503, fees: 0.062 },
+  { name: 'GRU · Hysteresis', short: 'GRU', color: '--s2', eq: walk(77, -0.0012, 0.03), sharpe: -0.24, win: 0.462, fees: 0.044 }
+];
+RUNS.forEach(function (r) { r.ret = r.eq[N - 1] - 1; r.dd = worstFall(r.eq); });
+var ROWS = [
+  ['Total return', function (r) { return r.ret; }, 1, pct],
+  ['Max drawdown', function (r) { return Math.abs(r.dd); }, -1, function (v) { return '−' + (v * 100).toFixed(1) + ' %'; }],
+  ['Sharpe', function (r) { return r.sharpe; }, 1, function (v) { return (v < 0 ? '−' : '') + Math.abs(v).toFixed(2); }],
+  ['Win rate', function (r) { return r.win; }, 1, function (v) { return (v * 100).toFixed(1) + ' %'; }],
+  ['Fees paid', function (r) { return r.fees; }, -1, function (v) { return (v * 100).toFixed(1) + ' %'; }]
+];
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { dark: true }; }
+  renderVals() {
+    var self = this;
+    var all = [0];
+    RUNS.forEach(function (r) { r.eq.forEach(function (v) { all.push(v - 1); }); });
+    var lo = Math.floor(Math.min.apply(null, all) * 2) / 2, hi = Math.ceil(Math.max.apply(null, all) * 2) / 2;
+    var ticks = [];
+    for (var v = lo; v <= hi + 0.01; v += 0.5) {
+      ticks.push({ top: ((1 - (v - lo) / (hi - lo)) * 100).toFixed(2), label: (v < -0.001 ? '−' : '') + Math.abs(v * 100).toFixed(0) + ' %', line: Math.abs(v) < 0.001 ? '--muted' : '--grid' });
+    }
+    return {
+      themeClass: this.state.dark ? 'cs-dark' : 'cs-light',
+      toggleTheme: function () { self.setState({ dark: !self.state.dark }); },
+      ticks: ticks,
+      runs: RUNS.map(function (r) {
+        var d = '';
+        r.eq.forEach(function (e, i) { d += (d ? 'L' : 'M') + (i / (N - 1) * 1000).toFixed(1) + ' ' + ((1 - (e - 1 - lo) / (hi - lo)) * 240).toFixed(1); });
+        return { name: r.name, short: r.short, color: r.color, path: d };
+      }),
+      rows: ROWS.map(function (m) {
+        var vals = RUNS.map(m[1]);
+        var best = (m[2] > 0 ? Math.max : Math.min).apply(null, vals), worst = (m[2] > 0 ? Math.min : Math.max).apply(null, vals);
+        return {
+          label: m[0],
+          cells: vals.map(function (val) {
+            var style = 'color: var(--ink);';
+            if (val === best) style = 'color: var(--up); background: var(--up-soft); font-weight: 600;';
+            else if (val === worst) style = 'color: var(--down); background: var(--down-soft); font-weight: 600;';
+            return { text: m[3](val), style: style };
+          })
+        };
+      })
+    };
+  }
+}
+
+app = new Component();
+draw();
+</script>
+</body>
+</html>
