@@ -1,0 +1,1092 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compare backtests</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body { margin: 0; }
+.cs-dark {
+  --bg: #0d0f11; --ink: #ecedee; --muted: #9ba1a6; --rule: #23272b; --accent: #3cc7a6; --on-accent: #0d0f11;
+  --down: #f0616d; --up: #43b049; --warn: #e8b45a; --grid: rgb(230 232 234 / 0.075); --shadow: rgb(0 0 0 / 0.5);
+  --s0: #5b9cf6; --s1: #f2a33c; --s2: #b794f6; --s3: #e8e8e8;
+  color-scheme: dark;
+}
+.cs-light {
+  --bg: #fafaf9; --ink: #141414; --muted: #686868; --rule: #e7e5e2; --accent: #0f766e; --on-accent: #fafaf9;
+  --down: #b42318; --up: #1a7f37; --warn: #a15c07; --grid: rgb(28 25 23 / 0.09); --shadow: rgb(0 0 0 / 0.08);
+  --s0: #1d5fd1; --s1: #b86e00; --s2: #7a4fd0; --s3: #3a3a3a;
+  color-scheme: light;
+}
+.cs {
+  --surface: color-mix(in srgb, var(--ink) 5%, var(--bg));
+  --surface2: color-mix(in srgb, var(--ink) 9%, var(--bg));
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  --up-soft: color-mix(in srgb, var(--up) 14%, transparent);
+  --down-soft: color-mix(in srgb, var(--down) 14%, transparent);
+  --sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --mono: 'Geist Mono', ui-monospace, monospace;
+  font-family: var(--sans); font-size: 14px; line-height: 1.5; color: var(--ink); -webkit-font-smoothing: antialiased;
+}
+.cs *, .cs *::before, .cs *::after { box-sizing: border-box; }
+:where(.cs button, .cs input) { font: inherit; color: inherit; }
+.cs h1, .cs h2, .cs p { margin: 0; }
+.cs h1 { font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.025em; }
+.cs h2 { font-size: 15px; font-weight: 600; }
+.cs :focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: 2px; }
+.mono { font-family: var(--mono); }
+.mut { color: var(--muted); }
+.hint { font-size: 12px; color: var(--muted); }
+.card { background: var(--bg); border: 1px solid var(--rule); border-radius: 8px; min-width: 0; }
+.pad { padding: 16px; }
+.btn { appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; padding: 0 14px; border-radius: 6px; border: 1px solid var(--rule); background: var(--bg); font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--surface); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; background: var(--bg); }
+.btn.pri { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.pri:hover { background: color-mix(in srgb, var(--accent) 86%, var(--ink)); }
+.btn.pri:disabled { background: var(--accent); }
+.btn.sm { height: 28px; padding: 0 10px; font-size: 13px; }
+.btn.added { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
+.btn.added:hover { background: color-mix(in srgb, var(--accent) 86%, var(--ink)); }
+.ic { appearance: none; display: inline-grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; flex: none; }
+.ic:hover { background: var(--surface2); color: var(--ink); }
+.link { appearance: none; border: 0; padding: 0; background: none; color: var(--muted); font-size: 14px; cursor: pointer; text-align: left; }
+.link:hover { color: var(--ink); }
+.idl { appearance: none; border: 0; padding: 0; background: none; font-family: var(--mono) !important; font-weight: 500; cursor: pointer; }
+.idl:hover { color: var(--accent); }
+.star { appearance: none; border: 0; padding: 0; background: none; font-size: 15px; line-height: 1; cursor: pointer; color: var(--muted); }
+.star:hover { color: var(--ink); }
+.star.on { color: var(--warn); }
+.nv { appearance: none; display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; text-align: left; }
+.nv:hover { color: var(--ink); background: var(--surface); }
+.nv.on { color: var(--ink); background: var(--surface2); font-weight: 500; }
+.cmpi { appearance: none; display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 1px solid transparent; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; transition: color 0.12s, background-color 0.12s, border-color 0.12s, transform 0.12s; }
+.cmpi:hover { color: var(--accent); background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 45%, var(--rule)); }
+.cmpi:active { transform: scale(0.92); }
+.cmpi.on { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
+.cmpi.on:hover { background: color-mix(in srgb, var(--accent) 86%, var(--ink)); color: var(--on-accent); }
+.cmpi:disabled { opacity: 0.3; cursor: not-allowed; color: var(--muted); background: none; border-color: transparent; transform: none; }
+.qa { appearance: none; display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); text-align: left; cursor: pointer; min-width: 0; }
+.qa:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--rule)); }
+.qa-i { width: 34px; height: 34px; flex: none; border-radius: 8px; display: grid; place-items: center; background: var(--surface2); }
+.qa.pri { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 35%, var(--rule)); }
+.qa.pri .qa-i { background: var(--accent); color: var(--on-accent); }
+.scroll { overflow-x: auto; }
+.tr { display: grid; align-items: center; border-bottom: 1px solid var(--rule); }
+.tr > div { padding: 9px 10px; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.th > div { font-size: 12px; font-weight: 500; color: var(--muted); padding-top: 8px; padding-bottom: 8px; }
+.num { text-align: right; font-family: var(--mono); }
+.tr.picked { background: var(--accent-soft); }
+.tr .cc { display: flex; justify-content: center; padding: 3px 6px; overflow: visible; }
+.t-all { grid-template-columns: 84px 94px minmax(170px, 1fr) 90px 68px 112px 62px 92px 52px; min-width: 860px; }
+.t-last { grid-template-columns: 84px minmax(80px, 1fr) 96px 70px 104px 48px; min-width: 500px; }
+.t-best { grid-template-columns: 30px 78px minmax(76px, 1fr) 78px 96px 96px 88px 48px; min-width: 590px; }
+.t-model { grid-template-columns: 84px minmax(90px, 1fr) 90px 68px 112px 92px 52px; min-width: 620px; }
+.t-pick { grid-template-columns: 70px 90px minmax(120px, 1fr) 96px 48px; min-width: 430px; }
+.sortb { appearance: none; border: 0; background: none; padding: 0; font-size: 12px; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.sortb:hover { color: var(--ink); }
+.sortb.on { color: var(--ink); font-weight: 600; }
+.seg { appearance: none; height: 34px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); color: var(--muted); font-size: 13px; cursor: pointer; }
+.seg:hover { color: var(--ink); }
+.seg.on { color: var(--accent); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.inp { width: 100%; height: 36px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); }
+.sr { display: grid; grid-template-columns: auto minmax(0, 1fr) auto 40px; gap: 10px; align-items: center; padding: 6px; border-radius: 6px; }
+.sr:hover { background: var(--surface); }
+.tile { appearance: none; display: flex; flex-direction: column; gap: 10px; padding: 16px; text-align: left; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); cursor: pointer; min-width: 0; }
+.tile:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--rule)); }
+.fw { width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center; font: 600 13px var(--mono); }
+.badge { display: inline-block; font: 500 11px/16px var(--mono); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--rule); color: var(--muted); }
+.badge.ok { color: var(--up); border-color: color-mix(in srgb, var(--up) 45%, var(--rule)); }
+.badge.bad { color: var(--down); border-color: color-mix(in srgb, var(--down) 45%, var(--rule)); }
+.badge.run { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--rule)); }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0; }
+.facts > div { padding: 12px 14px; border-right: 1px solid var(--rule); }
+.kv { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 5px 0; font-size: 13px; }
+.kv > span:first-child { color: var(--muted); }
+.kv > span:last-child { font-family: var(--mono); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cmp { min-width: 760px; }
+.cmp-r { display: grid; border-bottom: 1px solid var(--rule); }
+.cmp-r > div { padding: 9px 14px; min-width: 0; }
+.cmp .lb { color: var(--muted); font-size: 13px; }
+.cmp .gp { font: 500 11px/16px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 18px 14px 9px; border-bottom: 1px solid var(--rule); }
+.cmp .val { font-family: var(--mono); font-size: 13.5px; }
+.cmp .txt { font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prog { height: 6px; border-radius: 999px; background: var(--surface2); overflow: hidden; }
+.prog i { display: block; height: 100%; background: var(--accent); }
+@media (max-width: 980px) { .two { grid-template-columns: minmax(0, 1fr) !important; } }
+@media (max-width: 480px) { .hdr { padding: 0 16px !important; gap: 8px !important; } .hdr .btn { padding: 0 10px; font-size: 13px; } .side { max-width: none !important; flex-basis: 100% !important; } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<template id="page">
+<div class="cs {{themeClass}}" style="min-height: 100vh; background-color: var(--bg); background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 40px 40px; display: flex; flex-direction: column;">
+
+  <header class="hdr" style="display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 24px; border-bottom: 1px solid var(--rule); background: var(--bg); flex: none;">
+    <button type="button" class="link" onClick="{{goDash}}" aria-label="CandleStack" style="display: flex; align-items: center; gap: 8px; color: var(--ink);">
+      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="6" style="fill: var(--accent)"></rect><rect x="7" y="9" width="3.5" height="9" rx="1" style="fill: var(--bg)"></rect><rect x="15" y="6" width="3.5" height="11" rx="1" style="fill: var(--bg)"></rect></svg>
+      <span style="font-size: 18px; font-weight: 600; letter-spacing: -0.02em;">CandleStack</span>
+    </button>
+    <div style="flex: 1;"></div>
+    <button type="button" class="btn pri">New backtest</button>
+    <button type="button" class="ic" onClick="{{toggleTheme}}" aria-label="Change the theme">
+      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"></path></svg>
+    </button>
+    <span style="width: 30px; height: 30px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font: 600 12px var(--mono);">AL</span>
+  </header>
+
+  <sc-if value="{{isCompare}}" hint-placeholder-val="{{false}}">
+    <main style="flex: 1; width: 100%; max-width: 1280px; margin: 0 auto; padding: 24px 24px 48px;">
+      <button type="button" class="link" onClick="{{backFromCompare}}">← {{compareBack}}</button>
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 12px 0 20px;">
+        <div>
+          <h1>Compare backtests</h1>
+          <p class="mut" style="margin-top: 4px;">{{countText}}</p>
+        </div>
+        <sc-if value="{{hasPicks}}" hint-placeholder-val="{{true}}">
+          <button type="button" class="btn" onClick="{{clear}}">Clear all</button>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{noPicks}}" hint-placeholder-val="{{false}}">
+        <section class="card" style="padding: 56px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;">
+          <span style="width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent);">
+            <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg>
+          </span>
+          <h2 style="font-size: 18px;">Nothing to compare yet</h2>
+          <p class="mut">Add 2 to 4 finished backtests.</p>
+          <button type="button" class="btn pri" onClick="{{openPicker}}" style="margin-top: 4px;">Add backtests</button>
+        </section>
+      </sc-if>
+
+      <sc-if value="{{hasPicks}}" hint-placeholder-val="{{true}}">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr)); gap: 16px;">
+          <sc-for list="{{charts}}" as="chart" hint-placeholder-count="2">
+            <section class="card pad">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
+                <h2>{{chart.title}}</h2>
+                <div style="display: flex; flex-wrap: wrap; gap: 4px 12px;">
+                  <sc-for list="{{picked}}" as="p" hint-placeholder-count="2">
+                    <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted);">
+                      <span style="width: 14px; height: 3px; border-radius: 2px; background: var({{p.color}});"></span>
+                      <span class="mono">#{{p.id}}</span>
+                    </span>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <div onMouseMove="{{hover}}" onMouseLeave="{{unhover}}" style="position: relative; flex: 1; min-width: 0; height: 220px; cursor: crosshair;">
+                  <sc-for list="{{chart.ticks}}" as="t" hint-placeholder-count="5">
+                    <div style="position: absolute; left: 0; right: 0; top: {{t.top}}%; height: 1px; background: var({{t.line}});"></div>
+                  </sc-for>
+                  <sc-for list="{{chart.lines}}" as="line" hint-placeholder-count="2">
+                    <svg viewBox="0 0 1000 240" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none;">
+                      <path d="{{line.d}}" style="fill: none; stroke: var({{line.color}}); stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round;"></path>
+                    </svg>
+                  </sc-for>
+                  <sc-if value="{{hasHover}}" hint-placeholder-val="{{false}}">
+                    <div style="position: absolute; top: 0; bottom: 0; left: {{hoverLeft}}%; width: 1px; background: var(--muted); pointer-events: none;"></div>
+                    <div style="position: absolute; top: 6px; {{tipSide}}; min-width: 150px; padding: 8px 10px; background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; box-shadow: 0 2px 8px var(--shadow); pointer-events: none; z-index: 2;">
+                      <div class="hint" style="font-size: 11px; margin-bottom: 4px;">{{hoverDate}}</div>
+                      <sc-for list="{{chart.tip}}" as="row" hint-placeholder-count="2">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; font-size: 12px;">
+                          <span class="mono" style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; border-radius: 999px; background: var({{row.color}});"></span>#{{row.id}}</span>
+                          <span class="mono" style="font-weight: 500;">{{row.value}}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+                <div style="position: relative; width: 52px; flex: none; height: 220px;">
+                  <sc-for list="{{chart.ticks}}" as="t" hint-placeholder-count="5">
+                    <span class="mono mut" style="position: absolute; right: 0; top: {{t.top}}%; transform: translateY(-50%); font-size: 11px; white-space: nowrap;">{{t.label}}</span>
+                  </sc-for>
+                </div>
+              </div>
+              <div class="mono mut" style="display: flex; justify-content: space-between; margin: 8px 60px 0 0; font-size: 11px;">
+                <sc-for list="{{years}}" as="y" hint-placeholder-count="5"><span>{{y}}</span></sc-for>
+              </div>
+            </section>
+          </sc-for>
+        </div>
+
+        <section class="card scroll" style="margin-top: 16px;">
+          <div class="cmp">
+            <div class="cmp-r" style="grid-template-columns: {{cols}};">
+              <div class="lb" style="align-self: center;">Backtest</div>
+              <sc-for list="{{picked}}" as="p" hint-placeholder-count="2">
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;">
+                  <div style="min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="width: 10px; height: 10px; border-radius: 999px; background: var({{p.color}}); flex: none;"></span>
+                      <button type="button" class="idl" onClick="{{p.open}}" style="font-size: 14px;">#{{p.id}}</button>
+                      <span style="font-weight: 600; font-size: 14px;">{{p.inst}}</span>
+                    </div>
+                    <div class="hint" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px;">{{p.model}}</div>
+                  </div>
+                  <button type="button" class="ic" onClick="{{p.remove}}" aria-label="Remove #{{p.id}}" title="Remove from compare">
+                    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+                  </button>
+                </div>
+              </sc-for>
+              <sc-if value="{{canAdd}}" hint-placeholder-val="{{true}}">
+                <div style="align-self: center;"><button type="button" class="btn sm" onClick="{{openPicker}}">+ Add backtest</button></div>
+              </sc-if>
+            </div>
+            <sc-for list="{{rows}}" as="r" hint-placeholder-count="12">
+              <sc-if value="{{r.isGroup}}" hint-placeholder-val="{{false}}">
+                <div class="gp">{{r.label}}</div>
+              </sc-if>
+              <sc-if value="{{r.isRow}}" hint-placeholder-val="{{true}}">
+                <div class="cmp-r" style="grid-template-columns: {{cols}};">
+                  <div class="lb">{{r.label}}</div>
+                  <sc-for list="{{r.cells}}" as="c" hint-placeholder-count="2">
+                    <div class="{{c.cls}}" style="{{c.style}}" title="{{c.text}}">{{c.text}}</div>
+                  </sc-for>
+                  <sc-if value="{{canAdd}}" hint-placeholder-val="{{true}}"><div></div></sc-if>
+                </div>
+              </sc-if>
+            </sc-for>
+          </div>
+        </section>
+      </sc-if>
+    </main>
+
+    <sc-if value="{{pickerOpen}}" hint-placeholder-val="{{false}}">
+      <div style="position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 16px;">
+        <button type="button" onClick="{{closePicker}}" aria-label="Close" style="appearance: none; position: absolute; inset: 0; border: 0; background: rgb(0 0 0 / 0.5); cursor: default;"></button>
+        <section role="dialog" aria-label="Add backtests" class="card" style="position: relative; width: min(640px, 100%); max-height: min(640px, 90vh); display: flex; flex-direction: column; box-shadow: 0 12px 40px var(--shadow);">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 12px;">
+            <h2>Add backtests <span class="mono mut" style="font-size: 12px; font-weight: 500; margin-left: 4px;">{{trayCount}}</span></h2>
+            <button type="button" class="ic" onClick="{{closePicker}}" aria-label="Close">
+              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+            </button>
+          </div>
+          <div style="padding: 0 16px 12px;"><input class="inp" type="search" aria-label="Search" placeholder="Search by number, instrument or model" value="{{q}}" onChange="{{setQ}}"></div>
+          <div class="scroll" style="overflow-y: auto; border-top: 1px solid var(--rule); flex: 1;">
+            <sc-for list="{{shownRuns}}" as="run" hint-placeholder-count="6">
+              <div class="{{run.pickCls}}">
+                <div class="mono" style="font-weight: 500;">#{{run.id}}</div>
+                <div style="font-weight: 500;">{{run.inst}}</div>
+                <div class="mut">{{run.model}}</div>
+                <div class="num" style="color: var({{run.retColor}}); font-weight: 600;">{{run.ret}}</div>
+                <div class="cc"><button type="button" class="{{run.btnCls}}" onClick="{{run.toggle}}" disabled="{{run.off}}" title="{{run.btn}}" aria-label="{{run.btn}}" aria-pressed="{{run.inIt}}">
+                  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg>
+                </button></div>
+              </div>
+            </sc-for>
+            <sc-if value="{{noneShown}}" hint-placeholder-val="{{false}}"><p class="mut" style="padding: 24px; text-align: center;">No backtests match</p></sc-if>
+          </div>
+          <div style="display: flex; justify-content: flex-end; padding: 12px 16px; border-top: 1px solid var(--rule);">
+            <button type="button" class="btn pri" onClick="{{closePicker}}">Done</button>
+          </div>
+        </section>
+      </div>
+    </sc-if>
+  </sc-if>
+
+  <sc-if value="{{isApp}}" hint-placeholder-val="{{true}}">
+    <div style="flex: 1; width: 100%; max-width: 1360px; margin: 0 auto; padding: 24px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+      <nav class="card side" aria-label="Workspace" style="flex: 1 1 200px; max-width: 220px; padding: 8px; display: flex; flex-direction: column; gap: 2px;">
+        <button type="button" class="{{nav.dash}}" onClick="{{goDash}}">
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round;"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
+          <span>Dashboard</span>
+        </button>
+        <button type="button" class="{{nav.runs}}" onClick="{{goList}}">
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;"><path d="M3 17l5-5 4 4 8-8"></path><path d="M14 8h6v6"></path></svg>
+          <span>Backtests</span><span class="mono mut" style="margin-left: auto; font-size: 12px;">{{runCount}}</span>
+        </button>
+        <button type="button" class="{{nav.models}}" onClick="{{goModels}}">
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round;"><path d="M12 2l9 5v10l-9 5-9-5V7z"></path><path d="M12 22V12M21 7l-9 5-9-5"></path></svg>
+          <span>Models</span><span class="mono mut" style="margin-left: auto; font-size: 12px;">{{modelCount}}</span>
+        </button>
+        <div style="margin-top: 10px; padding: 12px 10px 4px; border-top: 1px solid var(--rule); display: flex; flex-direction: column; gap: 6px;">
+          <span class="mono mut" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">Storage</span>
+          <span class="prog"><i style="width: 37%;"></i></span>
+          <span class="mono" style="font-size: 12px;">37 MB of 100 MB models</span>
+        </div>
+      </nav>
+
+      <main style="flex: 999 1 560px; min-width: 0; padding-bottom: 280px;">
+
+        <sc-if value="{{isDash}}" hint-placeholder-val="{{true}}">
+          <h1>Dashboard</h1>
+          <div class="two" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 20px;">
+            <button type="button" class="qa pri">
+              <span class="qa-i"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;"><path d="M12 5v14M5 12h14"></path></svg></span>
+              <span style="min-width: 0;"><b style="font-weight: 600; display: block;">New backtest</b><span class="hint">Pick the data, a model and a rule</span></span>
+            </button>
+            <button type="button" class="qa">
+              <span class="qa-i"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;"><path d="M12 15V4M7 9l5-5 5 5"></path><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"></path></svg></span>
+              <span style="min-width: 0;"><b style="font-weight: 600; display: block;">Upload model</b><span class="hint">Keras or ONNX</span></span>
+            </button>
+            <button type="button" class="qa" onClick="{{goCompare}}">
+              <span class="qa-i"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg></span>
+              <span style="min-width: 0;"><b style="font-weight: 600; display: block;">Compare backtests</b><span class="hint">{{qaLine}}</span></span>
+            </button>
+          </div>
+
+          <section class="card pad" style="margin-top: 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+            <div style="flex: 1 1 260px; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 8px;"><button type="button" class="idl" onClick="{{running.open}}">#{{running.id}}</button><b style="font-weight: 600;">{{running.inst}}</b><span class="badge run">Running</span></div>
+              <div class="hint" style="margin-top: 2px;">{{running.model}} · {{running.stage}}</div>
+            </div>
+            <div style="flex: 0 1 220px; width: 100%;"><div class="prog"><i style="width: 62%;"></i></div></div>
+            <button type="button" class="cmpi" disabled="{{true}}" title="Still running" aria-label="Still running">
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg>
+            </button>
+          </section>
+
+          <div class="two" style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); gap: 16px; margin-top: 16px; align-items: start;">
+            <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
+              <section class="card">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px 8px;">
+                  <h2>Last backtests</h2>
+                  <button type="button" class="link" onClick="{{goList}}" style="font-size: 13px;">All backtests</button>
+                </div>
+                <div class="scroll"><div>
+                  <div class="tr th t-last"><div>Backtest</div><div>Instrument</div><div class="num">Return</div><div class="num">Sharpe</div><div>When</div><div></div></div>
+                  <sc-for list="{{lastRuns}}" as="run" hint-placeholder-count="5">
+                    <div class="{{run.lastCls}}">
+                      <div style="display: flex; align-items: center; gap: 6px;"><button type="button" class="{{run.starCls}}" onClick="{{run.star}}" aria-label="Star #{{run.id}}">★</button><button type="button" class="idl" onClick="{{run.open}}">#{{run.id}}</button></div>
+                      <div style="font-weight: 500;">{{run.inst}}</div>
+                      <div class="num" style="color: var({{run.retColor}}); font-weight: 600;">{{run.ret}}</div>
+                      <div class="num">{{run.sharpe}}</div>
+                      <div class="mut">{{run.when}}</div>
+                      <div class="cc"><button type="button" class="{{run.btnCls}}" onClick="{{run.toggle}}" disabled="{{run.off}}" title="{{run.btn}}" aria-label="{{run.btn}}" aria-pressed="{{run.inIt}}">
+                        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg>
+                      </button></div>
+                    </div>
+                  </sc-for>
+                </div></div>
+              </section>
+
+              <section class="card">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px 8px;">
+                  <h2>Best backtests</h2>
+                  <span class="hint">by {{bestName}}</span>
+                </div>
+                <div class="scroll"><div>
+                  <div class="tr th t-best">
+                    <div></div><div>Backtest</div><div>Instrument</div>
+                    <sc-for list="{{bestHeads}}" as="h" hint-placeholder-count="4">
+                      <div class="num"><button type="button" class="{{h.cls}}" onClick="{{h.pick}}">{{h.label}}</button></div>
+                    </sc-for>
+                    <div></div>
+                  </div>
+                  <sc-for list="{{bestRuns}}" as="run" hint-placeholder-count="5">
+                    <div class="{{run.bestCls}}">
+                      <div class="mono mut" style="font-size: 12px;">{{run.rank}}</div>
+                      <div><button type="button" class="idl" onClick="{{run.open}}">#{{run.id}}</button></div>
+                      <div style="font-weight: 500;">{{run.inst}}</div>
+                      <div class="num">{{run.sharpe}}</div>
+                      <div class="num" style="color: var({{run.retColor}});">{{run.ret}}</div>
+                      <div class="num">{{run.dd}}</div>
+                      <div class="num">{{run.winText}}</div>
+                      <div class="cc"><button type="button" class="{{run.btnCls}}" onClick="{{run.toggle}}" disabled="{{run.off}}" title="{{run.btn}}" aria-label="{{run.btn}}" aria-pressed="{{run.inIt}}">
+                        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg>
+                      </button></div>
+                    </div>
+                  </sc-for>
+                </div></div>
+              </section>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
+              <section class="card pad">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px;"><h2>Starred backtests</h2><span class="hint">by Sharpe</span></div>
+                <sc-for list="{{starredRuns}}" as="run" hint-placeholder-count="4">
+                  <div class="sr">
+                    <button type="button" class="{{run.starCls}}" onClick="{{run.star}}" aria-label="Remove star from #{{run.id}}">★</button>
+                    <div style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><button type="button" class="idl" onClick="{{run.open}}">#{{run.id}}</button> <span style="font-weight: 500;">{{run.inst}}</span></div>
+                    <span class="mono" style="color: var({{run.retColor}}); font-weight: 600; font-size: 13px;">{{run.ret}}</span>
+                    <button type="button" class="{{run.btnCls}}" onClick="{{run.toggle}}" disabled="{{run.off}}" title="{{run.btn}}" aria-label="{{run.btn}}" aria-pressed="{{run.inIt}}">
+                      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg>
+                    </button>
+                  </div>
+                </sc-for>
+                <sc-if value="{{noStarred}}" hint-placeholder-val="{{false}}"><p class="hint">Star a backtest to keep it here.</p></sc-if>
+              </section>
+              <section class="card pad">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px;"><h2>Starred models</h2><span class="hint">by best Sharpe</span></div>
+                <sc-for list="{{models}}" as="m" hint-placeholder-count="3">
+                  <button type="button" class="link" onClick="{{m.open}}" style="display: flex; width: 100%; align-items: center; gap: 10px; padding: 6px; color: var(--ink);">
+                    <span class="fw" style="width: 28px; height: 28px; background: color-mix(in srgb, {{m.fwColor}} 14%, transparent); color: {{m.fwColor}}; font-size: 11px;">{{m.fwMark}}</span>
+                    <span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; font-size: 13px;">{{m.name}}</span>
+                    <span class="mono" style="font-size: 13px; font-weight: 600;">{{m.best}}</span>
+                  </button>
+                </sc-for>
+              </section>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{isList}}" hint-placeholder-val="{{false}}">
+          <h1>Backtests</h1>
+          <p class="mut" style="margin: 4px 0 16px;">{{listCount}}</p>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px;">
+            <div style="flex: 1 1 260px; max-width: 384px;"><input class="inp" type="search" aria-label="Search" placeholder="Search by number, instrument or model" value="{{q}}" onChange="{{setQ}}"></div>
+            <sc-for list="{{filters}}" as="f" hint-placeholder-count="4">
+              <button type="button" class="{{f.cls}}" onClick="{{f.pick}}">{{f.label}}</button>
+            </sc-for>
+          </div>
+          <div class="card scroll"><div>
+            <div class="tr th t-all"><div>Backtest</div><div>Instrument</div><div>Model</div><div class="num">Return</div><div class="num">Sharpe</div><div class="num">Max drawdown</div><div class="num">Trades</div><div>When</div><div></div></div>
+            <sc-for list="{{shownRuns}}" as="run" hint-placeholder-count="8">
+              <div class="{{run.allCls}}">
+                <div style="display: flex; align-items: center; gap: 6px;"><button type="button" class="{{run.starCls}}" onClick="{{run.star}}" aria-label="Star #{{run.id}}">★</button><button type="button" class="idl" onClick="{{run.open}}">#{{run.id}}</button></div>
+                <div style="font-weight: 500;">{{run.inst}}</div>
+                <div class="mut">{{run.model}}</div>
+                <div class="num" style="color: var({{run.retColor}}); font-weight: 600;">{{run.ret}}</div>
+                <div class="num">{{run.sharpe}}</div>
+                <div class="num">{{run.dd}}</div>
+                <div class="num">{{run.trades}}</div>
+                <div class="mut">{{run.when}}</div>
+                <div class="cc"><button type="button" class="{{run.btnCls}}" onClick="{{run.toggle}}" disabled="{{run.off}}" title="{{run.btn}}" aria-label="{{run.btn}}" aria-pressed="{{run.inIt}}">
+                  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg>
+                </button></div>
+              </div>
+            </sc-for>
+            <sc-if value="{{noneShown}}" hint-placeholder-val="{{false}}"><p class="mut" style="padding: 24px; text-align: center;">No backtests match</p></sc-if>
+          </div></div>
+        </sc-if>
+
+        <sc-if value="{{isModels}}" hint-placeholder-val="{{false}}">
+          <h1>Models</h1>
+          <p class="mut" style="margin: 4px 0 20px;">{{modelCount}} models</p>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(208px, 1fr)); gap: 16px;">
+            <sc-for list="{{models}}" as="m" hint-placeholder-count="4">
+              <button type="button" class="tile" onClick="{{m.open}}">
+                <span class="fw" style="background: color-mix(in srgb, {{m.fwColor}} 14%, transparent); color: {{m.fwColor}};">{{m.fwMark}}</span>
+                <span style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">{{m.name}}</span>
+                <span class="badge ok" style="align-self: flex-start;">Verified</span>
+                <span class="hint">{{m.count}} backtests · best Sharpe {{m.best}}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{isModel}}" hint-placeholder-val="{{false}}">
+          <button type="button" class="link" onClick="{{goModels}}">← Models</button>
+          <div style="display: flex; align-items: center; gap: 12px; margin: 12px 0 20px;">
+            <span class="fw" style="background: color-mix(in srgb, {{openModel.fwColor}} 14%, transparent); color: {{openModel.fwColor}};">{{openModel.fwMark}}</span>
+            <h1 style="overflow-wrap: anywhere;">{{openModel.name}}</h1>
+            <span class="badge ok">Verified</span>
+          </div>
+          <div class="card facts">
+            <sc-for list="{{openModel.facts}}" as="m" hint-placeholder-count="4">
+              <div><div class="hint">{{m.k}}</div><div class="mono" style="font-weight: 500;">{{m.v}}</div></div>
+            </sc-for>
+          </div>
+          <section class="card" style="margin-top: 16px;">
+            <h2 style="padding: 14px 16px 8px;">Backtests</h2>
+            <div class="scroll"><div>
+              <div class="tr th t-model"><div>Backtest</div><div>Instrument</div><div class="num">Return</div><div class="num">Sharpe</div><div class="num">Max drawdown</div><div>When</div><div></div></div>
+              <sc-for list="{{openModel.runs}}" as="run" hint-placeholder-count="3">
+                <div class="{{run.modelCls}}">
+                  <div style="display: flex; align-items: center; gap: 6px;"><button type="button" class="{{run.starCls}}" onClick="{{run.star}}" aria-label="Star #{{run.id}}">★</button><button type="button" class="idl" onClick="{{run.open}}">#{{run.id}}</button></div>
+                  <div style="font-weight: 500;">{{run.inst}}</div>
+                  <div class="num" style="color: var({{run.retColor}}); font-weight: 600;">{{run.ret}}</div>
+                  <div class="num">{{run.sharpe}}</div>
+                  <div class="num">{{run.dd}}</div>
+                  <div class="mut">{{run.when}}</div>
+                  <div class="cc"><button type="button" class="{{run.btnCls}}" onClick="{{run.toggle}}" disabled="{{run.off}}" title="{{run.btn}}" aria-label="{{run.btn}}" aria-pressed="{{run.inIt}}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg>
+                  </button></div>
+                </div>
+              </sc-for>
+            </div></div>
+          </section>
+        </sc-if>
+
+        <sc-if value="{{isRun}}" hint-placeholder-val="{{false}}">
+          <button type="button" class="link" onClick="{{backFromRun}}">← {{runBack}}</button>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 12px 0 8px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <h1>Backtest #{{openRun.id}}</h1>
+              <span class="{{openRun.badgeCls}}">{{openRun.status}}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <sc-if value="{{openRun.done}}" hint-placeholder-val="{{true}}">
+                <span style="display: inline-flex;"><button type="button" class="btn sm" style="border-top-right-radius: 0; border-bottom-right-radius: 0;">Download JSON</button><a class="btn sm" href="#" aria-label="About the JSON format" style="border-top-left-radius: 0; border-bottom-left-radius: 0; border-left: 0; width: 28px; padding: 0; color: var(--muted); text-decoration: none; font-family: var(--mono);">?</a></span>
+              </sc-if>
+              <button type="button" class="{{openRun.bigCls}}" onClick="{{openRun.toggle}}" disabled="{{openRun.off}}" title="{{openRun.btn}}">
+                <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg>
+                {{openRun.btnLong}}
+              </button>
+            </div>
+          </div>
+          <p class="mut" style="margin-bottom: 16px; font-size: 13px;"><b style="color: var(--ink); font-weight: 600;">{{openRun.inst}}</b> · {{openRun.model}} · {{openRun.period}} · {{openRun.when}}</p>
+
+          <sc-if value="{{openRun.isRunning}}" hint-placeholder-val="{{false}}">
+            <section class="card pad">
+              <div style="display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px;"><b style="font-weight: 600;">{{openRun.stage}}</b><span class="mono hint">about 2 min left</span></div>
+              <div class="prog"><i style="width: 62%;"></i></div>
+              <p class="hint" style="margin-top: 8px;">You can close the page. The backtest keeps going.</p>
+            </section>
+          </sc-if>
+          <sc-if value="{{openRun.isFailed}}" hint-placeholder-val="{{false}}">
+            <section class="card pad" style="border-color: color-mix(in srgb, var(--down) 45%, var(--rule)); display: flex; gap: 10px; align-items: flex-start;">
+              <span style="width: 8px; height: 8px; border-radius: 999px; background: var(--down); margin-top: 7px; flex: none;"></span>
+              <span>{{openRun.err}}</span>
+            </section>
+          </sc-if>
+
+          <sc-if value="{{openRun.done}}" hint-placeholder-val="{{true}}">
+            <div class="card facts">
+              <sc-for list="{{openRun.strip}}" as="m" hint-placeholder-count="6">
+                <div><div class="hint">{{m.k}}</div><div class="mono" style="font-size: 17px; font-weight: 500; color: var({{m.color}});">{{m.v}}</div></div>
+              </sc-for>
+            </div>
+            <div class="two" style="display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; margin-top: 16px; align-items: start;">
+              <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
+                <section class="card pad">
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px;">
+                    <h2>Equity</h2>
+                    <span class="hint" style="display: inline-flex; gap: 12px;"><span>— Strategy</span><span>- - Buy and hold</span></span>
+                  </div>
+                  <svg viewBox="0 0 1000 240" preserveAspectRatio="none" aria-hidden="true" style="width: 100%; height: 220px; display: block;">
+                    <path d="{{openRun.bhPath}}" style="fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 4; vector-effect: non-scaling-stroke;"></path>
+                  </svg>
+                  <svg viewBox="0 0 1000 240" preserveAspectRatio="none" aria-hidden="true" style="width: 100%; height: 220px; display: block; margin-top: -220px;">
+                    <path d="{{openRun.path}}" style="fill: none; stroke: var(--up); stroke-width: 2; vector-effect: non-scaling-stroke;"></path>
+                  </svg>
+                  <svg viewBox="0 0 1000 240" preserveAspectRatio="none" aria-hidden="true" style="width: 100%; height: 90px; display: block; margin-top: 8px;">
+                    <path d="{{openRun.fallPath}}" style="fill: none; stroke: var(--down); stroke-width: 1.5; vector-effect: non-scaling-stroke;"></path>
+                  </svg>
+                </section>
+                <section class="card pad">
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px;">
+                    <h2>{{openRun.inst}}</h2>
+                    <span class="hint" style="display: inline-flex; gap: 12px;"><span style="color: var(--up);">▲ Buy</span><span style="color: var(--down);">▼ Sell</span></span>
+                  </div>
+                  <div style="position: relative; height: 200px;">
+                    <svg viewBox="0 0 1000 240" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%;">
+                      <path d="{{openRun.pricePath}}" style="fill: none; stroke: var(--ink); stroke-width: 1.5; vector-effect: non-scaling-stroke;"></path>
+                    </svg>
+                    <sc-for list="{{openRun.marks}}" as="k" hint-placeholder-count="8">
+                      <span style="position: absolute; left: {{k.left}}%; top: {{k.top}}%; transform: translate(-50%, -50%); font-size: 10px; color: var({{k.color}});">{{k.glyph}}</span>
+                    </sc-for>
+                  </div>
+                </section>
+                <section class="card">
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px 8px;">
+                    <h2>Trades <span class="mono mut" style="font-weight: 400;">{{openRun.trades}}</span></h2>
+                    <button type="button" class="btn sm">Show all</button>
+                  </div>
+                  <div class="scroll"><div style="min-width: 460px;">
+                    <div class="tr th" style="grid-template-columns: 110px 110px 60px 70px minmax(70px, 1fr);"><div>Opened</div><div>Closed</div><div>Side</div><div>Exit</div><div class="num">Return</div></div>
+                    <sc-for list="{{openRun.tradeRows}}" as="t" hint-placeholder-count="5">
+                      <div class="tr" style="grid-template-columns: 110px 110px 60px 70px minmax(70px, 1fr); font-size: 13px;">
+                        <div class="mut">{{t.open}}</div><div class="mut">{{t.close}}</div><div>{{t.side}}</div><div class="mut">{{t.exit}}</div><div class="num" style="color: var({{t.color}});">{{t.ret}}</div>
+                      </div>
+                    </sc-for>
+                  </div></div>
+                </section>
+              </div>
+              <aside style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
+                <section class="card pad">
+                  <h2 style="margin-bottom: 6px;">All metrics</h2>
+                  <sc-for list="{{openRun.metrics}}" as="m" hint-placeholder-count="12">
+                    <div class="kv"><span>{{m.k}}</span><span>{{m.v}}</span></div>
+                  </sc-for>
+                </section>
+                <section class="card pad">
+                  <h2 style="margin-bottom: 6px;">Setup</h2>
+                  <sc-for list="{{openRun.setup}}" as="m" hint-placeholder-count="9">
+                    <div class="kv"><span>{{m.k}}</span><span title="{{m.v}}">{{m.v}}</span></div>
+                  </sc-for>
+                </section>
+              </aside>
+            </div>
+          </sc-if>
+        </sc-if>
+      </main>
+    </div>
+
+    <sc-if value="{{showTray}}" hint-placeholder-val="{{true}}">
+      <aside aria-label="Compare" style="position: fixed; right: 24px; bottom: 24px; z-index: 5; width: 240px; display: flex; flex-direction: column; gap: 10px; padding: 12px; background: var(--bg); border: 1px solid var(--rule); border-radius: 10px; box-shadow: 0 6px 24px var(--shadow);">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span style="font-size: 13px; font-weight: 600;">Compare <span class="mono mut" style="font-size: 12px; font-weight: 500; margin-left: 2px;">{{trayCount}}</span></span>
+          <span style="display: inline-flex; align-items: center; gap: 4px;">
+            <button type="button" class="link" onClick="{{clear}}" style="font-size: 12px;">Clear</button>
+            <button type="button" class="ic" onClick="{{minimize}}" aria-label="Hide" title="Hide" style="width: 24px; height: 24px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;"><path d="m6 9 6 6 6-6"></path></svg>
+            </button>
+          </span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <sc-for list="{{slots}}" as="s" hint-placeholder-count="4">
+            <sc-if value="{{s.filled}}" hint-placeholder-val="{{true}}">
+              <div style="display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 2px 0 8px; border-radius: 6px; background: var(--surface); font-size: 13px; white-space: nowrap;">
+                <span style="width: 8px; height: 8px; border-radius: 999px; background: var({{s.color}}); flex: none;"></span>
+                <button type="button" class="idl" onClick="{{s.open}}">#{{s.id}}</button>
+                <span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis;">{{s.inst}}</span>
+                <button type="button" class="ic" onClick="{{s.remove}}" aria-label="Remove #{{s.id}}" style="width: 24px; height: 24px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+                </button>
+              </div>
+            </sc-if>
+            <sc-if value="{{s.empty}}" hint-placeholder-val="{{false}}">
+              <div style="height: 30px; border: 1px dashed var(--rule); border-radius: 6px;"></div>
+            </sc-if>
+          </sc-for>
+        </div>
+        <button type="button" class="btn pri" onClick="{{goCompare}}" disabled="{{cannotCompare}}" title="{{compareWhy}}" style="width: 100%;">Compare</button>
+      </aside>
+    </sc-if>
+    <sc-if value="{{showPill}}" hint-placeholder-val="{{false}}">
+      <button type="button" class="btn" onClick="{{restore}}" style="position: fixed; right: 24px; bottom: 24px; z-index: 5; height: 40px; box-shadow: 0 6px 24px var(--shadow);">
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg>
+        Compare <span class="mono mut" style="font-size: 12px;">{{trayCount}}</span>
+      </button>
+    </sc-if>
+  </sc-if>
+
+</div>
+</template>
+<script>
+// A small renderer for the template above: {{holes}}, <sc-if> and <sc-for>, so this one file runs by itself.
+class DCLogic {
+  constructor(props) { this.props = props || {}; this.state = {}; }
+  setState(patch) { Object.assign(this.state, patch); draw(); }
+}
+const EVENTS = { onclick: 'click', onmousemove: 'mousemove', onmouseleave: 'mouseleave', onchange: 'input' };
+const lookup = (path, scope) => {
+  const key = path.trim();
+  if (key === 'true') return true;
+  if (key === 'false') return false;
+  return key.split('.').reduce((value, part) => (value === null || value === undefined ? undefined : value[part]), scope);
+};
+const fill = (text, scope) => {
+  const whole = text.match(/^\s*\{\{([^}]+)\}\}\s*$/);
+  if (whole) return lookup(whole[1], scope);
+  return text.replace(/\{\{([^}]+)\}\}/g, (_, path) => {
+    const value = lookup(path, scope);
+    return value === null || value === undefined ? '' : String(value);
+  });
+};
+function build(node, scope, parent) {
+  if (node.nodeType === Node.TEXT_NODE) {
+    const value = fill(node.nodeValue, scope);
+    parent.appendChild(document.createTextNode(value === null || value === undefined ? '' : String(value)));
+    return;
+  }
+  if (node.nodeType !== Node.ELEMENT_NODE) return;
+  const name = node.localName;
+  if (name === 'sc-if') {
+    if (fill(node.getAttribute('value'), scope)) node.childNodes.forEach((child) => build(child, scope, parent));
+    return;
+  }
+  if (name === 'sc-for') {
+    const as = node.getAttribute('as');
+    (fill(node.getAttribute('list'), scope) || []).forEach((item, index) => {
+      const inner = Object.assign(Object.create(scope), { [as]: item, $index: index });
+      node.childNodes.forEach((child) => build(child, inner, parent));
+    });
+    return;
+  }
+  const element = document.createElementNS(node.namespaceURI, name);
+  for (const { name: attr, value: raw } of node.attributes) {
+    if (attr.startsWith('hint-')) continue;
+    const value = fill(raw, scope);
+    if (EVENTS[attr]) element.addEventListener(EVENTS[attr], value);
+    else if (attr === 'disabled') element.disabled = !!value;
+    else if (attr === 'value') element.value = value;
+    else if (value !== null && value !== undefined) element.setAttribute(attr, String(value));
+  }
+  node.childNodes.forEach((child) => build(child, scope, element));
+  parent.appendChild(element);
+}
+let app;
+function draw() {
+  const root = document.getElementById('app');
+  const search = document.activeElement && document.activeElement.type === 'search' ? document.activeElement.selectionStart : null;
+  const scrolled = [...root.querySelectorAll('.scroll')].map((box) => box.scrollTop);
+  const page = document.createDocumentFragment();
+  const vals = app.renderVals();
+  document.getElementById('page').content.childNodes.forEach((child) => build(child, vals, page));
+  root.replaceChildren(page);
+  root.querySelectorAll('.scroll').forEach((box, index) => { box.scrollTop = scrolled[index] || 0; });
+  if (search !== null) {
+    const input = root.querySelector('input[type=search]');
+    if (input) { input.focus(); input.setSelectionRange(search, search); }
+  }
+}
+
+var N = 105;
+var START = Date.UTC(2021, 0, 4);
+var STEP = 14 * 86400000;
+var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+var COLORS = ['--s0', '--s1', '--s2', '--s3'];
+
+function randoms(seed) {
+  var x = seed;
+  return function () { x = (x * 1664525 + 1013904223) % 4294967296; return x / 4294967296; };
+}
+function walk(seed, drift, vol, from) {
+  var rnd = randoms(seed), out = [], eq = 1;
+  for (var i = 0; i < N; i++) {
+    if (i < from) { out.push(null); continue; }
+    if (i > from) eq *= 1 + drift + vol * (rnd() + rnd() - 1) * 1.7;
+    out.push(eq);
+  }
+  return out;
+}
+function fallOf(series) {
+  var peak = 0;
+  return series.map(function (v) {
+    if (v === null) return null;
+    peak = Math.max(peak, v);
+    return v / peak - 1;
+  });
+}
+var COMMON = { tf: '30 min', period: 'Jan 2021 – Dec 2024', rep: 'Time windows 25', dec: 'Threshold 0.05', dir: 'Long only', stop: '7 %', size: '100 %', fee: '0.1 %', slip: '0.02 %', fill: "Next candle's open" };
+function done(id, inst, model, when, seed, drift, vol, from, rest) {
+  var eq = walk(seed, drift, vol, from), fall = fallOf(eq);
+  var dd = -Math.min.apply(null, fall.filter(function (v) { return v !== null; }));
+  return Object.assign({ id: id, inst: inst, model: model, when: when, st: 'done', eq: eq, fall: fall, ret: eq[N - 1] - 1, dd: dd, from: from, seed: seed }, COMMON, rest);
+}
+function other(id, inst, model, when, st, rest) {
+  return Object.assign({ id: id, inst: inst, model: model, when: when, st: st }, COMMON, rest);
+}
+var RUNS = [
+  other(23, 'MSFT', 'stockmixer.onnx', 'Now', 'running', { stage: 'Running the model on the windows' }),
+  done(22, 'AAPL', 'blesk-novol-8.keras', 'Today 14:20', 11, 0.0105, 0.042, 0, { star: true, rep: 'Renko 0.8 ATR', sharpe: 1.12, sortino: 1.66, trades: 214, win: 0.538, avg: 0.0041, best: 0.118, worst: -0.07, time: 0.46, fees: 0.043, bh: 1.08 }),
+  done(21, 'AAPL', 'stockmixer.onnx', 'Today 11:02', 29, 0.0078, 0.033, 0, { star: true, size: '50 %', sharpe: 0.93, sortino: 1.31, trades: 186, win: 0.522, avg: 0.0033, best: 0.074, worst: -0.07, time: 0.41, fees: 0.019, bh: 1.08 }),
+  other(20, 'TSLA', 'tsmixer-25x23.keras', 'Yesterday', 'failed', { err: 'tsmixer-25x23.keras expects 25 candles per sample. The windows give 30.' }),
+  done(19, 'NVDA', 'tsmixer-25x23.keras', 'Yesterday', 53, 0.0132, 0.066, 40, { tf: '1 hour', period: 'Jul 2022 – Dec 2024', dec: 'Hysteresis 0.08 / 0.02', dir: 'Long and short', sharpe: 0.84, sortino: 1.19, trades: 142, win: 0.507, avg: 0.0052, best: 0.187, worst: -0.07, time: 0.62, fees: 0.031, bh: 3.41 }),
+  done(18, 'TSLA', 'blesk-novol-8.keras', '28 Oct', 77, 0.0041, 0.058, 0, { rep: 'Renko 0.8 ATR', dec: 'K-means, 3 groups', dir: 'Long and short', stop: '5 %', size: '75 %', sharpe: 0.38, sortino: 0.51, trades: 301, win: 0.471, avg: 0.0011, best: 0.092, worst: -0.05, time: 0.58, fees: 0.056, bh: 0.34 }),
+  done(17, 'BTCUSDT', 'lstm-30x18.keras', '27 Oct', 91, 0.0096, 0.071, 0, { star: true, tf: '1 hour', rep: 'Time windows 30', dec: 'Threshold 0.1', sharpe: 0.71, sortino: 1.02, trades: 167, win: 0.494, avg: 0.0049, best: 0.164, worst: -0.07, time: 0.52, fees: 0.028, bh: 2.12 }),
+  done(16, 'AAPL', 'lstm-30x18.keras', '26 Oct', 107, -0.0012, 0.029, 0, { rep: 'Time windows 30', dec: 'Threshold 0.02', sharpe: -0.21, sortino: -0.28, trades: 388, win: 0.456, avg: -0.0003, best: 0.058, worst: -0.07, time: 0.71, fees: 0.078, bh: 1.08 }),
+  done(15, 'NVDA', 'stockmixer.onnx', '24 Oct', 131, 0.0121, 0.051, 0, { sharpe: 1.27, sortino: 1.83, trades: 233, win: 0.551, avg: 0.0058, best: 0.204, worst: -0.07, time: 0.49, fees: 0.047, bh: 7.52 }),
+  done(14, 'MSFT', 'stockmixer.onnx', '22 Oct', 149, 0, 0, 0, { dec: 'Threshold 0.5', sharpe: null, sortino: null, trades: 0, win: null, avg: null, best: null, worst: null, time: 0, fees: 0, bh: 1.34 })
+];
+var BY = {};
+RUNS.forEach(function (r) { BY[r.id] = r; });
+var MODELS = [
+  { name: 'stockmixer.onnx', fwMark: 'ON', fwColor: '#5b8def', shape: '[25, 23]', out: '[1]', reads: 'Time windows 25', mb: '12.4 MB' },
+  { name: 'blesk-novol-8.keras', fwMark: 'K', fwColor: '#e05a5a', shape: '[8, 18]', out: '[1]', reads: 'Renko 0.8 ATR', mb: '9.8 MB' },
+  { name: 'tsmixer-25x23.keras', fwMark: 'K', fwColor: '#e05a5a', shape: '[25, 23]', out: '[1]', reads: 'Time windows 25', mb: '6.7 MB' },
+  { name: 'lstm-30x18.keras', fwMark: 'K', fwColor: '#e05a5a', shape: '[30, 18]', out: '[1]', reads: 'Time windows 30', mb: '8.1 MB' }
+];
+
+var DASH = '–';
+function has(v) { return v !== null && v !== undefined; }
+function pct(v, d) { if (!has(v)) return DASH; var s = Math.abs(v * 100).toFixed(d === undefined ? 1 : d); return (v > 0 ? '+' : v < 0 ? '−' : '') + s + ' %'; }
+function plain(v) { return has(v) ? (v * 100).toFixed(1) + ' %' : DASH; }
+function fall(v) { return has(v) ? (v === 0 ? '0.0 %' : '−' + plain(v)) : DASH; }
+function ratio(v) { return has(v) ? (v < 0 ? '−' : '') + Math.abs(v).toFixed(2) : DASH; }
+function count(v) { return has(v) ? String(v) : DASH; }
+
+// [label, field, better: 1 higher, -1 lower, 0 neither, how it is written]
+var METRICS = [
+  ['Total return', 'ret', 1, function (v) { return pct(v); }],
+  ['Max drawdown', 'dd', -1, fall],
+  ['Sharpe', 'sharpe', 1, ratio],
+  ['Sortino', 'sortino', 1, ratio],
+  ['Win rate', 'win', 1, plain],
+  ['Avg. trade', 'avg', 1, function (v) { return pct(v, 2); }],
+  ['Best trade', 'best', 1, function (v) { return pct(v); }],
+  ['Worst trade', 'worst', 1, function (v) { return pct(v); }],
+  ['Fees paid', 'fees', -1, plain],
+  ['Trades', 'trades', 0, count],
+  ['Time in market', 'time', 0, plain],
+  ['Buy and hold', 'bh', 0, function (v) { return pct(v); }]
+];
+var SETUP = [['Instrument', 'inst'], ['Model', 'model'], ['Period', 'period'], ['Timeframe', 'tf'], ['Representation', 'rep'], ['Rule', 'dec'], ['Direction', 'dir'], ['Stop loss', 'stop'], ['Position size', 'size'], ['Fees', 'fee'], ['Slippage', 'slip'], ['Fills at', 'fill']];
+var BEST_BY = { sharpe: ['Sharpe', 'sharpe', 1], ret: ['Return', 'ret', 1], dd: ['Drawdown', 'dd', -1], win: ['Win rate', 'win', 1] };
+
+function pathOf(series, lo, hi) {
+  var d = '';
+  series.forEach(function (v, i) {
+    if (v === null) return;
+    var x = (i / (N - 1) * 1000).toFixed(1);
+    var y = ((1 - (v - lo) / ((hi - lo) || 1)) * 240).toFixed(1);
+    d += (d ? 'L' : 'M') + x + ' ' + y;
+  });
+  return d;
+}
+function niceStep(span) {
+  var raw = span / 4, mag = Math.pow(10, Math.floor(Math.log10(raw))), n = raw / mag;
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * mag;
+}
+function dateOf(i) {
+  var d = new Date(START + i * STEP);
+  return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+}
+function rangeOf(series) {
+  var vs = series.filter(function (v) { return v !== null; });
+  return [Math.min.apply(null, vs), Math.max.apply(null, vs)];
+}
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var stars = {};
+    RUNS.forEach(function (r) { if (r.star) stars[r.id] = true; });
+    this.state = { screen: 'dash', slots: [22, 21, null, null], dark: true, openId: 22, modelName: MODELS[0].name, hi: null, runFrom: 'dash', cmpFrom: 'dash', stars: stars, bestBy: 'sharpe', q: '', filter: 'all', picker: false, min: false };
+  }
+  chart(title, field, picked, offset, write) {
+    var values = [];
+    picked.forEach(function (r) { r[field].forEach(function (v) { if (v !== null) values.push(v + offset); }); });
+    var lo = Math.min.apply(null, values.concat([0])), hi = Math.max.apply(null, values.concat([0]));
+    var step = niceStep((hi - lo) || 0.1);
+    lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+    var ticks = [];
+    for (var v = lo; v <= hi + step / 2; v += step) {
+      var zero = Math.abs(v) < step / 1000;
+      ticks.push({ top: ((1 - (v - lo) / (hi - lo)) * 100).toFixed(2), label: (v < -1e-9 ? '−' : '') + Math.abs(v * 100).toFixed(0) + ' %', line: zero ? '--muted' : '--grid' });
+    }
+    var hover = this.state.hi;
+    return {
+      title: title,
+      ticks: ticks,
+      lines: picked.map(function (r) { return { d: pathOf(r[field].map(function (x) { return x === null ? null : x + offset; }), lo, hi), color: r.color }; }),
+      tip: hover === null ? [] : picked.map(function (r) {
+        var x = r[field][hover];
+        return { id: r.id, color: r.color, value: x === null ? DASH : write(x + offset) };
+      })
+    };
+  }
+  renderVals() {
+    var self = this, s = this.state;
+    var set = function (patch) { return function () { self.setState(patch); }; };
+    var filled = s.slots.filter(function (id) { return id !== null; });
+    var full = filled.length >= 4;
+    var toggle = function (id) {
+      return function () {
+        var slots = s.slots.slice(), at = slots.indexOf(id);
+        if (at >= 0) slots[at] = null;
+        else { var free = slots.indexOf(null); if (free < 0) return; slots[free] = id; }
+        self.setState({ slots: slots, min: false });
+      };
+    };
+    var openFn = function (id) { return set({ screen: 'run', openId: id, runFrom: s.screen === 'run' ? s.runFrom : s.screen, picker: false }); };
+    var row = function (r) {
+      var inIt = s.slots.indexOf(r.id) >= 0;
+      var hasIt = r.st === 'done';
+      var off = !hasIt || (full && !inIt);
+      var why = r.st === 'running' ? 'Still running' : r.st === 'failed' ? 'Failed: no results to compare' : full && !inIt ? 'Up to 4 backtests. Remove one first' : '';
+      var tr = inIt ? 'tr picked ' : 'tr ';
+      return {
+        id: r.id, inst: r.inst, model: r.model, when: r.when,
+        allCls: tr + 't-all', lastCls: tr + 't-last', bestCls: tr + 't-best', modelCls: tr + 't-model', pickCls: tr + 't-pick',
+        starCls: s.stars[r.id] ? 'star on' : 'star',
+        star: function () { var stars = Object.assign({}, s.stars); stars[r.id] = !stars[r.id]; self.setState({ stars: stars }); },
+        ret: r.st === 'failed' ? 'Failed' : r.st === 'running' ? 'Running' : pct(r.ret),
+        retColor: !hasIt ? (r.st === 'failed' ? '--down' : '--accent') : r.ret > 0 ? '--up' : r.ret < 0 ? '--down' : '--muted',
+        sharpe: hasIt ? ratio(r.sharpe) : DASH,
+        dd: hasIt ? fall(r.dd) : DASH,
+        winText: hasIt ? plain(r.win) : DASH,
+        trades: hasIt ? count(r.trades) : DASH,
+        btn: why || (inIt ? 'Remove from compare' : 'Add to compare'),
+        btnCls: inIt ? 'cmpi on' : 'cmpi',
+        inIt: inIt, off: off, toggle: toggle(r.id), open: openFn(r.id)
+      };
+    };
+    var q = s.q.trim().toLowerCase();
+    var matches = function (r) { return !q || ('#' + r.id + ' ' + r.inst + ' ' + r.model).toLowerCase().indexOf(q) >= 0; };
+    var isPicker = s.screen === 'compare';
+    var shown = RUNS.filter(function (r) {
+      if (!matches(r)) return false;
+      if (isPicker) return true;
+      if (s.filter === 'star') return !!s.stars[r.id];
+      if (s.filter === 'failed') return r.st === 'failed';
+      if (s.filter === 'added') return s.slots.indexOf(r.id) >= 0;
+      return true;
+    });
+    var by = BEST_BY[s.bestBy];
+    var bestList = RUNS.filter(function (r) { return r.st === 'done' && has(r[by[1]]); }).sort(function (a, b) { return (b[by[1]] - a[by[1]]) * by[2]; }).slice(0, 5);
+    var picked = [];
+    s.slots.forEach(function (id, slot) {
+      if (id === null) return;
+      picked.push(Object.assign({}, BY[id], { color: COLORS[slot], remove: toggle(id), open: openFn(id) }));
+    });
+    var slots = s.slots.map(function (id, slot) {
+      return id === null
+        ? { filled: false, empty: true }
+        : { filled: true, empty: false, id: id, inst: BY[id].inst, color: COLORS[slot], remove: toggle(id), open: openFn(id) };
+    });
+    var rows = [{ isGroup: true, isRow: false, label: 'Results' }];
+    METRICS.forEach(function (m) {
+      var shownVals = picked.map(function (r) { return m[3](r[m[1]]); });
+      var real = picked.map(function (r, i) { return { t: shownVals[i], v: r[m[1]] }; }).filter(function (x) { return has(x.v); });
+      var bestT = null, worstT = null;
+      if (m[2] !== 0 && real.length > 1) {
+        var sorted = real.slice().sort(function (a, b) { return (b.v - a.v) * m[2]; });
+        bestT = sorted[0].t; worstT = sorted[sorted.length - 1].t;
+        if (bestT === worstT) { bestT = null; worstT = null; }
+      }
+      rows.push({
+        isGroup: false, isRow: true, label: m[0],
+        cells: picked.map(function (r, i) {
+          var style = 'color: var(--ink);';
+          if (!has(r[m[1]])) style = 'color: var(--muted);';
+          else if (shownVals[i] === bestT) style = 'color: var(--up); background: var(--up-soft); font-weight: 600;';
+          else if (shownVals[i] === worstT) style = 'color: var(--down); background: var(--down-soft); font-weight: 600;';
+          return { text: shownVals[i], cls: 'val', style: style };
+        })
+      });
+    });
+    rows.push({ isGroup: true, isRow: false, label: 'Setup' });
+    SETUP.forEach(function (m) {
+      rows.push({
+        isGroup: false, isRow: true, label: m[0],
+        cells: picked.map(function (r) { return { text: r[m[1]], cls: 'txt', style: 'color: var(--ink);' }; })
+      });
+    });
+    var open = BY[s.openId], openRow = row(open), isDone = open.st === 'done';
+    var openRun = {
+      id: open.id, inst: open.inst, model: open.model, when: open.when, period: open.period,
+      done: isDone, isRunning: open.st === 'running', isFailed: open.st === 'failed',
+      status: isDone ? 'Finished' : open.st === 'running' ? 'Running' : 'Failed',
+      badgeCls: isDone ? 'badge ok' : open.st === 'running' ? 'badge run' : 'badge bad',
+      stage: open.stage, err: open.err,
+      off: openRow.off, btn: openRow.btn, toggle: openRow.toggle,
+      bigCls: openRow.inIt ? 'btn sm added' : 'btn sm',
+      btnLong: openRow.inIt ? 'Added to compare' : 'Add to compare'
+    };
+    if (isDone) {
+      var eqPct = open.eq.map(function (x) { return x === null ? null : x - 1; });
+      var bhEnd = open.bh, bh = eqPct.map(function (x, i) { return x === null ? null : bhEnd * (i - open.from) / (N - 1 - open.from) + 0.08 * Math.sin(i / 7); });
+      var r1 = rangeOf(eqPct.concat(bh)), lo = Math.min(r1[0], 0), hi = Math.max(r1[1], 0.01);
+      var fr = rangeOf(open.fall);
+      var rnd = randoms(open.seed + 5), price = [], p = 100;
+      for (var i = 0; i < N; i++) { p *= 1 + (open.bh / N) + 0.05 * (rnd() - 0.5); price.push(open.eq[i] === null ? null : p); }
+      var pr = rangeOf(price);
+      var marks = [], tradeRows = [];
+      if (open.trades > 0) {
+        var at = open.from + 4, sign = 1;
+        for (var k = 0; k < 8 && at < N - 3; k++) {
+          var end = Math.min(N - 2, at + 3 + Math.floor(rnd() * 5));
+          var top = function (ix) { return ((1 - (price[ix] - pr[0]) / ((pr[1] - pr[0]) || 1)) * 100).toFixed(1); };
+          marks.push({ left: (at / (N - 1) * 100).toFixed(1), top: top(at), color: '--up', glyph: '▲' });
+          marks.push({ left: (end / (N - 1) * 100).toFixed(1), top: top(end), color: '--down', glyph: '▼' });
+          var change = price[end] / price[at] - 1;
+          var stopped = change < -0.07;
+          if (tradeRows.length < 5) tradeRows.push({ open: dateOf(at), close: dateOf(end), side: 'Long', exit: stopped ? 'Stop' : 'Signal', ret: pct(stopped ? -0.07 : change), color: change >= 0 ? '--up' : '--down' });
+          at = end + 2 + Math.floor(rnd() * 8);
+        }
+      }
+      Object.assign(openRun, {
+        trades: count(open.trades),
+        path: pathOf(eqPct, lo, hi), bhPath: pathOf(bh, lo, hi),
+        fallPath: pathOf(open.fall, fr[0], 0.001),
+        pricePath: pathOf(price, pr[0], pr[1]),
+        marks: marks, tradeRows: tradeRows,
+        strip: [
+          { k: 'Return', v: pct(open.ret), color: open.ret > 0 ? '--up' : open.ret < 0 ? '--down' : '--ink' },
+          { k: 'Buy and hold', v: pct(open.bh), color: '--ink' },
+          { k: 'Sharpe', v: ratio(open.sharpe), color: '--ink' },
+          { k: 'Max drawdown', v: fall(open.dd), color: open.dd > 0 ? '--down' : '--ink' },
+          { k: 'Trades', v: count(open.trades), color: '--ink' },
+          { k: 'Win rate', v: plain(open.win), color: '--ink' }
+        ],
+        metrics: METRICS.map(function (m) { return { k: m[0], v: m[3](open[m[1]]) }; })
+      });
+    }
+    openRun.setup = SETUP.slice(2).map(function (m) { return { k: m[0], v: open[m[1]] }; });
+    var modelInfo = function (m) {
+      var mine = RUNS.filter(function (r) { return r.model === m.name; });
+      var sharpes = mine.filter(function (r) { return r.st === 'done' && has(r.sharpe); }).map(function (r) { return r.sharpe; });
+      return Object.assign({}, m, {
+        count: mine.length, best: sharpes.length ? ratio(Math.max.apply(null, sharpes)) : DASH,
+        open: set({ screen: 'model', modelName: m.name }),
+        runs: mine.map(row),
+        facts: [{ k: 'Input', v: m.shape }, { k: 'Output', v: m.out }, { k: 'Reads', v: m.reads }, { k: 'Size', v: m.mb }, { k: 'Backtests', v: String(mine.length) }]
+      });
+    };
+    var models = MODELS.map(modelInfo);
+    var hiLeft = s.hi === null ? 0 : s.hi / (N - 1) * 100;
+    var nav = function (on) { return on ? 'nv on' : 'nv'; };
+    var names = { dash: 'Dashboard', list: 'Backtests', models: 'Models', model: 'Model', run: 'Backtest #' + s.openId };
+    var filters = [['all', 'All'], ['star', 'Starred'], ['failed', 'Failed'], ['added', 'In compare']];
+    var isCompare = s.screen === 'compare';
+    var hasPicks = filled.length > 0;
+    return {
+      themeClass: s.dark ? 'cs-dark' : 'cs-light',
+      toggleTheme: function () { self.setState({ dark: !s.dark }); },
+      isCompare: isCompare, isApp: !isCompare,
+      isDash: s.screen === 'dash', isList: s.screen === 'list', isRun: s.screen === 'run',
+      isModels: s.screen === 'models', isModel: s.screen === 'model',
+      nav: {
+        dash: nav(s.screen === 'dash'),
+        runs: nav(s.screen === 'list' || (s.screen === 'run' && s.runFrom !== 'model')),
+        models: nav(s.screen === 'models' || s.screen === 'model')
+      },
+      goDash: set({ screen: 'dash', q: '' }),
+      goList: set({ screen: 'list', q: '', filter: 'all' }),
+      goModels: set({ screen: 'models' }),
+      goCompare: function () { self.setState({ screen: 'compare', cmpFrom: s.screen === 'compare' ? s.cmpFrom : s.screen, hi: null, q: '' }); },
+      backFromCompare: set({ screen: s.cmpFrom, picker: false, q: '' }),
+      compareBack: names[s.cmpFrom] || 'Dashboard',
+      backFromRun: set({ screen: s.runFrom }),
+      runBack: names[s.runFrom] || 'Dashboard',
+      openPicker: set({ picker: true, q: '' }),
+      closePicker: set({ picker: false, q: '' }),
+      pickerOpen: s.picker,
+      clear: set({ slots: [null, null, null, null] }),
+      minimize: set({ min: true }),
+      restore: set({ min: false }),
+      showTray: hasPicks && !s.min,
+      showPill: hasPicks && s.min,
+      q: s.q,
+      setQ: function (e) { self.setState({ q: e.target.value }); },
+      filters: filters.map(function (f) { return { label: f[1], cls: s.filter === f[0] ? 'seg on' : 'seg', pick: set({ filter: f[0] }) }; }),
+      runCount: RUNS.length,
+      modelCount: MODELS.length,
+      listCount: shown.length === RUNS.length ? RUNS.length + ' backtests' : shown.length + ' of ' + RUNS.length + ' backtests',
+      shownRuns: shown.map(row),
+      noneShown: shown.length === 0,
+      lastRuns: RUNS.slice(1, 6).map(row),
+      running: row(RUNS[0]) && Object.assign(row(RUNS[0]), { stage: RUNS[0].stage }),
+      bestName: by[0].toLowerCase() === 'sharpe' ? 'Sharpe' : by[0].toLowerCase(),
+      bestHeads: Object.keys(BEST_BY).map(function (k) {
+        return { label: BEST_BY[k][0] + (s.bestBy === k ? ' ↓' : ''), cls: s.bestBy === k ? 'sortb on' : 'sortb', pick: set({ bestBy: k }) };
+      }),
+      bestRuns: bestList.map(function (r, i) { return Object.assign(row(r), { rank: i + 1 }); }),
+      starredRuns: RUNS.filter(function (r) { return s.stars[r.id]; }).sort(function (a, b) { return (b.sharpe || -99) - (a.sharpe || -99); }).slice(0, 4).map(row),
+      noStarred: !RUNS.some(function (r) { return s.stars[r.id]; }),
+      models: models,
+      openModel: modelInfo(MODELS.filter(function (m) { return m.name === s.modelName; })[0]),
+      openRun: openRun,
+      slots: slots,
+      hasPicks: hasPicks,
+      noPicks: !hasPicks,
+      qaLine: hasPicks ? filled.length + ' of 4 added' : 'Up to 4 side by side',
+      trayCount: filled.length + ' of 4',
+      cannotCompare: filled.length < 2,
+      compareWhy: filled.length < 2 ? 'Add at least 2 backtests' : '',
+      countText: hasPicks ? (filled.length === 1 ? '1 of 4 backtests. Add one more to compare' : filled.length + ' of 4 backtests') : '0 of 4 backtests',
+      canAdd: !full,
+      cols: '180px repeat(' + (picked.length + (full ? 0 : 1)) + ', minmax(0, 1fr))',
+      picked: picked,
+      rows: rows,
+      years: ['2021', '2022', '2023', '2024', '2025'],
+      hasHover: s.hi !== null,
+      hoverLeft: hiLeft.toFixed(2),
+      hoverDate: s.hi === null ? '' : dateOf(s.hi),
+      tipSide: hiLeft > 50 ? 'left: 8px' : 'right: 8px',
+      hover: function (e) {
+        var box = e.currentTarget.getBoundingClientRect();
+        var at = Math.round(Math.max(0, Math.min(1, (e.clientX - box.left) / box.width)) * (N - 1));
+        if (at !== self.state.hi) self.setState({ hi: at });
+      },
+      unhover: set({ hi: null }),
+      charts: picked.length ? [
+        this.chart('Equity', 'eq', picked, -1, function (v) { return pct(v); }),
+        this.chart('Drawdown', 'fall', picked, 0, function (v) { return v === 0 ? '0.0 %' : pct(v); })
+      ] : []
+    };
+  }
+}
+
+app = new Component();
+draw();
+</script>
+</body>
+</html>
