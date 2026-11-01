@@ -1004,7 +1004,7 @@ class Component extends DCLogic {
     var hiLeft = s.hi === null ? 0 : s.hi / (N - 1) * 100;
     var nav = function (on) { return on ? 'nv on' : 'nv'; };
     var names = { dash: 'Dashboard', list: 'Backtests', models: 'Models', model: 'Model', run: 'Backtest #' + s.openId };
-    var filters = [['all', 'All'], ['star', 'Starred'], ['failed', 'Failed'], ['added', 'In compare']];
+    var filters = [['all', 'All'], ['star', 'Starred'], ['failed', 'Failed']];
     var isCompare = s.screen === 'compare';
     var hasPicks = filled.length > 0;
     return {
