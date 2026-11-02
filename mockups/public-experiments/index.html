@@ -1,0 +1,1390 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CandleStack · Public experiments · Final</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+  /* Tokens: the approved app (design/mockups/app) and Compare (design/mockups/compare-backtests) */
+  :root {
+    --bg: #fafaf9; --ink: #141414; --muted: #686868; --rule: #e7e5e2; --accent: #0f766e;
+    --warn: #a15c07; --down: #b42318; --up: #1a7f37; --candle-up: #2e9e44; --candle-down: #f23645;
+    --grid: rgb(28 25 23 / 0.09); --shadow: rgb(0 0 0 / 0.08); --on-accent: #fafaf9; --tile: #ffffff;
+    --s0: #1d5fd1; --s1: #b86e00; --s2: #7a4fd0; --s3: #3a3a3a; --fw-lift: 0%;
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d0f11; --ink: #ecedee; --muted: #9ba1a6; --rule: #23272b; --accent: #3cc7a6;
+    --warn: #e8b45a; --down: #f0616d; --up: #43b049; --candle-up: #43b049; --candle-down: #f23645;
+    --grid: rgb(230 232 234 / 0.075); --shadow: rgb(0 0 0 / 0.5); --on-accent: #0d0f11; --tile: #ffffff;
+    --s0: #5b9cf6; --s1: #f2a33c; --s2: #b794f6; --s3: #e8e8e8; --fw-lift: 25%;
+    color-scheme: dark;
+  }
+  :root {
+    --surface: color-mix(in srgb, var(--ink) 5%, var(--bg));
+    --surface2: color-mix(in srgb, var(--ink) 9%, var(--bg));
+    --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+    --up-soft: color-mix(in srgb, var(--up) 14%, transparent);
+    --down-soft: color-mix(in srgb, var(--down) 14%, transparent);
+    --sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+    --mono: 'Geist Mono', ui-monospace, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  button, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: 2px; }
+  h1, h2, h3, p { margin: 0; }
+  [hidden] { display: none !important; }
+  .mono { font-family: var(--mono); }
+  .muted { color: var(--muted); }
+  .ink { color: var(--ink); }
+  .up { color: var(--up); } .down { color: var(--down); }
+  .eyebrow { font: 500 11px/16px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .hint { font-size: 12px; color: var(--muted); }
+  .i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+  /* The app frame */
+  .frame { min-height: 100vh; display: flex; flex-direction: column;
+    background-color: var(--bg);
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px; }
+  .frame > main { flex: 1; }
+  .ahdr { position: relative; z-index: 30; padding: 0 24px; border-bottom: 1px solid var(--rule); background: color-mix(in srgb, var(--bg) 88%, transparent); }
+  .ahdr-in { max-width: 1152px; margin: 0 auto; height: 56px; display: flex; align-items: center; gap: 20px; }
+  .ahdr .sp { flex: 1; }
+  .ahdr .r { display: flex; align-items: center; gap: 8px; }
+  .home-link { appearance: none; border: 0; background: none; padding: 0; line-height: 0; border-radius: 6px; cursor: pointer; }
+  .logo { height: 28px; width: 152px; display: block; }
+  .lg-a { fill: var(--accent); } .lg-b { fill: var(--bg); } .lg-c { fill: var(--ink); }
+  .avatar { width: 30px; height: 30px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); display: inline-grid; place-items: center; font: 600 12px var(--mono); flex: none; }
+  .avatar.xs { width: 20px; height: 20px; font-size: 9px; letter-spacing: -0.02em; }
+  .avatar.xxs { width: 16px; height: 16px; font-size: 7.5px; letter-spacing: -0.03em; }
+  .avatar.md { width: 22px; height: 22px; font-size: 9px; }
+  .avatar.lg { width: 40px; height: 40px; font-size: 14px; }
+  .av-btn { appearance: none; border: 0; padding: 0; cursor: pointer; border-radius: 999px; line-height: 0; background: none; }
+  .abody { max-width: 1200px; width: 100%; margin: 0 auto; padding: 28px 24px 40px; }
+  .afoot { border-top: 1px solid var(--rule); background: var(--bg); }
+  .afoot > div { max-width: 1200px; margin: 0 auto; padding: 16px 24px; display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: 12px; color: var(--muted); }
+  .afoot .cred { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-left: auto; }
+  .afoot u { text-underline-offset: 2px; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; padding: 0 14px; border-radius: 6px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink); font: 500 14px var(--sans); cursor: pointer; white-space: nowrap; text-decoration: none; }
+  .btn:hover { background: var(--surface); }
+  .btn:disabled { opacity: 0.45; cursor: default; }
+  .btn.pri { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .btn.pri:hover { background: color-mix(in srgb, var(--accent) 86%, var(--ink)); }
+  .btn.ghost { border-color: transparent; background: transparent; }
+  .btn.ghost:hover { background: var(--surface); }
+  .btn.sm { height: 28px; padding: 0 10px; font-size: 13px; }
+  .btn.sm .i { width: 14px; height: 14px; }
+  .btn.icon { width: 34px; padding: 0; }
+  .btn.added { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
+  .btn.added:hover { background: color-mix(in srgb, var(--accent) 86%, var(--ink)); }
+  .ic { appearance: none; display: inline-grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; flex: none; }
+  .ic:hover { background: var(--surface2); color: var(--ink); }
+  .link { appearance: none; border: 0; background: none; padding: 0; color: var(--accent); font: 500 13px var(--sans); cursor: pointer; text-decoration: none; text-align: left; }
+  .link:hover { text-decoration: underline; text-underline-offset: 2px; }
+  .back { appearance: none; border: 0; background: none; padding: 0; margin-bottom: 14px; color: var(--muted); font: 13px var(--sans); cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+  .back:hover { color: var(--ink); }
+
+  .card { background: var(--bg); border: 1px solid var(--rule); border-radius: 8px; min-width: 0; }
+  .ttl { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .ttl h1 { font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.025em; }
+  .ttl p { color: var(--muted); margin-top: 4px; }
+  .ttl-r { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .sec-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .sec-h h2 { font-size: 16px; font-weight: 600; }
+  .dd-h { display: flex; align-items: center; gap: 10px; }
+  .dd-ic { flex: none; width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+  .dd-ic .i { width: 15px; height: 15px; }
+
+  .badge { display: inline-block; font: 500 11px/16px var(--mono); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--rule); color: var(--muted); white-space: nowrap; }
+  .badge.ok { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--rule)); }
+  .badge.bad { color: var(--down); border-color: color-mix(in srgb, var(--down) 45%, var(--rule)); }
+  /* New: the Public pill. Green, rounded, a globe in front. */
+  .pub-pill { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 8px 0 6px; border-radius: 999px; font: 500 11px/1 var(--mono); color: var(--up); background: color-mix(in srgb, var(--up) 12%, var(--bg)); border: 1px solid color-mix(in srgb, var(--up) 40%, var(--rule)); white-space: nowrap; }
+  .pub-pill .i { width: 11px; height: 11px; stroke-width: 2.2; }
+  .glb { display: inline-grid; place-items: center; color: var(--accent); line-height: 0; }
+  .glb .i { width: 14px; height: 14px; }
+
+  /* Tables */
+  .tblwrap { overflow-x: auto; }
+  .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tbl th { font-weight: 500; color: var(--muted); text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+  .tbl td { padding: 8px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .tbl tr:last-child td { border-bottom: 0; }
+  .num { text-align: right; font-family: var(--mono); }
+  .tbl th.num { text-align: right; }
+  .tbl tr.rl { cursor: pointer; }
+  .tbl tr.rl:hover td { background: var(--surface); }
+  .tbl tr.picked td { background: var(--accent-soft); }
+  .tbl .sub { display: block; font: 11.5px var(--mono); color: var(--muted); }
+  .tbl td.cc { width: 44px; padding: 3px 8px; text-align: center; }
+  .rid { font: 500 13px var(--mono); }
+  .chip { font: 500 11.5px var(--mono); padding: 1px 7px; border: 1px solid var(--rule); border-radius: 999px; background: var(--bg); color: var(--ink); white-space: nowrap; }
+  .star { appearance: none; flex: none; width: 28px; height: 28px; margin: -4px -2px; display: inline-grid; place-items: center; border: 0; border-radius: 6px; background: none; padding: 0; cursor: pointer; color: color-mix(in srgb, var(--muted) 55%, var(--bg)); font-size: 19px; line-height: 1; }
+  .star:hover { background: var(--surface); color: var(--warn); }
+  .star.on { color: var(--warn); }
+  .dd-sort { appearance: none; border: 0; background: none; padding: 0; font: inherit; font-weight: 500; color: inherit; cursor: pointer; white-space: nowrap; }
+  .dd-sort:hover, .dd-sort.on { color: var(--ink); }
+  .dd-sort.on { font-weight: 600; }
+  .bt-m { display: inline-flex; align-items: center; gap: 7px; }
+  .who { display: inline-flex; align-items: center; gap: 8px; }
+  .you { color: var(--muted); font-size: 12px; font-weight: 400; }
+  .fw-mini { width: 14px; height: 14px; fill: color-mix(in srgb, var(--fw), #fff var(--fw-lift)); flex: none; }
+  .dd-fw { flex: none; width: 28px; height: 28px; border-radius: 7px; display: grid; place-items: center; background: color-mix(in srgb, var(--fw) 12%, transparent); }
+  .dd-fw svg { width: 15px; height: 15px; fill: color-mix(in srgb, var(--fw), #fff var(--fw-lift)); }
+  .dd-fw.sm { width: 20px; height: 20px; border-radius: 5px; } .dd-fw.sm svg { width: 11px; height: 11px; }
+  .itile { flex: none; width: 28px; height: 28px; border-radius: 5px; background: var(--tile); box-shadow: inset 0 0 0 1px rgb(20 20 20 / 0.14); display: grid; place-items: center; }
+  .itile i { width: 70%; height: 70%; border-radius: 4px; display: grid; place-items: center; color: #fff; font: 700 12px/1 var(--sans); font-style: normal; }
+  .itile.sm { width: 18px; height: 18px; border-radius: 4px; } .itile.sm i { font-size: 8.5px; border-radius: 3px; }
+  .itile.coin i { border-radius: 999px; }
+
+  /* Compare's scale button */
+  .cmpi { appearance: none; display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 1px solid transparent; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; flex: none; transition: color 0.12s, background-color 0.12s, border-color 0.12s, transform 0.12s; }
+  .cmpi:hover { color: var(--accent); background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 45%, var(--rule)); }
+  .cmpi.on { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
+  .cmpi:disabled { opacity: 0.3; cursor: not-allowed; color: var(--muted); background: none; border-color: transparent; }
+  .idl { appearance: none; border: 0; padding: 0; background: none; font: 500 13px var(--mono); cursor: pointer; color: var(--ink); }
+  .idl:hover { color: var(--accent); }
+
+  /* Sidebar workspace (the live Sidebar.tsx) */
+  .dd-ws { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 24px; align-items: start; }
+  .dd-main { min-width: 0; }
+  .dd-side { display: flex; flex-direction: column; gap: 2px; padding: 8px; }
+  .dd-nav { appearance: none; display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: 0; border-radius: 6px; background: none; color: var(--muted); font: 14px var(--sans); cursor: pointer; text-align: left; white-space: nowrap; }
+  .dd-nav:hover { color: var(--ink); background: var(--surface); }
+  .dd-nav.on { color: var(--ink); background: var(--surface2); font-weight: 500; }
+  .dd-nav .dd-n { margin-left: auto; padding-left: 8px; font: 400 12px var(--mono); color: var(--muted); }
+  .dd-sfoot { margin-top: 10px; padding: 12px 10px 4px; border-top: 1px solid var(--rule); display: flex; flex-direction: column; gap: 6px; }
+  .meter { display: block; height: 6px; border-radius: 3px; background: var(--surface2); overflow: hidden; }
+  .meter i { display: block; height: 100%; background: var(--accent); }
+  .dd-s { font: 12px var(--mono); }
+
+  /* Dashboard */
+  .qa { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .qa-c { appearance: none; display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); color: inherit; font: inherit; text-align: left; cursor: pointer; min-width: 0; }
+  .qa-c:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--rule)); background: var(--surface); }
+  .qa-c.pri { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 40%, var(--rule)); }
+  .qa-c.pri .qa-i { background: var(--accent); color: var(--on-accent); }
+  .qa-i { flex: none; width: 36px; height: 36px; border-radius: 9px; display: grid; place-items: center; background: var(--surface2); color: var(--ink); }
+  .qa-i .i { width: 18px; height: 18px; }
+  .qa-t { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .qa-t b { font-weight: 600; } .qa-t .h { font-size: 12.5px; color: var(--muted); }
+  .dd-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 356px); gap: 16px; align-items: start; }
+  .dd-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .dd-card { padding: 16px; min-width: 0; }
+  .dd-card .tbl th, .dd-card .tbl td { padding-left: 10px; padding-right: 10px; }
+  .dd-list { display: flex; flex-direction: column; }
+  /* A widget row (StarredBacktests.tsx): lead, number and instrument, a 64 x 28 chart, return, compare; then the second line */
+  .dd-sr { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) 64px auto 32px; column-gap: 8px; row-gap: 4px; align-items: center; width: 100%; padding: 8px 6px; border-radius: 6px; cursor: pointer; }
+  .dd-sr:hover { background: var(--surface); }
+  .dd-sr > .lead { grid-row: span 2; align-self: start; display: inline-grid; place-items: center; width: 22px; min-height: 22px; }
+  .dd-sr > .lead .star { margin: -3px; }
+  .dd-sr > .tail { grid-row: span 2; align-self: center; }
+  .dd-sr > .dd-b2 { grid-column: 2 / 4; }
+  .dd-b1 { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; gap: 6px; align-items: center; min-width: 0; }
+  .dd-b1 .tk { font: 11.5px var(--mono); }
+  .dd-b2 { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .dd-b2 > span { overflow: hidden; text-overflow: ellipsis; }
+  .dd-r1, .dd-r2 { text-align: right; white-space: nowrap; font-family: var(--mono); }
+  .dd-r1 { font-size: 14px; font-weight: 600; }
+  .dd-r2 { font-size: 11px; color: var(--muted); }
+  .dd-more { appearance: none; width: 100%; margin-top: 6px; padding: 10px 6px 0; border: 0; border-top: 1px solid var(--rule); background: none; display: flex; justify-content: space-between; gap: 10px; font: 500 12.5px var(--sans); color: var(--muted); cursor: pointer; }
+  .dd-more:hover { color: var(--ink); }
+  .dd-best .dd-rk { width: 28px; color: var(--muted); font: 12px var(--mono); }
+  .dd-best td.dd-on { font-weight: 600; }
+
+  /* The mini chart (MiniChart.tsx): green above zero, red below, 18 % fill, dotted zero */
+  .mini { display: block; width: 64px; height: 28px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--rule) 70%, transparent); border-radius: 5px; pointer-events: none; }
+  .mini svg, .xc-ch svg { display: block; width: 100%; height: 100%; }
+  .mc-z { stroke: var(--muted); stroke-opacity: 0.6; stroke-width: 1; stroke-dasharray: 1 3; vector-effect: non-scaling-stroke; }
+  .mc-b { fill: none; stroke: var(--muted); stroke-opacity: 0.7; stroke-width: 1; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
+  .mc-u, .mc-d { fill: none; stroke-width: 1.5; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+  .mc-u { stroke: var(--up); } .mc-d { stroke: var(--down); }
+
+  /* List pages: search, the Filters button and panel, pager (the Instruments page's) */
+  .bt-tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .bt-tools .sp { flex: 1; }
+  .bt-q { position: relative; flex: 1 1 260px; max-width: 384px; min-width: 180px; }
+  .bt-q .i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+  .inp { height: 36px; border: 1px solid var(--rule); border-radius: 6px; padding: 0 10px; background: var(--bg); font: 14px var(--sans); color: var(--ink); width: 100%; min-width: 0; }
+  .inp:focus { outline: none; border-color: color-mix(in srgb, var(--accent) 55%, var(--rule)); }
+  .bt-q .inp { padding-left: 36px; }
+  .fp-w { position: relative; flex: none; }
+  .fp-t { appearance: none; display: flex; align-items: center; gap: 8px; width: 200px; height: 34px; padding: 0 10px 0 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); color: var(--muted); font: 14px var(--sans); text-align: left; cursor: pointer; }
+  .fp-t:hover, .fp-t.open { color: var(--ink); }
+  .fp-t.open { border-color: color-mix(in srgb, var(--accent) 55%, var(--rule)); }
+  .fp-sum { flex: 1; min-width: 0; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fp-chev { color: var(--muted); transition: transform 0.15s; }
+  .fp-t.open .fp-chev, .fchip.open .fp-chev { transform: rotate(180deg); }
+  .fp { position: absolute; left: 0; top: calc(100% + 6px); z-index: 40; width: 412px; display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 16px; padding: 12px; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); box-shadow: 0 10px 28px var(--shadow); font-size: 14px; }
+  .fp-h { margin-bottom: 8px; font-size: 12px; font-weight: 500; color: var(--muted); }
+  .fp-s [role=listbox] { margin: 0 -4px; display: flex; flex-direction: column; }
+  .fp-o { appearance: none; display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px; border: 0; border-radius: 4px; background: none; color: var(--ink); font: inherit; text-align: left; white-space: nowrap; cursor: pointer; width: 100%; }
+  .fp-o:hover { background: var(--surface); }
+  .fp-o > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; display: inline-flex; align-items: center; gap: 6px; }
+  .fp-o.zero { color: var(--muted); }
+  .fp-n { margin-left: auto; font: 12px var(--mono); color: var(--muted); }
+  .fp-n.sans { font-family: var(--sans); }
+  .fp-ck { flex: none; color: var(--accent); visibility: hidden; }
+  .fp-o.on .fp-ck { visibility: visible; }
+  .fp-o.on { font-weight: 500; }
+  .bt-card { overflow: hidden; }
+  .bt-none { text-align: center; padding: 24px; }
+  .pg { margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; }
+  .pg-l { appearance: none; padding: 6px 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); color: var(--ink); font: 14px var(--sans); cursor: pointer; }
+  .pg-l:hover { background: var(--surface); }
+  .pg-l.off { opacity: 0.4; cursor: default; }
+  .st-tabs { display: flex; gap: 2px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); margin-bottom: 16px; }
+  .st-tabs button { appearance: none; position: relative; padding: 9px 12px 11px; border: 0; background: none; color: var(--muted); font: 14px var(--sans); cursor: pointer; display: inline-flex; gap: 7px; align-items: baseline; }
+  .st-tabs button:hover { color: var(--ink); }
+  .st-tabs button.on { color: var(--ink); font-weight: 500; }
+  .st-tabs button.on::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 2px; border-radius: 2px; background: var(--accent); }
+  .st-tabs .tab-n { font: 400 12px var(--mono); color: var(--muted); }
+  .ex-none { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 44px 16px; white-space: normal; text-align: center; }
+  .ex-none .dd-ic { width: 40px; height: 40px; border-radius: 10px; margin-bottom: 4px; }
+  .ex-none .dd-ic .i { width: 20px; height: 20px; }
+  .ex-none b { font-size: 15px; font-weight: 600; }
+
+  /* The app's segmented control (Settings, Appearance), 34 px to sit in a toolbar */
+  .seg { display: inline-flex; gap: 4px; flex: none; }
+  .seg button { appearance: none; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); color: var(--muted); font: 500 13px var(--sans); cursor: pointer; white-space: nowrap; }
+  .seg button:hover { color: var(--ink); }
+  .seg button.on { color: var(--accent); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .seg .n { font: 400 12px var(--mono); color: var(--muted); }
+  .seg .i { width: 15px; height: 15px; }
+
+  /* Experiments toolbar: filter chips and Sort, the size and radius of the Filters button */
+  .fchip { appearance: none; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 9px 0 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); color: var(--muted); font: 14px var(--sans); cursor: pointer; white-space: nowrap; }
+  .fchip:hover, .fchip.open { color: var(--ink); }
+  .fchip.open { border-color: color-mix(in srgb, var(--accent) 55%, var(--rule)); }
+  .fchip b { font-weight: 500; color: var(--ink); }
+  .fchip.set { border-color: color-mix(in srgb, var(--accent) 55%, var(--rule)); }
+  .fchip > .i:first-child { width: 15px; height: 15px; }
+  .fchip.who { padding-left: 6px; gap: 7px; }
+  .fchip .x { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-right: -3px; border-radius: 4px; color: var(--muted); }
+  .fchip .x .i { width: 13px; height: 13px; }
+  .fchip.who:hover .x { background: var(--surface2); color: var(--ink); }
+  .dp { position: absolute; left: 0; top: calc(100% + 6px); z-index: 40; width: 236px; padding: 6px; display: flex; flex-direction: column; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); box-shadow: 0 10px 28px var(--shadow); font-size: 14px; }
+  .dp.r { left: auto; right: 0; }
+  .dp hr { border: 0; border-top: 1px solid var(--rule); margin: 4px 0; }
+  .dp-h { padding: 6px 8px 4px; font-size: 12px; font-weight: 500; color: var(--muted); }
+  .ex-tools .bt-q { flex-basis: 200px; }
+  .xc-count { font-size: 13px; color: var(--muted); margin: 0 0 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  /* Experiments cards: a dashboard widget's card (DashboardCard.tsx) */
+  .xg { display: grid; grid-template-columns: repeat(auto-fill, minmax(272px, 1fr)); gap: 16px; }
+  .xc { display: flex; flex-direction: column; cursor: pointer; transition: border-color 0.15s; }
+  .xc:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--rule)); }
+  .xc.pv { cursor: default; pointer-events: none; }
+  .xc .sec-h { flex-wrap: nowrap; }
+  .xc .dd-h { min-width: 0; }
+  .xc .sec-h .cmpi { margin: -2px -4px -2px 0; }
+  .xc-id { font: 13px var(--mono); color: var(--muted); }
+  .xc-m { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: 13px; font-weight: 500; }
+  .xc-m span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .xc-tags { display: flex; align-items: center; gap: 4px; margin-top: 6px; }
+  .xc-in { margin-left: 4px; font: 12px var(--mono); color: var(--muted); white-space: nowrap; }
+  .xc-ch { height: 44px; margin-top: 12px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--rule) 70%, transparent); border-radius: 5px; }
+  .xc-lg { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; font: 11px var(--mono); color: var(--muted); white-space: nowrap; }
+  .xc-lg i { display: inline-block; width: 12px; height: 0; border-top: 1.5px solid var(--up); vertical-align: middle; margin-right: 5px; }
+  .xc-lg i.dn { border-top-color: var(--down); }
+  .xc-lg i.b { border-top: 1px dashed var(--muted); }
+  .xc-num { margin: 12px 0 12px; display: grid; grid-template-columns: repeat(4, auto); justify-content: space-between; gap: 8px; }
+  .xc-num dt { font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+  .xc-num dd { margin: 0; font: 600 14px/20px var(--mono); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .xc-num > div:last-child { text-align: right; }
+  .xc-foot { margin-top: auto; padding-top: 10px; border-top: 1px solid var(--rule); display: flex; align-items: center; gap: 8px; font-size: 13px; min-width: 0; }
+  .xc-an { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+  .xc-pd { margin-left: auto; font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .xc-more { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 20px; }
+
+  /* The backtest page (the live app, design/mockups/backtest-chart) */
+  .r7-hd { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .r7-t { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .r7-t h1 { font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.02em; }
+  .acts { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .r7-json { display: inline-flex; }
+  .r7-json .btn:first-child { border-radius: 6px 0 0 6px; }
+  .r7-json .btn.q { border-radius: 0 6px 6px 0; border-left: 0; width: 28px; padding: 0; color: var(--muted); font-family: var(--mono); }
+  .r3-sub { display: flex; gap: 6px 16px; flex-wrap: wrap; align-items: center; color: var(--muted); font-size: 13px; margin: 6px 0 16px; }
+  .r3-sub .s { display: inline-flex; align-items: center; gap: 7px; }
+  .r3-sub b { color: var(--ink); font-weight: 600; }
+  .r3-sub .who-s b { font-weight: 500; }
+  .r3-sub .link { font-weight: 400; }
+  .r3-sub .glb { color: var(--up); }
+  .p5-facts { display: flex; flex-wrap: wrap; gap: 1px; margin: 0 0 16px; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--rule); }
+  .p5-facts > div { flex: 1 1 110px; background: var(--bg); padding: 10px 14px; min-width: 0; }
+  .p5-facts dt { font-size: 12px; color: var(--muted); }
+  .p5-facts dd { margin: 2px 0 0; font: 500 15px var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .r7-grid { display: grid; grid-template-columns: minmax(0, 1fr) 252px; gap: 16px; align-items: start; }
+  .r7-main, .r7-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .r7-box { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .r7-box h2 { font-size: 14px; font-weight: 600; }
+  .r7-box .tblwrap { margin: 0 -16px -14px; border-top: 1px solid var(--rule); }
+  .r7-box .tbl td, .r7-box .tbl th { padding: 7px 12px; font-size: 12.5px; }
+  .r7-box .tbl td.d { font: 12px/1.35 var(--mono); }
+  .r3-hd { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .r7-all { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; font-size: 13px; }
+  .r7-all > div { display: contents; }
+  .r7-all dt, .r7-all dd { padding: 5px 0; border-bottom: 1px solid var(--rule); }
+  .r7-all > div:last-child dt, .r7-all > div:last-child dd { border-bottom: 0; }
+  .r7-all dt { color: var(--muted); }
+  .r7-all dd { margin: 0; text-align: right; font: 500 13px var(--mono); }
+  .setup { display: flex; flex-direction: column; font-size: 13px; margin-top: -4px; }
+  .grp { display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-top: 1px solid var(--rule); }
+  .grp:first-child { border-top: 0; padding-top: 4px; }
+  .grp:last-child { padding-bottom: 2px; }
+  .grp .lab { font: 500 10.5px var(--mono); letter-spacing: 0.06em; color: var(--muted); }
+  .grp dl { margin: 0; display: grid; grid-template-columns: auto 1fr; row-gap: 5px; column-gap: 12px; }
+  .grp dt { color: var(--muted); }
+  .grp dd { margin: 0; text-align: right; font: 12.5px var(--mono); }
+  .ident { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .ident b { font-weight: 500; overflow-wrap: anywhere; }
+  .ident .two { display: flex; flex-direction: column; min-width: 0; }
+  .ident .two span { color: var(--muted); font-size: 12.5px; }
+  .ident .link { font-size: 13px; overflow-wrap: anywhere; text-align: left; }
+  .priv { display: flex; gap: 7px; align-items: flex-start; font-size: 12px; color: var(--muted); padding: 7px 9px; border-radius: 6px; background: var(--surface); }
+  .priv .i { width: 13px; height: 13px; margin-top: 2px; }
+  .runt { font-weight: 600; font-size: 13px; }
+  /* The author card on top of the right column (someone else's backtest) */
+  .auc-top { display: flex; align-items: center; gap: 12px; }
+  .auc-t { display: flex; flex-direction: column; min-width: 0; }
+  .auc-t b { font-weight: 600; font-size: 14px; }
+  .auc .link { padding-top: 10px; border-top: 1px solid var(--rule); }
+  /* A reason under a disabled button */
+  .tipw { position: relative; display: inline-flex; }
+  .tipw .btn:disabled { pointer-events: none; }
+  .tip { position: absolute; right: 0; top: calc(100% + 8px); z-index: 40; width: max-content; max-width: 260px; padding: 7px 10px; border-radius: 6px; background: var(--ink); color: var(--bg); font-size: 12.5px; line-height: 1.4; white-space: normal; box-shadow: 0 8px 24px var(--shadow); opacity: 0; transform: translateY(-2px); pointer-events: none; transition: opacity 0.12s, transform 0.12s; }
+  .tip::before { content: ""; position: absolute; right: 22px; top: -4px; width: 8px; height: 8px; background: var(--ink); transform: rotate(45deg); }
+  .tipw:hover .tip, .tipw:focus-within .tip, .tipw.open .tip { opacity: 1; transform: none; }
+
+  /* Price and trades: lightweight-charts 5.2.1, as in the app */
+  .pt-wrap { position: relative; height: 420px; margin: 0 -16px; border-top: 1px solid var(--rule); overflow: hidden; }
+  #pt-chart { position: absolute; inset: 0; }
+  .lgd { position: absolute; left: 12px; top: 8px; z-index: 3; pointer-events: none; font-size: 12px; line-height: 19px; }
+  .lgd .row { display: flex; gap: 10px; align-items: center; white-space: nowrap; }
+  .lgd .name { font-weight: 600; font-size: 12.5px; }
+  .lgd .k { color: var(--muted); font-family: var(--mono); }
+  .lgd .v { font-family: var(--mono); }
+  .lgd .sw { display: inline-block; width: 12px; height: 2px; border-radius: 1px; vertical-align: middle; margin-right: 5px; }
+  .lgd .sw.dash { background: repeating-linear-gradient(90deg, var(--muted) 0 3px, transparent 3px 5px); }
+  .lgd .box { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: color-mix(in srgb, var(--candle-up) 22%, transparent); vertical-align: -1px; margin-right: 4px; }
+  .cbar { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--rule); margin: 0 -16px -14px; padding: 4px 8px; font-size: 12px; gap: 8px; flex-wrap: wrap; }
+  .cseg { display: flex; gap: 2px; align-items: center; }
+  .cseg button { font: 12px var(--mono); background: none; border: 0; color: var(--muted); padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+  .cseg button:hover { color: var(--ink); background: var(--surface); }
+  .cseg button.on { color: var(--accent); }
+  .cseg .tf { color: var(--muted); font-family: var(--mono); padding: 0 8px; }
+  .sw-row { appearance: none; border: 0; background: none; display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font: 12px var(--sans); cursor: pointer; padding: 4px 6px; border-radius: 4px; }
+  .sw-row:hover { background: var(--surface); }
+  .tsw { position: relative; width: 28px; height: 16px; border-radius: 8px; background: var(--surface2); transition: background 0.15s; }
+  .tsw i { position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--bg); box-shadow: 0 1px 2px var(--shadow); transition: transform 0.15s; }
+  .sw-row[aria-checked="true"] .tsw { background: var(--accent); }
+  .sw-row[aria-checked="true"] .tsw i { transform: translateX(12px); }
+  .err { display: flex; gap: 8px; align-items: flex-start; padding: 12px 14px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--down) 40%, var(--rule)); font-size: 13px; background: var(--bg); }
+  .err .dot { flex: none; width: 8px; height: 8px; border-radius: 999px; margin-top: 6px; background: var(--down); }
+
+  /* Compare (design/mockups/compare-backtests) */
+  .cmp-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 0 20px; }
+  .cmp-top h1 { font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.025em; }
+  .cmp-note { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 12px; margin-bottom: 16px; border: 1px dashed color-mix(in srgb, var(--warn) 45%, var(--rule)); border-radius: 8px; background: var(--bg); font-size: 13px; color: var(--muted); }
+  .cmp-note b { color: var(--ink); font-weight: 500; }
+  .cmp-note .sp { flex: 1; }
+  .cmp-ch { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr)); gap: 16px; }
+  .ch-card { padding: 16px; }
+  .ch-hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .ch-hd h2 { font-size: 15px; font-weight: 600; }
+  .ch-lg { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+  .ch-lg span { display: inline-flex; align-items: center; gap: 6px; font: 12px var(--mono); color: var(--muted); }
+  .ch-lg .bar { width: 14px; height: 3px; border-radius: 2px; }
+  .ch-row { display: flex; gap: 8px; }
+  .ch-plot { position: relative; flex: 1; min-width: 0; height: 220px; }
+  .ch-plot .tk { position: absolute; left: 0; right: 0; height: 1px; }
+  .ch-plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .ch-plot path { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+  .ch-ax { position: relative; width: 52px; flex: none; height: 220px; }
+  .ch-ax span { position: absolute; right: 0; transform: translateY(-50%); font: 11px var(--mono); color: var(--muted); white-space: nowrap; }
+  .ch-x { display: flex; justify-content: space-between; margin: 8px 60px 0 0; font: 11px var(--mono); color: var(--muted); }
+  .cmp-t { margin-top: 16px; overflow-x: auto; }
+  .cmp { min-width: 760px; }
+  .cmp-r { display: grid; border-bottom: 1px solid var(--rule); }
+  .cmp-r:last-child { border-bottom: 0; }
+  .cmp-r > div { padding: 9px 14px; min-width: 0; }
+  .cmp .lb { color: var(--muted); font-size: 13px; }
+  .cmp .gp { font: 500 11px/16px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 18px 14px 9px; border-bottom: 1px solid var(--rule); }
+  .cmp .val { font-family: var(--mono); font-size: 13.5px; }
+  .cmp .txt { font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cmp .val.best { color: var(--up); background: var(--up-soft); font-weight: 600; }
+  .cmp .val.worst { color: var(--down); background: var(--down-soft); font-weight: 600; }
+  .cmp .txt.who-c { display: flex; align-items: center; gap: 7px; }
+  .cmp-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .cmp-h .t { display: flex; align-items: center; gap: 8px; }
+  .cmp-h .dot { width: 10px; height: 10px; border-radius: 999px; flex: none; }
+  .cmp-h .m { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+  .cmp-h .a { display: flex; align-items: center; gap: 6px; margin-top: 5px; font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .cmp-h .a b { color: var(--ink); font-weight: 500; }
+  .tag-o { display: inline-flex; align-items: center; gap: 4px; }
+
+  /* The Compare panel, bottom right */
+  .tray { position: fixed; right: 24px; bottom: 24px; z-index: 45; width: 248px; display: flex; flex-direction: column; gap: 10px; padding: 12px; background: var(--bg); border: 1px solid var(--rule); border-radius: 10px; box-shadow: 0 6px 24px var(--shadow); }
+  .tray-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .tray-h > span:first-child { font-size: 13px; font-weight: 600; }
+  .tray-h .link { color: var(--muted); font-size: 12px; font-weight: 400; }
+  .tray-h .link:hover { color: var(--ink); text-decoration: none; }
+  .tray-s { display: flex; flex-direction: column; gap: 4px; }
+  .tray-r { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 2px 0 8px; border-radius: 6px; background: var(--surface); font-size: 13px; white-space: nowrap; }
+  .tray-r .dot { width: 8px; height: 8px; border-radius: 999px; flex: none; }
+  .tray-r .in { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .tray-r.gone { background: none; border: 1px dashed color-mix(in srgb, var(--warn) 45%, var(--rule)); color: var(--muted); font-size: 12px; padding-left: 6px; }
+  .tray-e { height: 30px; border: 1px dashed var(--rule); border-radius: 6px; }
+  .tray .ic { width: 24px; height: 24px; }
+  .tray .ic .i { width: 14px; height: 14px; }
+  .has-tray .abody { padding-bottom: 300px; }
+  .tray-pill { position: fixed; right: 24px; bottom: 24px; z-index: 45; height: 40px; box-shadow: 0 6px 24px var(--shadow); }
+
+  /* Modal */
+  .mbg { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: color-mix(in srgb, #000 45%, transparent); padding: 16px; }
+  .mdl { width: min(560px, 100%); max-height: calc(100dvh - 32px); display: flex; flex-direction: column; background: var(--bg); border: 1px solid var(--rule); border-radius: 12px; box-shadow: 0 20px 50px var(--shadow); }
+  .mdl.wide { width: min(680px, 100%); }
+  .mdl.xl { width: min(800px, 100%); }
+  .mdl-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px 10px 20px; }
+  .mdl-h h2 { font-size: 17px; font-weight: 600; }
+  .mdl-b { padding: 4px 20px 18px; overflow: auto; display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+  .mdl-f { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--rule); }
+  .mdl-f .hint { margin-right: auto; }
+  .mdl .h { display: block; font-size: 12.5px; color: var(--muted); }
+  .cks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .ck-r { display: flex; gap: 9px; align-items: flex-start; font-size: 13px; line-height: 1.4; }
+  .ck-i { flex: none; width: 18px; height: 18px; border-radius: 999px; display: grid; place-items: center; }
+  .ck-i .i { width: 11px; height: 11px; stroke-width: 2.5; }
+  .ck-r.ok .ck-i { background: color-mix(in srgb, var(--up) 15%, var(--bg)); color: var(--up); }
+  .ck-r.no .ck-i { background: var(--surface2); color: var(--muted); }
+  .ck-r .s { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 2px; font-size: 12px; color: var(--muted); }
+  .ck-r .s .mono { font-size: 11.5px; }
+  .pub-scope { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); font-size: 13px; }
+  .pub-scope .i { color: var(--accent); }
+  .pubg { display: grid; grid-template-columns: 296px minmax(0, 1fr); gap: 22px; align-items: start; }
+  .pub-prev { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 10px; background: var(--surface); }
+  .pub-lists { display: flex; flex-direction: column; gap: 18px; padding-top: 4px; }
+  .pub-lists h3 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .pk-r { display: grid; grid-template-columns: 52px 74px minmax(0, 1fr) 76px 40px; gap: 8px; align-items: center; padding: 6px 16px; border-bottom: 1px solid var(--rule); font-size: 13px; }
+  .pk-r.picked { background: var(--accent-soft); }
+  .pk-r .m { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .pk-list { max-height: 360px; overflow-y: auto; border-top: 1px solid var(--rule); margin: 0 -20px -18px; }
+
+  /* Toast */
+  .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 70; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; background: var(--ink); color: var(--bg); font-size: 13.5px; box-shadow: 0 10px 28px var(--shadow); white-space: nowrap; }
+  .toast .i { color: var(--bg); }
+
+  /* Review tools: the Screens menu, theme and Notes. Not part of the app. */
+  .scr { position: fixed; left: 16px; bottom: 16px; z-index: 80; font-family: var(--sans); }
+  .scr-t { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--warn) 55%, var(--rule)); background: var(--bg); color: var(--ink); font: 500 13px var(--sans); cursor: pointer; box-shadow: 0 6px 24px var(--shadow); }
+  .scr-p { position: absolute; left: 0; bottom: calc(100% + 8px); width: 330px; max-height: calc(100vh - 90px); overflow: auto; padding: 8px; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); box-shadow: 0 12px 34px var(--shadow); }
+  .scr-g { font: 500 10.5px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 10px 8px 4px; }
+  .scr-o { appearance: none; display: flex; align-items: center; gap: 8px; width: 100%; padding: 5px 8px; border: 0; border-radius: 6px; background: none; color: var(--ink); font: 13px var(--sans); text-align: left; cursor: pointer; }
+  .scr-o:hover { background: var(--surface); }
+  .scr-o.on { background: var(--accent-soft); color: var(--accent); }
+  .scr-o .k { margin-left: auto; font: 11px var(--mono); color: var(--muted); }
+  .scr-f { display: flex; gap: 6px; padding: 4px 4px 10px; border-bottom: 1px solid var(--rule); margin-bottom: 2px; }
+  .scr-f .btn { flex: 1; }
+  .notes { display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; }
+  .notes h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .notes ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+  .notes li::marker { color: var(--muted); }
+  .notes code { font: 12.5px var(--mono); background: var(--surface); padding: 1px 5px; border-radius: 4px; }
+
+  /* Motion */
+  @keyframes fx-fade { from { opacity: 0; } }
+  @keyframes fx-dlg { from { opacity: 0; transform: translateY(10px) scale(0.97); } }
+  @keyframes fx-pop { from { opacity: 0; transform: translateY(-4px) scale(0.98); } }
+  @keyframes fx-up { from { opacity: 0; transform: translate(-50%, 8px); } }
+  .mbg.in { animation: fx-fade 0.16s ease-out; }
+  .mbg.in .mdl { animation: fx-dlg 0.22s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .fp.in, .dp.in { animation: fx-pop 0.14s ease-out; transform-origin: top left; }
+  .toast { animation: fx-up 0.2s ease-out; }
+  .btn, .dd-nav, .fp-t, .fchip, .seg button, .fp-o, .pg-l, .star, .link, .dd-sr, .qa-c, .tbl tr.rl td { transition: background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+  @media (max-width: 1100px) { .tbl .c-tr { display: none; } }
+  @media (max-width: 980px) {
+    .dd-ws { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    .dd-side { flex-direction: row; overflow-x: auto; padding: 4px; scrollbar-width: none; }
+    .dd-nav { width: auto; flex: none; }
+    .dd-sfoot { display: none; }
+    .r7-grid { grid-template-columns: minmax(0, 1fr); }
+    .dd-cols { grid-template-columns: minmax(0, 1fr); }
+    .pubg { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 760px) { .tbl .c-when, .tbl .c-model { display: none; } .qa { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 640px) {
+    .ahdr { padding: 0 16px; } .abody { padding: 20px 16px 120px; } .afoot > div { padding-left: 16px; padding-right: 16px; }
+    .ahdr-in { gap: 10px; } .logo { width: 130px; height: 24px; }
+    .nb-t { display: none; }
+    .ttl h1 { font-size: 26px; line-height: 32px; }
+    .dd-card { padding: 12px; }
+    .tbl .c-dd, .tbl .c-auth .nm { display: none; }
+    .bt-q, .ex-tools .bt-q { max-width: none; flex-basis: 100%; }
+    .bt-tools .sp { display: none; }
+    .tray { right: 12px; bottom: 12px; width: 220px; }
+    .scr { left: 12px; bottom: 12px; }
+    .scr-p { width: calc(100vw - 24px); }
+    .fp { width: calc(100vw - 32px); grid-template-columns: 1fr 1fr; }
+    .fp-t { width: 160px; }
+    .pt-wrap { height: 340px; }
+    .afoot .cred { margin-left: 0; }
+    .toast { white-space: normal; width: calc(100vw - 32px); }
+    .mdl-f .hint { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="frame" id="app"><div id="pg"></div></div>
+<div id="ov"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@5.2.1/dist/lightweight-charts.standalone.production.js"></script>
+<script>
+// ===================== Public experiments, final =====================
+// Base: variant A (the backtest page and the tables as the live app has them).
+// From B: the Experiments cards, the filter chips and Sort, the publish preview, the author card
+// and the "was unpublished" slot. The cards are toned down to the dashboard widget's card.
+
+const LOGO = `<svg class="logo" viewBox="0 0 174 32" role="img" aria-label="CandleStack"><rect class="lg-a" width="32" height="32" rx="7"></rect><g class="lg-b"><rect x="10" y="12" width="2" height="14"></rect><rect x="8" y="16" width="6" height="8"></rect><rect x="20" y="6" width="2" height="18"></rect><rect x="18" y="10" width="6" height="10"></rect></g><path class="lg-c" d="M48.18 24.16Q46.05 24.16 44.42 23.18Q42.79 22.2 41.87 20.39Q40.95 18.57 40.95 16.02Q40.95 13.51 41.85 11.68Q42.75 9.84 44.38 8.84Q46.01 7.84 48.21 7.84Q51.2 7.84 52.85 9.32Q54.5 10.81 55 13.47L52.01 13.62Q51.73 12.08 50.78 11.2Q49.83 10.32 48.21 10.32Q46.23 10.32 45.06 11.86Q43.89 13.4 43.89 16.02Q43.89 18.66 45.07 20.17Q46.25 21.68 48.18 21.68Q49.92 21.68 50.88 20.72Q51.84 19.76 52.1 18.09L55.09 18.24Q54.63 20.99 52.88 22.58Q51.13 24.16 48.18 24.16ZM60.33 24.07Q58.48 24.07 57.36 23.24Q56.24 22.4 56.24 20.86Q56.24 19.34 57.18 18.49Q58.13 17.63 60.06 17.25L63.96 16.48Q63.96 13.98 61.69 13.98Q60.68 13.98 60.09 14.45Q59.49 14.92 59.29 15.8L56.43 15.67Q56.79 13.82 58.15 12.81Q59.51 11.8 61.69 11.8Q64.2 11.8 65.49 13.06Q66.77 14.33 66.77 16.68V20.95Q66.77 21.41 66.94 21.59Q67.1 21.76 67.43 21.76H67.81V23.81Q67.43 23.9 66.77 23.9Q65.83 23.9 65.17 23.5Q64.51 23.11 64.33 22.03V22.01Q63.89 22.93 62.83 23.5Q61.76 24.07 60.33 24.07ZM60.9 22.03Q62.31 22.03 63.13 21.21Q63.96 20.4 63.96 19.06V18.4L60.92 19.01Q59.98 19.21 59.57 19.6Q59.16 19.98 59.16 20.6Q59.16 22.03 60.9 22.03ZM69.13 23.81V12.06H71.68L71.75 14.06Q72.23 12.85 73.16 12.33Q74.1 11.8 75.27 11.8Q77.2 11.8 78.24 13.04Q79.27 14.28 79.27 16.26V23.81H76.45V17.17Q76.45 15.67 76 14.88Q75.55 14.09 74.41 14.09Q73.26 14.09 72.6 14.88Q71.94 15.67 71.94 17.17V23.81ZM85.98 24.07Q84.48 24.07 83.39 23.33Q82.31 22.58 81.71 21.2Q81.12 19.83 81.12 17.94Q81.12 16.07 81.72 14.68Q82.33 13.29 83.42 12.55Q84.51 11.8 85.98 11.8Q87.21 11.8 88.15 12.3Q89.08 12.81 89.57 13.73V8.19H92.38V23.81H89.7L89.63 22.07Q89.15 23.02 88.18 23.55Q87.21 24.07 85.98 24.07ZM86.84 21.79Q88.14 21.79 88.85 20.78Q89.57 19.78 89.57 17.94Q89.57 16.07 88.86 15.08Q88.16 14.09 86.84 14.09Q85.56 14.09 84.8 15.11Q84.04 16.13 84.04 17.94Q84.04 19.7 84.8 20.74Q85.56 21.79 86.84 21.79ZM97.73 23.81Q96.43 23.81 95.67 23.15Q94.91 22.49 94.91 21.04V8.19H97.73V20.75Q97.73 21.63 98.61 21.63H99.47V23.81ZM105.98 24.07Q104.22 24.07 102.92 23.31Q101.62 22.56 100.92 21.17Q100.21 19.78 100.21 17.94Q100.21 16.09 100.92 14.7Q101.62 13.32 102.91 12.56Q104.2 11.8 105.91 11.8Q107.58 11.8 108.84 12.55Q110.09 13.29 110.78 14.7Q111.48 16.11 111.48 18.09V18.73H103.14Q103.21 20.27 103.98 21.05Q104.75 21.83 106 21.83Q107.91 21.83 108.44 20.2L111.32 20.38Q110.84 22.09 109.42 23.08Q108 24.07 105.98 24.07ZM103.14 16.84H108.57Q108.46 15.41 107.75 14.71Q107.03 14.02 105.91 14.02Q104.77 14.02 104.04 14.75Q103.32 15.47 103.14 16.84ZM119.46 24.16Q117.53 24.16 116.12 23.48Q114.71 22.8 113.91 21.58Q113.11 20.36 112.97 18.73L115.88 18.55Q116.08 20.07 116.98 20.88Q117.88 21.7 119.51 21.7Q120.89 21.7 121.65 21.18Q122.41 20.66 122.41 19.67Q122.41 19.08 122.13 18.62Q121.84 18.16 121.03 17.76Q120.21 17.36 118.61 16.99Q116.67 16.55 115.5 15.99Q114.34 15.43 113.81 14.58Q113.28 13.73 113.28 12.46Q113.28 11.09 113.96 10.05Q114.65 9 115.9 8.42Q117.15 7.84 118.91 7.84Q120.78 7.84 122.09 8.51Q123.4 9.18 124.14 10.35Q124.88 11.51 125.05 13.03L122.17 13.16Q122.02 11.89 121.18 11.09Q120.34 10.3 118.87 10.3Q117.64 10.3 116.92 10.87Q116.21 11.45 116.21 12.35Q116.21 12.99 116.5 13.4Q116.8 13.82 117.57 14.13Q118.34 14.44 119.73 14.75Q121.82 15.21 123.05 15.88Q124.28 16.55 124.81 17.45Q125.34 18.35 125.34 19.52Q125.34 20.95 124.6 21.99Q123.86 23.04 122.55 23.6Q121.25 24.16 119.46 24.16ZM132.2 23.81Q130.44 23.81 129.62 23.01Q128.79 22.2 128.79 20.44V14.24H126.94V12.06H128.79V9.31H131.61V12.06H134.71V14.24H131.61V20.18Q131.61 21.02 131.97 21.32Q132.33 21.63 133.06 21.63H134.71V23.81ZM139.75 24.07Q137.9 24.07 136.78 23.24Q135.66 22.4 135.66 20.86Q135.66 19.34 136.6 18.49Q137.55 17.63 139.48 17.25L143.38 16.48Q143.38 13.98 141.11 13.98Q140.1 13.98 139.51 14.45Q138.91 14.92 138.71 15.8L135.85 15.67Q136.21 13.82 137.57 12.81Q138.93 11.8 141.11 11.8Q143.62 11.8 144.91 13.06Q146.19 14.33 146.19 16.68V20.95Q146.19 21.41 146.36 21.59Q146.52 21.76 146.85 21.76H147.23V23.81Q146.85 23.9 146.19 23.9Q145.25 23.9 144.59 23.5Q143.93 23.11 143.75 22.03V22.01Q143.31 22.93 142.24 23.5Q141.18 24.07 139.75 24.07ZM140.32 22.03Q141.73 22.03 142.55 21.21Q143.38 20.4 143.38 19.06V18.4L140.34 19.01Q139.4 19.21 138.99 19.6Q138.58 19.98 138.58 20.6Q138.58 22.03 140.32 22.03ZM153.65 24.07Q151.89 24.07 150.59 23.31Q149.3 22.56 148.58 21.17Q147.87 19.78 147.87 17.94Q147.87 16.09 148.58 14.7Q149.3 13.32 150.59 12.56Q151.89 11.8 153.65 11.8Q155.9 11.8 157.38 12.96Q158.87 14.13 159.13 16.22L156.23 16.37Q156.05 15.25 155.36 14.67Q154.66 14.09 153.65 14.09Q152.29 14.09 151.54 15.1Q150.79 16.11 150.79 17.94Q150.79 19.76 151.54 20.77Q152.29 21.79 153.65 21.79Q154.69 21.79 155.38 21.19Q156.07 20.6 156.23 19.34L159.13 19.48Q158.89 21.59 157.4 22.83Q155.92 24.07 153.65 24.07ZM160.76 23.81V8.19H163.57V17.36L168.39 12.06H171.87L167.27 16.95L172.02 23.81H168.85L165.42 18.62L163.57 20.58V23.81Z"></path></svg>`;
+const FW_IC = {
+  'Keras': ['#D00000', 'M24 0H0v24h24V0zM8.45 5.16l.2.17v6.24l6.46-6.45h1.96l.2.4-5.14 5.1 5.47 7.94-.2.3h-1.94l-4.65-6.88-2.16 2.08v4.6l-.19.2H7l-.2-.2V5.33l.17-.17h1.48z'],
+  'ONNX': ['#005CED', 'M23.0325 11.2963c-.0503 0-.1006 0-.1508.0126l-4.021-7.4387c.0754-.1383.1131-.289.1131-.4524 0-.5403-.4398-.9675-.9675-.9675-.2765 0-.5278.113-.7037.3015L9.286 1.156C9.2357.6785 8.821.3016 8.3184.3016c-.5277 0-.9675.4398-.9675.9675 0 .1634.0377.3141.113.4524l-6.245 8.9591c-.0753-.0251-.1633-.0377-.2513-.0377-.5403 0-.9675.4398-.9675.9676 0 .5403.4398.9675.9675.9675h.0377l3.3676 8.3309c-.0503.1257-.088.2639-.088.402 0 .5404.4398.9676.9676.9676.2764 0 .5277-.113.7036-.3015l10.1152.9926c.1005.4273.49.7288.9424.7288.5403 0 .9676-.4398.9676-.9675 0-.2388-.088-.465-.2262-.6283l5.1141-8.8712c.0503.0126.1005.0126.1634.0126.5403 0 .9675-.4398.9675-.9676 0-.5403-.4272-.98-.9675-.98zM17.2272 4.021c.1131.1508.2765.264.4524.3267l-1.533 11.5728c-.1005.0252-.1885.0503-.2764.1005L7.4513 8.708c.0251-.0754.0377-.1634.0377-.2514 0-.0628-.0126-.1256-.0126-.1884zm4.8754 8.5068l-5.177 3.556a1.105 1.105 0 0 0-.1256-.0753L18.3455 4.335h.0126l3.9456 7.288c-.1508.1759-.2388.3895-.2388.6408 0 .1005.0126.1885.0377.2638zM6.3832 7.5016c-.4649.0754-.8293.4775-.8293.955v.0628l-3.4555 2.0481 5.378-7.7026zm.3519 1.91c.1256-.0252.2513-.088.3518-.1634l8.356 7.2628c-.0377.113-.0628.2262-.0628.3518v.0503l-9.311 3.845c-.1382-.201-.3518-.3518-.6031-.402zm8.8963 8.1172c.1257.1382.3016.2513.5026.289l.465 4.046c-.201.1006-.3519.264-.4524.4524l-9.8136-.955zm1.1435.2136c.3267-.1633.5403-.49.5403-.867 0-.088-.0126-.1634-.0377-.2513l4.7372-3.2545-4.8 8.331zm.2513-14.3497l-9.889 4.31-.1131-.0755 1.2565-5.3906h.0377c.3393 0 .6409-.1759.8168-.4397l7.891 1.5706zM1.935 11.6105c0-.0629-.0126-.1257-.0126-.1885l3.9079-2.2995c.0754.0754.1633.1508.2638.201L4.8252 20.243l-3.2043-7.9036c.1885-.176.3142-.4398.3142-.7288Z'],
+};
+
+// ---------- icons ----------
+const IC = {
+  dash: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+  runs: '<path d="M3 17l5-5 4 4 8-8"/><path d="M14 8h6v6"/>',
+  exp: '<path d="M9 3h6"/><path d="M10 3v6.5L4.6 18.4A1.8 1.8 0 0 0 6.1 21h11.8a1.8 1.8 0 0 0 1.5-2.6L14 9.5V3"/><path d="M7.5 15h9"/>',
+  models: '<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/>',
+  inst: '<path d="M7 3v4M7 17v4M17 3v3M17 14v7"/><rect x="4.5" y="7" width="5" height="10" rx="1" fill="currentColor"/><rect x="14.5" y="6" width="5" height="8" rx="1"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>',
+  scale: '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
+  link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/>',
+  dl: '<path d="M12 4v11M7 10l5 5 5-5"/><path d="M4 19h16"/>',
+  ok: '<path d="M5 12l4 4 10-10"/>',
+  x: '<path d="M6 6l12 12M18 6L6 18"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+  filter: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
+  chev: '<path d="M6 9l6 6 6-6"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  up: '<path d="M12 15V4M7 9l5-5 5 5"/><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  rows: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M3 14.5h18M9 9.5V20"/>',
+  sort: '<path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.3-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.7a3.5 3.5 0 0 1 0 6.6M18 14.8c1.8.7 3 2.4 3.5 5.2"/>',
+  trophy: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>',
+  note: '<path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7z"/><path d="M14 3v4h4M9 13h6M9 17h4"/>',
+};
+const ic = (k, cls = 'i') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${IC[k]}</svg>`;
+const fwMini = fw => FW_IC[fw] ? `<svg class="fw-mini" style="--fw:${FW_IC[fw][0]}" viewBox="0 0 24 24" role="img" aria-label="${fw}"><path d="${FW_IC[fw][1]}"/></svg>` : '';
+const fwIcon = (fw, sm) => FW_IC[fw] ? `<span class="dd-fw ${sm ? 'sm' : ''}" style="--fw:${FW_IC[fw][0]}" title="${fw}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${FW_IC[fw][1]}"/></svg></span>` : '';
+
+// ---------- example data ----------
+function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function gauss(r) { let u = 0, v = 0; while (!u) u = r(); while (!v) v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+function hashStr(s) { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+
+const ME = { name: 'Arsen Labovich', ini: 'AL', first: 'Arsen' };
+const PEOPLE = {
+  tt: { name: 'Tymur Tkach', ini: 'TT', first: 'Tymur' }, vs: { name: 'Vladyslav Shudiehov', ini: 'VS', first: 'Vladyslav' }, ma: { name: 'Mykhailo Adamenko', ini: 'MA', first: 'Mykhailo' },
+  bl: { name: 'Bohdan Lynnyk', ini: 'BL', first: 'Bohdan' }, ik: { name: 'Iryna Kovalenko', ini: 'IK', first: 'Iryna' }, dm: { name: 'Daria Melnyk', ini: 'DM', first: 'Daria' },
+};
+// What each model reads, from its manifest
+const MODELS = {
+  'kagi-trend-smoke.onnx': { fw: 'ONNX', rep: 'Kagi', tf: '1h', inp: '25 × 3' },
+  'blesk-novol-8.keras': { fw: 'Keras', rep: 'Renko', tf: '30m', inp: '25 × 23' },
+  'my-tsmixer.keras': { fw: 'Keras', rep: 'Candles', tf: '1h', inp: '25 × 23' },
+  'stockmixer.onnx': { fw: 'ONNX', rep: 'Candles', tf: '1d', inp: '30 × 23' },
+  'renko-lstm.keras': { fw: 'Keras', rep: 'Renko', tf: '1h', inp: '30 × 23' },
+  'kagi-trend.onnx': { fw: 'ONNX', rep: 'Kagi', tf: '1h', inp: '25 × 3' },
+  'kagi-swing-v2.onnx': { fw: 'ONNX', rep: 'Kagi', tf: '30m', inp: '40 × 6' },
+  'tsmixer-25x23.keras': { fw: 'Keras', rep: 'Candles', tf: '1h', inp: '25 × 23' },
+  'patchtst-small.onnx': { fw: 'ONNX', rep: 'Candles', tf: '30m', inp: '64 × 5' },
+  'btc-renko-gru.keras': { fw: 'Keras', rep: 'Renko', tf: '4h', inp: '20 × 12' },
+};
+const MY_MODELS = ['kagi-trend-smoke.onnx', 'blesk-novol-8.keras', 'my-tsmixer.keras', 'stockmixer.onnx'];
+// name, market, exchange, last price, buy and hold over Jan to Sep 2025, logo colour and mark
+const INSTR = {
+  AAPL: ['Apple Inc. Common Stock', 'stock', 'NASDAQ', 253.62, 4.0, '#1d1d1f', 'A'],
+  MSFT: ['Microsoft Corporation Common Stock', 'stock', 'NASDAQ', 517.95, 22.9, '#0078d4', 'M'],
+  NVDA: ['NVIDIA Corporation Common Stock', 'stock', 'NASDAQ', 186.58, 38.9, '#76b900', 'N'],
+  SPY: ['SPDR S&amp;P 500 ETF Trust', 'stock', 'NYSE Arca', 666.18, 14.3, '#b8102e', 'S'],
+  BTCUSDT: ['Bitcoin / TetherUS', 'crypto', 'Binance', 114056, 21.9, '#f7931a', '₿'],
+  ETHUSDT: ['Ether / TetherUS', 'crypto', 'Binance', 4145.9, 23.6, '#627eea', 'Ξ'],
+};
+const itile = (t, sm) => { const x = INSTR[t]; return `<span class="itile ${sm ? 'sm' : ''} ${x[1] === 'crypto' ? 'coin' : ''}" aria-hidden="true"><i style="background:${x[5]}">${x[6]}</i></span>`; };
+
+// Dates: day of the year 2026. Today is 2 Nov (306).
+const TODAY = 306;
+const dayStr = n => n > 304 ? `${n - 304} Nov` : `${n - 273} Oct`;
+const whenStr = (d, t) => d === TODAY ? `Today ${t}` : d === TODAY - 1 ? `Yesterday ${t}` : `${dayStr(d)} ${t}`;
+const pubDay = d => d === TODAY ? 'Today' : d === TODAY - 1 ? 'Yesterday' : dayStr(d);
+const pubDayL = d => d === TODAY ? 'today' : d === TODAY - 1 ? 'yesterday' : dayStr(d);
+
+const COMMON = { st: 'done', from: '1 Jan 2025', to: '30 Sep 2025', th: '0', pos: 'Long and short', fills: "Next candle's open", fee: '0 %', slip: '0 %' };
+function fill(b) {
+  const r = mulberry(hashStr(b.key));
+  const I = INSTR[b.inst];
+  b.bh = b.bh ?? I[4];
+  b.bench = I[1] === 'crypto' ? 'BTCUSDT' : 'SPY';
+  b.benchRet = I[1] === 'crypto' ? 21.9 : 14.3;
+  b.gone = false;
+  if (b.st !== 'done') return b;
+  b.sortino = b.sortino ?? +(b.sharpe * (1.35 + r() * 0.3)).toFixed(2);
+  b.avg = b.avg ?? +(b.ret / b.trades * 1.1).toFixed(2);
+  b.best = b.best ?? +(4 + r() * 9).toFixed(1);
+  b.worst = b.worst ?? -(2 + r() * 4).toFixed(1);
+  b.time = b.time ?? +(70 + r() * 29).toFixed(1);
+  return b;
+}
+const own = (id, inst, model, d, t, o) => fill({ key: `o${id}`, id, own: true, inst, model, ran: [d, t], pub: null, star: false, dur: `${6 + id % 9} s`, ...COMMON, ...o });
+const OWN = [
+  own(13, 'AAPL', 'kagi-trend-smoke.onnx', 306, '20:34', { ret: 12.8, bh: 4.0, sharpe: 0.66, sortino: 1.12, dd: -23.2, trades: 142, win: 36.6, avg: 0.1, best: 11.0, worst: -4.2, time: 98.8, star: true, dur: '6 s', timing: ['5.2 s', '0.1 s', '0.9 s', '0 s'] }),
+  own(12, 'NVDA', 'blesk-novol-8.keras', 306, '16:10', { ret: 38.1, sharpe: 1.21, dd: -14.9, trades: 204, win: 53.4, star: true }),
+  own(11, 'BTCUSDT', 'my-tsmixer.keras', 305, '18:42', { ret: 21.5, sharpe: 0.88, dd: -17.2, trades: 312, win: 51.0 }),
+  own(10, 'MSFT', 'stockmixer.onnx', 305, '15:05', { st: 'failed', err: 'The run took longer than 10 minutes, the limit for one backtest. Pick a shorter period.' }),
+  own(9, 'ETHUSDT', 'kagi-trend-smoke.onnx', 303, '11:20', { ret: 9.7, sharpe: 0.52, dd: -19.8, trades: 266, win: 48.1 }),
+  own(8, 'NVDA', 'blesk-novol-8.keras', 301, '19:05', { ret: 44.6, sharpe: 1.34, dd: -13.8, trades: 221, win: 55.2, star: true, pub: [302, '09:12'], pos: 'Long only' }),
+  own(7, 'SPY', 'stockmixer.onnx', 298, '17:40', { ret: 7.2, sharpe: 0.61, dd: -6.9, trades: 74, win: 54.1, pos: 'Long only' }),
+  own(6, 'MSFT', 'blesk-novol-8.keras', 295, '12:30', { ret: 16.3, sharpe: 0.97, dd: -9.1, trades: 162, win: 54.3, pub: [296, '10:02'] }),
+  own(5, 'AAPL', 'my-tsmixer.keras', 293, '20:15', { ret: 5.4, sharpe: 0.31, dd: -15.6, trades: 188, win: 50.5 }),
+  own(4, 'AAPL', 'blesk-novol-8.keras', 291, '14:48', { ret: 18.3, sharpe: 0.88, dd: -9.7, trades: 72, win: 58.3, pos: 'Long only' }),
+  own(3, 'BTCUSDT', 'blesk-novol-8.keras', 288, '21:02', { ret: 12.0, sharpe: 0.47, dd: -26.4, trades: 247, win: 49.4 }),
+  own(2, 'ETHUSDT', 'my-tsmixer.keras', 287, '18:20', { st: 'failed', err: 'The model answered NaN for 412 candles from 3 Mar 2025 on. CandleStack stopped the run. Check the model on candles with zero volume.' }),
+  own(1, 'AAPL', 'blesk-novol-8.keras', 283, '20:40', { ret: 38.4, sharpe: 1.12, dd: -14.8, trades: 214, win: 54.2, ex: true, pos: 'Long only' }),
+];
+// Published by others. pub: [day, time]. ran: the day before.
+const oth = (by, id, inst, model, pub, ret, sharpe, dd, trades, win, o = {}) => fill({ key: `${by}${id}`, id, by, inst, model, pub, ran: [pub[0] - 1, ['21:12', '18:40', '11:05', '16:22'][id % 4]], ret, sharpe, dd, trades, win, dur: `${7 + (id * 3) % 11} s`, ...COMMON, ...o });
+const OTHERS = [
+  oth('tt', 9, 'NVDA', 'blesk-novol-8.keras', [306, '10:14'], 41.2, 1.38, -12.4, 188, 54.8, { pos: 'Long only' }),
+  oth('vs', 21, 'BTCUSDT', 'btc-renko-gru.keras', [306, '09:02'], 27.9, 1.05, -18.6, 236, 51.3),
+  oth('ma', 5, 'SPY', 'stockmixer.onnx', [305, '21:40'], 6.1, 0.58, -7.9, 64, 53.1, { pos: 'Long only' }),
+  oth('bl', 14, 'ETHUSDT', 'kagi-trend.onnx', [305, '17:25'], -8.4, -0.31, -24.9, 311, 46.2),
+  oth('dm', 3, 'AAPL', 'tsmixer-25x23.keras', [304, '19:10'], 15.7, 0.92, -11.0, 142, 52.1),
+  oth('ik', 8, 'MSFT', 'patchtst-small.onnx', [304, '12:48'], 9.3, 0.71, -9.8, 203, 50.7),
+  oth('vs', 57, 'BTCUSDT', 'kagi-swing-v2.onnx', [304, '08:30'], 38.8, 1.07, -24.4, 177, 52.0),
+  oth('tt', 7, 'AAPL', 'kagi-swing-v2.onnx', [303, '16:30'], 18.9, 1.11, -10.2, 97, 55.7),
+  oth('vs', 19, 'ETHUSDT', 'renko-lstm.keras', [302, '20:05'], 33.6, 1.22, -21.4, 178, 52.8),
+  oth('bl', 12, 'NVDA', 'tsmixer-25x23.keras', [302, '11:15'], 22.4, 0.86, -19.7, 221, 51.1),
+  oth('ma', 4, 'MSFT', 'blesk-novol-8.keras', [301, '18:22'], 12.6, 0.83, -8.6, 156, 53.8, { pos: 'Long only' }),
+  oth('dm', 2, 'SPY', 'kagi-trend.onnx', [300, '14:00'], 3.2, 0.27, -9.4, 118, 49.2),
+  oth('ik', 6, 'BTCUSDT', 'patchtst-small.onnx', [300, '09:41'], -4.7, -0.12, -27.3, 402, 47.6),
+  oth('tt', 5, 'MSFT', 'renko-lstm.keras', [298, '15:35'], 10.8, 0.77, -12.1, 133, 52.6),
+  oth('vs', 17, 'AAPL', 'kagi-trend.onnx', [297, '13:12'], 7.9, 0.54, -14.3, 167, 50.9),
+  oth('bl', 9, 'SPY', 'blesk-novol-8.keras', [296, '19:48'], 9.6, 0.81, -6.2, 88, 55.1, { pos: 'Long only' }),
+  oth('ma', 3, 'NVDA', 'kagi-swing-v2.onnx', [295, '10:30'], 48.3, 1.47, -16.8, 124, 56.5),
+  oth('dm', 1, 'ETHUSDT', 'stockmixer.onnx', [294, '17:55'], -11.2, -0.44, -29.6, 57, 43.9),
+  oth('ik', 4, 'AAPL', 'blesk-novol-8.keras', [293, '20:20'], 11.4, 0.79, -10.6, 171, 53.2),
+  oth('tt', 3, 'BTCUSDT', 'kagi-trend.onnx', [291, '12:05'], 19.2, 0.74, -22.8, 264, 49.8),
+  oth('vs', 12, 'NVDA', 'patchtst-small.onnx', [290, '16:44'], 30.1, 1.02, -17.5, 289, 52.4),
+  oth('bl', 6, 'MSFT', 'kagi-trend.onnx', [288, '11:50'], 4.4, 0.36, -11.9, 142, 48.6),
+  oth('ma', 2, 'ETHUSDT', 'btc-renko-gru.keras', [287, '09:15'], 14.8, 0.69, -19.9, 198, 51.0),
+];
+const ALLB = [...OWN, ...OTHERS];
+const byKey = k => ALLB.find(b => b.key === k);
+const author = b => b.own ? ME : PEOPLE[b.by];
+const pubKey = b => b.pub ? b.pub[0] * 10000 + +b.pub[1].replace(':', '') : 0;
+const PUB0 = Object.fromEntries(ALLB.map(b => [b.key, b.pub]));
+// Every jump from the Screens menu starts from the same example data
+function resetData() { ALLB.forEach(b => { b.pub = PUB0[b.key]; b.gone = false; }); }
+const catalog = () => ALLB.filter(b => b.pub && !b.gone);
+
+// ---------- formats ----------
+const fmtN = v => v.toLocaleString('en-US');
+const pct = (v, d = 1) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(d)} %`;
+const num = v => `${v < 0 ? '−' : ''}${Math.abs(v).toFixed(2)}`;
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+const avatar = (a, size = 'xs') => `<span class="avatar ${size}" title="${a.name}" aria-hidden="true">${a.ini}</span>`;
+const reads = m => `${MODELS[m].rep} · ${MODELS[m].tf} · ${MODELS[m].inp}`;
+
+// ---------- state ----------
+const E_STEP = 9;
+const BDEF = () => ({ q: '', f: 'all', m: null, sort: null, page: 1 });
+const EDEF = () => ({ tab: 'all', q: '', mk: 'all', rep: 'all', tf: 'all', author: null, sort: null, page: 1, shown: E_STEP });
+// view: Cards or Table. Kept here, outside the filters, so it stays while you click around.
+const S = { page: 'dash', key: null, from: null, modal: null, pop: null, menu: false, b: BDEF(), e: EDEF(), view: 'cards', cmp: ['o8', 'tt9', null, null], trayMin: false, toast: null, pick: { tab: 'mine', q: '' }, trades: true, range: '1M', hash: '', best: 'sharpe', tipOpen: false };
+const COLORS = ['--s0', '--s1', '--s2', '--s3'];
+const picks = () => S.cmp.map((k, i) => k && !byKey(k).gone && { b: byKey(k), color: COLORS[i] }).filter(Boolean);
+const inCmp = k => S.cmp.includes(k);
+const cmpFull = () => S.cmp.every(Boolean);
+function isDark() { return document.documentElement.dataset.theme === 'dark'; }
+
+// ---------- header, sidebar, footer ----------
+function header() {
+  return `<header class="ahdr"><div class="ahdr-in"><button type="button" class="home-link" data-act="go" data-val="#dash" aria-label="CandleStack dashboard">${LOGO}</button><div class="sp"></div>
+    <div class="r"><button type="button" class="btn pri" aria-label="New backtest">${ic('plus', 'i nb-i')}<span class="nb-t">New backtest</span></button>
+    <button type="button" class="btn ghost icon" data-act="theme" aria-label="Switch theme">${ic(isDark() ? 'sun' : 'moon')}</button>
+    <button type="button" class="av-btn" aria-label="Account"><span class="avatar">${ME.ini}</span></button></div></div></header>`;
+}
+function footer() {
+  return `<footer class="afoot"><div><span>CandleStack</span><span>API docs</span><span>Status</span><span>candlestack.tech</span><span class="cred"><span>Charts by <u>TradingView Lightweight Charts™</u></span><span>Logos provided by <u>Logo.dev</u></span></span></div></footer>`;
+}
+function side() {
+  // The live sidebar plus Experiments right after Backtests. Counts as the app shows them, Instruments has none.
+  const items = [['dash', 'Dashboard', ''], ['runs', 'Backtests', OWN.length], ['exp', 'Experiments', catalog().length], ['models', 'Models', MY_MODELS.length], ['inst', 'Instruments', ''], ['settings', 'Settings', '']];
+  const on = S.page;
+  return `<nav class="card dd-side" aria-label="Workspace">${items.map(([k, l, n]) => `<button type="button" class="dd-nav ${on === k ? 'on' : ''}" data-act="go" data-val="#${k}" ${on === k ? 'aria-current="page"' : ''}>${ic(k)}<span>${l}</span>${n !== '' ? `<span class="dd-n">${n}</span>` : ''}</button>`).join('')}
+    <div class="dd-sfoot"><span class="eyebrow">Storage</span><span class="meter"><i style="width:26%"></i></span><span class="dd-s">26.4 MB of 100 MB models</span><span class="hint">Market data delayed 15 min</span></div></nav>`;
+}
+const withSide = main => `<div class="dd-ws">${side()}<div class="dd-main">${main}</div></div>`;
+
+// ---------- shared cells ----------
+function cmpBtn(b) {
+  const on = inCmp(b.key), done = b.st === 'done', off = !done || (cmpFull() && !on);
+  const why = !done ? (b.st === 'failed' ? 'Failed: no results to compare' : 'Still running') : cmpFull() && !on ? 'Up to 4 backtests. Remove one first' : on ? 'Remove from compare' : 'Add to compare';
+  return `<button type="button" class="cmpi ${on ? 'on' : ''}" data-act="cmp" data-val="${b.key}" ${off ? 'disabled' : ''} title="${why}" aria-label="${why}" aria-pressed="${on}">${ic('scale')}</button>`;
+}
+const retCell = b => b.st === 'done' ? `<b class="${b.ret >= 0 ? 'up' : 'down'}">${pct(b.ret)}</b>` : '<span class="badge bad">Failed</span>';
+const dash = '<span class="muted">–</span>';
+const globe = () => `<span class="glb" title="Public, in Experiments">${ic('globe')}</span>`;
+const sortTh = (k, l, cls, s, act) => { const on = s && s.k === k; return `<th class="${cls}"><button type="button" class="dd-sort ${on ? 'on' : ''}" data-act="${act}" data-val="${k}">${l}${on ? (s.dir === 'asc' ? ' ↑' : ' ↓') : ''}</button></th>`; };
+const CHECK = `<svg class="i fp-ck" viewBox="0 0 24 24" aria-hidden="true">${IC.ok}</svg>`;
+const fpOpt = (on, act, val, lab, n) => `<button type="button" class="fp-o ${on ? 'on' : ''}" role="option" aria-selected="${on}" data-act="${act}" data-val="${val}"><span>${lab}</span><span class="fp-n">${n}</span>${CHECK}</button>`;
+
+// ---------- equity curves (the compare page, the cards, the dashboard rows) ----------
+function bridge(rnd, n, end, vol) { const w = [0]; for (let i = 1; i < n; i++) w.push(w[i - 1] + gauss(rnd) * vol); const L = Math.log(1 + end), W = w[n - 1]; return w.map((x, i) => Math.exp(x - W * i / (n - 1) + L * i / (n - 1))); }
+const CN = 140;
+const CSER = {}, BSER = {};
+function cser(b) {
+  if (CSER[b.key]) return CSER[b.key];
+  // A slow swing for the deep drawdowns, a little noise on top, from 0 to the result
+  const r = mulberry(hashStr(b.key) + 99), dd = Math.abs(b.dd) / 100, f = 1.4 + r() * 1.6, ph = r() * 6.28;
+  const noise = bridge(r, CN, 0, dd / Math.sqrt(CN) * 0.55);
+  const wave = Array.from({ length: CN }, (_, i) => Math.sin(i / (CN - 1) * 6.283 * f + ph) * dd * 0.55);
+  const L = Math.log(1 + b.ret / 100);
+  const e = noise.map((v, i) => Math.exp(Math.log(v) + wave[i] - wave[0] - (wave[CN - 1] - wave[0]) * i / (CN - 1) + L * i / (CN - 1)));
+  let pk = 1; const fall = e.map(v => { pk = Math.max(pk, v); return v / pk - 1; });
+  return CSER[b.key] = { eq: e.map(v => v - 1), fall };
+}
+const bser = b => BSER[b.bench] || (BSER[b.bench] = bridge(mulberry(hashStr(b.bench) + 3), CN, b.benchRet / 100, 0.011).map(v => v - 1));
+// The mini chart: the strategy's return on a baseline at zero, as MiniChart.tsx draws it. The cards add the benchmark, dashed.
+function mini(b, o = {}) {
+  const W = o.w || 280, H = o.h || 44, id = `mc-${o.id || b.key}`;
+  const s = cser(b).eq.map(v => v * 100), m = o.bench ? bser(b).map(v => v * 100) : [];
+  let lo = Math.min(0, ...s, ...m), hi = Math.max(0, ...s, ...m); const pad = (hi - lo) * 0.1 || 1; lo -= pad; hi += pad;
+  const x = i => (i / (CN - 1) * W).toFixed(1), y = v => ((hi - v) / (hi - lo) * H).toFixed(2), y0 = y(0);
+  const line = a => a.map((v, i) => `${i ? 'L' : 'M'}${x(i)} ${y(v)}`).join('');
+  const area = `${line(s)}L${W} ${y0}L0 ${y0}Z`;
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><defs>
+    <linearGradient id="${id}-gu" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="${y0}"><stop offset="0" style="stop-color:var(--up);stop-opacity:.18"/><stop offset="1" style="stop-color:var(--up);stop-opacity:0"/></linearGradient>
+    <linearGradient id="${id}-gd" gradientUnits="userSpaceOnUse" x1="0" y1="${y0}" x2="0" y2="${H}"><stop offset="0" style="stop-color:var(--down);stop-opacity:0"/><stop offset="1" style="stop-color:var(--down);stop-opacity:.18"/></linearGradient>
+    <clipPath id="${id}-cu"><rect x="0" y="-2" width="${W}" height="${(+y0 + 2).toFixed(2)}"/></clipPath><clipPath id="${id}-cd"><rect x="0" y="${y0}" width="${W}" height="${(H - y0 + 2).toFixed(2)}"/></clipPath></defs>
+    <line class="mc-z" x1="0" x2="${W}" y1="${y0}" y2="${y0}"/>${o.bench ? `<path class="mc-b" d="${line(m)}"/>` : ''}
+    <g clip-path="url(#${id}-cu)"><path d="${area}" fill="url(#${id}-gu)"/><path class="mc-u" d="${line(s)}"/></g>
+    <g clip-path="url(#${id}-cd)"><path d="${area}" fill="url(#${id}-gd)"/><path class="mc-d" d="${line(s)}"/></g></svg>`;
+}
+
+// ---------- Backtests (yours) ----------
+const BT_PAGE = 10;
+const B_COLS = [['id', 'Backtest', b => b.id, ''], ['inst', 'Instrument', null, ''], ['model', 'Model', b => b.model, 'c-model'], ['ret', 'Return', b => b.ret, 'num'], ['sharpe', 'Sharpe', b => b.sharpe, 'num'], ['dd', 'Max drawdown', b => b.dd, 'num c-dd'], ['trades', 'Trades', b => b.trades, 'num c-tr'], ['when', 'When', b => b.id, 'c-when']];
+const B_SHOW = [['all', 'All backtests'], ['star', 'Starred'], ['pub', 'Public only'], ['fail', 'Failed']];
+function bRows() {
+  const q = S.b.q.trim().toLowerCase();
+  let list = OWN.filter(b => S.b.f === 'all' || (S.b.f === 'star' ? b.star : S.b.f === 'pub' ? !!b.pub : b.st === 'failed')).filter(b => !S.b.m || b.model === S.b.m);
+  if (q) list = list.filter(b => `#${b.id} ${b.inst} ${b.model}`.toLowerCase().includes(q));
+  if (S.b.sort) { const get = B_COLS.find(c => c[0] === S.b.sort.k)[2], d = S.b.sort.dir === 'asc' ? 1 : -1; list = [...list].sort((x, y) => { const a = get(x), c = get(y); if (a == null || c == null) return (a == null) - (c == null); return (a > c ? 1 : a < c ? -1 : 0) * d; }); }
+  return list;
+}
+function bTable() {
+  const all = bRows(), pages = Math.max(1, Math.ceil(all.length / BT_PAGE)); if (S.b.page > pages) S.b.page = pages;
+  const list = all.slice((S.b.page - 1) * BT_PAGE, S.b.page * BT_PAGE);
+  const th = B_COLS.map(([k, l, g, cls]) => g ? sortTh(k, l, cls, S.b.sort, 'bSort') : `<th class="${cls}">${l}</th>`).join('') + '<th></th>';
+  const rows = list.map(b => { const d = b.st === 'done'; return `<tr class="rl ${inCmp(b.key) ? 'picked' : ''}" data-act="open" data-val="${b.key}">
+    <td><span style="display:inline-flex;gap:6px;align-items:center"><button type="button" class="star ${b.star ? 'on' : ''}" data-act="star" data-val="${b.key}" aria-label="Star backtest ${b.id}">${b.star ? '★' : '☆'}</button><span class="rid">#${b.id}</span>${b.pub ? globe() : ''}${b.ex ? '<span class="badge">Example</span>' : ''}</span></td>
+    <td><span class="chip">${b.inst}</span></td><td class="c-model"><span class="bt-m">${fwMini(MODELS[b.model].fw)}<span>${b.model}</span></span></td>
+    <td class="num">${retCell(b)}</td><td class="num">${d ? num(b.sharpe) : dash}</td><td class="num c-dd">${d ? pct(b.dd) : dash}</td><td class="num c-tr">${d ? fmtN(b.trades) : dash}</td><td class="muted c-when">${whenStr(...b.ran)}</td><td class="cc">${cmpBtn(b)}</td></tr>`; }).join('');
+  return `<div class="tblwrap"><table class="tbl bt-t"><tr>${th}</tr>${rows || `<tr><td colspan="9" class="muted bt-none">No backtests match</td></tr>`}</table></div>`;
+}
+function bSummary() { const p = [S.b.f !== 'all' && B_SHOW.find(x => x[0] === S.b.f)[1], S.b.m].filter(Boolean); return p.length ? p.join(' · ') : 'All backtests'; }
+function bFilters() {
+  const n = { all: OWN.length, star: OWN.filter(b => b.star).length, pub: OWN.filter(b => b.pub).length, fail: OWN.filter(b => b.st === 'failed').length };
+  const show = B_SHOW.map(([k, l]) => fpOpt(S.b.f === k, 'bF', k, k === 'pub' ? `${ic('globe')}${l}` : l, n[k])).join('');
+  const mods = fpOpt(!S.b.m, 'bM', '', 'All models', '') + MY_MODELS.map(m => fpOpt(S.b.m === m, 'bM', m, `${fwMini(MODELS[m].fw)}${m}`, OWN.filter(b => b.model === m).length)).join('');
+  const open = S.pop === 'b';
+  return `<div class="fp-w" data-pop><button type="button" class="fp-t ${open ? 'open' : ''}" data-act="pop" data-val="b" aria-expanded="${open}">${ic('filter')}<span class="fp-sum">${bSummary()}</span>${ic('chev', 'i fp-chev')}</button>
+    ${open ? `<div class="fp ${S.anim ? 'in' : ''}" data-pop role="dialog" aria-label="Filters"><div class="fp-s"><p class="fp-h">Show</p><div role="listbox">${show}</div></div><div class="fp-s"><p class="fp-h">Model</p><div role="listbox">${mods}</div></div></div>` : ''}</div>`;
+}
+function bCount() { const n = bRows().length, p = OWN.filter(b => b.pub).length; return n === OWN.length ? `${n} backtests${p ? ` · ${p} public` : ''}` : `${n} of ${OWN.length}`; }
+function pager(n, page, act) {
+  const pages = Math.max(1, Math.ceil(n / BT_PAGE)); if (pages === 1) return '';
+  const l = (to, on, t) => on ? `<button type="button" class="pg-l" data-act="${act}" data-val="${to}">${t}</button>` : `<span class="pg-l off" aria-disabled="true">${t}</span>`;
+  return `<nav class="pg" aria-label="Pages">${l(page - 1, page > 1, 'Previous')}<span class="muted">Page ${page} of ${pages}</span>${l(page + 1, page < pages, 'Next')}</nav>`;
+}
+function pageRuns() {
+  const tools = `<div class="bt-tools"><label class="bt-q">${ic('search')}<input class="inp" type="search" data-input="bq" value="${esc(S.b.q)}" placeholder="Number, instrument or model, e.g. aapl" aria-label="Search backtests"></label>${bFilters()}</div>`;
+  return withSide(`<div class="ttl"><div><h1>Backtests</h1><p data-live="bn">${bCount()}</p></div></div>${tools}<div class="card bt-card" data-live="bt">${bTable()}</div><div data-live="bp">${pager(bRows().length, S.b.page, 'bPage')}</div>`);
+}
+
+// ---------- Experiments: Cards or Table, one set of search, filters and sort ----------
+const E_MK = [['all', 'All markets'], ['stock', 'Stocks'], ['crypto', 'Crypto']];
+const E_REP = [['all', 'Any'], ['Renko', 'Renko'], ['Kagi', 'Kagi'], ['Candles', 'Candles']];
+const E_TF = [['all', 'Any'], ['30m', '30m'], ['1h', '1h'], ['4h', '4h'], ['1d', '1d']];
+const E_SORT = [['sharpe', 'Sharpe', 'High to low', 'Low to high'], ['ret', 'Return', 'High to low', 'Low to high'], ['dd', 'Max drawdown', 'Smallest first', 'Deepest first'], ['pub', 'Newest', 'Last published first', 'Oldest first']];
+const E_GET = { pub: pubKey, sharpe: b => b.sharpe, ret: b => b.ret, dd: b => b.dd };
+const E_COLS = [['id', 'Backtest', null, ''], ['auth', 'Author', null, 'c-auth'], ['inst', 'Instrument', null, ''], ['model', 'Model', null, 'c-model'], ['ret', 'Return', 1, 'num'], ['sharpe', 'Sharpe', 1, 'num'], ['dd', 'Max drawdown', 1, 'num c-dd'], ['pub', 'Published', 1, 'c-when']];
+const mkOk = (b, v) => v === 'all' || (v === 'stock' || v === 'crypto' ? INSTR[b.inst][1] === v : b.inst === v);
+function eBase(skip) {
+  const e = S.e, q = e.q.trim().toLowerCase();
+  return catalog().filter(b => (e.tab === 'all' || b.own) && (!e.author || b.by === e.author)
+    && (skip === 'mk' || mkOk(b, e.mk))
+    && (skip === 'rep' || e.rep === 'all' || MODELS[b.model].rep === e.rep)
+    && (skip === 'tf' || e.tf === 'all' || MODELS[b.model].tf === e.tf)
+    && (!q || `#${b.id} ${b.inst} ${INSTR[b.inst][0]} ${b.model} ${author(b).name} ${MODELS[b.model].rep} ${MODELS[b.model].tf}`.toLowerCase().includes(q)));
+}
+const eSortNow = () => S.e.sort || { k: 'pub', dir: 'desc' };
+function eRows() { const s = eSortNow(), g = E_GET[s.k], d = s.dir === 'asc' ? 1 : -1; return [...eBase()].sort((x, y) => (g(x) - g(y)) * d || pubKey(y) - pubKey(x)); }
+const eFiltered = () => !!(S.e.q.trim() || S.e.mk !== 'all' || S.e.rep !== 'all' || S.e.tf !== 'all' || S.e.author);
+
+function fChip(k, label, opts, extra) {
+  const v = S.e[k], set = v !== 'all', open = S.pop === k, all = [...opts, ...(extra || [])];
+  const curO = all.find(o => o[0] === v), cur = curO ? (curO[2] || curO[1]) : v, base = eBase(k);
+  const cnt = val => base.filter(b => k === 'mk' ? mkOk(b, val) : val === 'all' || MODELS[b.model][k] === val).length;
+  const o = ([val, l]) => { const n = cnt(val); return `<button type="button" class="fp-o ${v === val ? 'on' : ''} ${n ? '' : 'zero'}" role="option" aria-selected="${v === val}" data-act="eSet" data-k="${k}" data-val="${val}"><span>${l}</span><span class="fp-n">${n}</span>${CHECK}</button>`; };
+  const panel = open ? `<div class="dp ${S.anim ? 'in' : ''}" role="listbox" aria-label="${label}">${opts.map(o).join('')}${extra ? `<hr><p class="dp-h">Instrument</p>${extra.map(o).join('')}` : ''}</div>` : '';
+  return `<div class="fp-w" data-pop><button type="button" class="fchip ${set ? 'set' : ''} ${open ? 'open' : ''}" data-act="pop" data-val="${k}" aria-expanded="${open}">${label}${set ? ` <b>${cur}</b>` : ''}${ic('chev', 'i fp-chev')}</button>${panel}</div>`;
+}
+function sortDd() {
+  const s = eSortNow(), open = S.pop === 'sort', cur = E_SORT.find(x => x[0] === s.k);
+  const opts = E_SORT.map(([k, l, h, h2]) => { const on = s.k === k; return `<button type="button" class="fp-o ${on ? 'on' : ''}" role="option" aria-selected="${on}" data-act="eSortPick" data-val="${k}"><span>${l}</span><span class="fp-n sans">${on && s.dir === 'asc' ? h2 : h}</span>${CHECK}</button>`; }).join('');
+  return `<div class="fp-w" data-pop><button type="button" class="fchip ${open ? 'open' : ''}" data-act="pop" data-val="sort" aria-expanded="${open}">${ic('sort')}Sort <b>${cur[1]}${s.dir === 'asc' ? ' ↑' : ''}</b>${ic('chev', 'i fp-chev')}</button>${open ? `<div class="dp r ${S.anim ? 'in' : ''}" role="listbox" aria-label="Sort">${opts}</div>` : ''}</div>`;
+}
+const viewSeg = () => `<div class="seg" role="group" aria-label="View">${[['cards', 'Cards', 'grid'], ['table', 'Table', 'rows']].map(([k, l, i]) => `<button type="button" class="${S.view === k ? 'on' : ''}" data-act="eView" data-val="${k}" aria-pressed="${S.view === k}">${ic(i)}${l}</button>`).join('')}</div>`;
+
+// A card: the dashboard widget's card. Title row as the widgets have it, the instrument tile in the icon's place.
+function gCard(b, o = {}) {
+  const a = author(b), m = MODELS[b.model], pv = !!o.preview;
+  const attrs = pv ? 'aria-label="Your card as others will see it"' : `data-act="open" data-val="${b.key}" role="link" tabindex="0" aria-label="Backtest #${b.id}, ${b.inst}, by ${a.name}"`;
+  return `<article class="card dd-card xc ${pv ? 'pv' : ''}" ${attrs}>
+    <div class="sec-h"><div class="dd-h">${itile(b.inst)}<h2>${b.inst}</h2><span class="xc-id">#${b.id}</span></div>${pv ? `<span class="cmpi" aria-hidden="true">${ic('scale')}</span>` : cmpBtn(b)}</div>
+    <div class="xc-m">${fwMini(m.fw)}<span title="${b.model}">${b.model}</span></div>
+    <div class="xc-tags"><span class="badge">${m.rep}</span><span class="badge">${m.tf}</span><span class="xc-in">in ${m.inp}</span></div>
+    <div class="xc-ch">${mini(b, { bench: true, id: `${pv ? 'p' : 'c'}${b.key}` })}</div>
+    <div class="xc-lg"><span><i class="${b.ret >= 0 ? '' : 'dn'}"></i>Strategy</span><span><i class="b"></i>${b.bench} ${pct(b.benchRet)}</span></div>
+    <dl class="xc-num"><div><dt>Return</dt><dd class="${b.ret >= 0 ? 'up' : 'down'}">${pct(b.ret)}</dd></div><div><dt>Sharpe</dt><dd>${num(b.sharpe)}</dd></div><div><dt>Max drawdown</dt><dd class="down">${pct(b.dd)}</dd></div><div><dt>Trades</dt><dd>${fmtN(b.trades)}</dd></div></dl>
+    <div class="xc-foot">${avatar(a, 'md')}<span class="xc-an">${a.name}</span>${b.own && !pv ? '<span class="you">you</span>' : ''}<span class="xc-pd">${pv ? 'Today' : pubDay(b.pub[0])}</span></div>
+  </article>`;
+}
+function eTable(all) {
+  const pages = Math.max(1, Math.ceil(all.length / BT_PAGE)); if (S.e.page > pages) S.e.page = pages;
+  const list = all.slice((S.e.page - 1) * BT_PAGE, S.e.page * BT_PAGE), s = eSortNow();
+  const th = E_COLS.map(([k, l, g, cls]) => g ? sortTh(k, l, cls, s, 'eSort') : `<th class="${cls}">${l}</th>`).join('') + '<th></th>';
+  const rows = list.map(b => { const a = author(b), m = MODELS[b.model]; return `<tr class="rl ${inCmp(b.key) ? 'picked' : ''}" data-act="open" data-val="${b.key}">
+    <td><span class="rid">#${b.id}</span></td>
+    <td class="c-auth"><span class="who">${avatar(a, 'md')}<span class="nm">${a.name}${b.own ? ' <span class="you">you</span>' : ''}</span></span></td>
+    <td><span class="chip">${b.inst}</span></td>
+    <td class="c-model"><span class="bt-m">${fwMini(m.fw)}<span>${b.model}</span></span><span class="sub">${reads(b.model)}</span></td>
+    <td class="num">${retCell(b)}</td><td class="num">${num(b.sharpe)}</td><td class="num c-dd">${pct(b.dd)}</td>
+    <td class="muted c-when" title="${dayStr(b.pub[0])} ${b.pub[1]}">${pubDay(b.pub[0])}</td><td class="cc">${cmpBtn(b)}</td></tr>`; }).join('');
+  return `<div class="card bt-card"><div class="tblwrap"><table class="tbl bt-t ex-t"><tr>${th}</tr>${rows}</table></div></div>${pager(all.length, S.e.page, 'ePage')}`;
+}
+function eEmpty() {
+  const q = S.e.q.trim();
+  if (S.e.tab === 'mine' && !eFiltered()) return `<section class="card ex-none"><span class="dd-ic">${ic('globe')}</span><b>You have not published a backtest yet</b><span class="hint">Open a finished backtest and click Publish. It shows up here and in All.</span><button type="button" class="btn sm" data-act="go" data-val="#runs">Go to Backtests</button></section>`;
+  return `<section class="card ex-none"><span class="dd-ic">${ic('search')}</span><b>${q ? `Nothing matches “${esc(q)}”` : 'Nothing matches these filters'}</b><span class="hint">Search by instrument, model or author, like NVDA, kagi or Tymur.</span><button type="button" class="btn sm" data-act="eClear">Clear search and filters</button></section>`;
+}
+function eBody() {
+  const e = S.e, all = catalog(), list = eRows(), mineN = all.filter(b => b.own).length;
+  if (!list.length) return eEmpty();
+  const ppl = new Set(all.map(b => b.by || 'me')).size, base = e.tab === 'mine' ? mineN : all.length;
+  const count = `<p class="xc-count">${eFiltered() ? `<span>${list.length} of ${base}</span><button type="button" class="link" data-act="eReset">Clear filters</button>` : e.tab === 'mine' ? `<span>${mineN} of your backtests are in Experiments</span>` : `<span>${all.length} backtests from ${ppl} people</span>`}</p>`;
+  if (S.view === 'table') return count + eTable(list);
+  const shown = list.slice(0, e.shown);
+  const more = list.length > shown.length ? `<button type="button" class="btn" data-act="eMore">Load more</button><span class="hint">Showing ${shown.length} of ${list.length}</span>` : list.length > E_STEP ? `<span class="hint">That is all ${list.length}</span>` : '';
+  return `${count}<div class="xg">${shown.map(b => gCard(b)).join('')}</div>${more ? `<div class="xc-more">${more}</div>` : ''}`;
+}
+function pageExp() {
+  const all = catalog(), mineN = all.filter(b => b.own).length, e = S.e;
+  const whose = `<div class="seg" role="group" aria-label="Whose">${[['all', 'All', all.length], ['mine', 'Mine', mineN]].map(([k, l, n]) => `<button type="button" class="${e.tab === k ? 'on' : ''}" data-act="eTab" data-val="${k}" aria-pressed="${e.tab === k}">${l}<span class="n">${n}</span></button>`).join('')}</div>`;
+  const head = `<div class="ttl"><div><h1>Experiments</h1><p>Backtests people on the CandleStack beta published. Open one or add it to your Compare.</p></div><div class="ttl-r">${whose}${viewSeg()}</div></div>`;
+  const authorChip = e.author ? `<button type="button" class="fchip set who" data-act="eAuthorX" aria-label="Remove the author filter" title="Show everyone">${avatar(PEOPLE[e.author], 'xs')}<b>${PEOPLE[e.author].name}</b><span class="x">${ic('x')}</span></button>` : '';
+  const insts = Object.keys(INSTR).map(t => [t, `${itile(t, true)}<span class="mono">${t}</span>`, t]);
+  const tools = `<div class="bt-tools ex-tools"><label class="bt-q">${ic('search')}<input class="inp" type="search" data-input="eq" value="${esc(e.q)}" placeholder="Instrument, model or author" aria-label="Search experiments"></label>${authorChip}${fChip('mk', 'Market', E_MK, insts)}${fChip('rep', 'Representation', E_REP)}${fChip('tf', 'Timeframe', E_TF)}<span class="sp"></span>${sortDd()}</div>`;
+  return withSide(`${head}${tools}<div data-live="eb">${eBody()}</div>`);
+}
+
+// ---------- Dashboard ----------
+const DD_BEST = { sharpe: ['Sharpe', b => b.sharpe, num], ret: ['Return', b => b.ret, pct], dd: ['Drawdown', b => b.dd, pct], win: ['Win rate', b => b.win, v => `${v.toFixed(1)} %`] };
+const ddHead = (k, title, right) => `<div class="sec-h"><div class="dd-h"><span class="dd-ic">${ic(k)}</span><h2>${title}</h2></div>${right}</div>`;
+// A row as StarredBacktests.tsx draws it
+function ddRow(b, lead, line2, id) {
+  return `<div class="dd-sr" data-act="open" data-val="${b.key}" role="link" tabindex="0"><span class="lead">${lead}</span><span class="dd-b1"><b class="rid">#${b.id}</b><span class="tk">${b.inst}</span>${b.own && b.pub ? globe() : ''}</span><span class="mini">${mini(b, { w: 64, h: 28, id })}</span><b class="dd-r1 ${b.ret >= 0 ? 'up' : 'down'}">${pct(b.ret)}</b><span class="tail">${cmpBtn(b)}</span><span class="dd-b2">${line2}</span><span class="dd-r2">Sharpe ${num(b.sharpe)}</span></div>`;
+}
+function pageDash() {
+  const n = S.cmp.filter(Boolean).length;
+  const qa = `<div class="qa"><button type="button" class="qa-c pri"><span class="qa-i">${ic('plus')}</span><span class="qa-t"><b>New backtest</b><span class="h">Pick the data, a model and a rule</span></span></button>
+    <button type="button" class="qa-c"><span class="qa-i">${ic('up')}</span><span class="qa-t"><b>Upload model</b><span class="h">Keras or ONNX</span></span></button>
+    <button type="button" class="qa-c" data-act="go" data-val="#cmp"><span class="qa-i">${ic('scale')}</span><span class="qa-t"><b>Compare backtests</b><span class="h">${n ? `${n} of 4 added` : 'Up to 4 side by side'}</span></span></button></div>`;
+  const last = OWN.slice(0, 6).map(b => `<tr class="rl" data-act="open" data-val="${b.key}"><td><span style="display:inline-flex;gap:6px;align-items:center"><button type="button" class="star ${b.star ? 'on' : ''}" data-act="star" data-val="${b.key}" aria-label="Star backtest ${b.id}">${b.star ? '★' : '☆'}</button><span class="rid">#${b.id}</span>${b.pub ? globe() : ''}</span></td><td><span class="chip">${b.inst}</span></td><td class="num">${retCell(b)}</td><td class="num">${b.st === 'done' ? num(b.sharpe) : dash}</td><td class="muted c-when">${whenStr(...b.ran)}</td><td class="cc">${cmpBtn(b)}</td></tr>`).join('');
+  const lastCard = `<section class="card dd-card">${ddHead('clock', 'Last backtests', '<button type="button" class="link" data-act="go" data-val="#runs">All backtests</button>')}<div class="tblwrap"><table class="tbl"><tr><th>Backtest</th><th>Instrument</th><th class="num">Return</th><th class="num">Sharpe</th><th class="c-when">When</th><th></th></tr>${last}</table></div></section>`;
+  const get = DD_BEST[S.best][1];
+  const best = OWN.filter(b => b.st === 'done').sort((a, c) => get(c) - get(a)).slice(0, 5);
+  const bth = Object.entries(DD_BEST).map(([k, [l]]) => `<th class="num"><button type="button" class="dd-sort ${S.best === k ? 'on' : ''}" data-act="bestBy" data-val="${k}" aria-pressed="${S.best === k}">${l}${S.best === k ? ' ↓' : ''}</button></th>`).join('');
+  const brows = best.map((b, i) => `<tr class="rl" data-act="open" data-val="${b.key}"><td class="dd-rk">${i + 1}</td><td><span style="display:inline-flex;gap:6px;align-items:center"><b class="rid">#${b.id}</b><span class="chip">${b.inst}</span>${b.pub ? globe() : ''}</span></td>${Object.entries(DD_BEST).map(([k, [, g, f]]) => `<td class="num ${S.best === k ? 'dd-on' : ''} ${k === 'ret' ? (b.ret >= 0 ? 'up' : 'down') : ''}">${f(g(b))}</td>`).join('')}</tr>`).join('');
+  const bestCard = `<section class="card dd-card">${ddHead('trophy', 'Best backtests', `<span class="hint">by ${S.best === 'sharpe' ? 'Sharpe' : DD_BEST[S.best][0].toLowerCase()}</span>`)}<div class="tblwrap"><table class="tbl dd-best"><tr><th></th><th>Backtest</th>${bth}</tr>${brows}</table></div></section>`;
+  const fresh = catalog().filter(b => !b.own).sort((a, c) => pubKey(c) - pubKey(a)).slice(0, 4);
+  const freshRows = fresh.map(b => ddRow(b, avatar(author(b), 'md'), `<span>${author(b).name} · ${pubDayL(b.pub[0])}</span>`, `d${b.key}`)).join('');
+  const expCard = `<section class="card dd-card">${ddHead('exp', 'New in Experiments', '<span class="hint">from the beta</span>')}<div class="dd-list">${freshRows}</div><button type="button" class="dd-more" data-act="go" data-val="#exp"><span>Open Experiments</span><span>${catalog().length} published →</span></button></section>`;
+  const starred = OWN.filter(b => b.star && b.st === 'done').sort((a, c) => c.sharpe - a.sharpe).slice(0, 4).map(b => ddRow(b, `<button type="button" class="star on" data-act="star" data-val="${b.key}" title="Remove star" aria-label="Unstar backtest ${b.id}">★</button>`, `${fwMini(MODELS[b.model].fw)}<span>${b.model}</span>`, `s${b.key}`)).join('');
+  const starCard = `<section class="card dd-card">${ddHead('runs', 'Starred backtests', '<span class="hint">by Sharpe</span>')}<div class="dd-list">${starred}</div></section>`;
+  return withSide(`<div class="ttl"><div><h1>Welcome back, ${ME.name}</h1></div></div>${qa}<div class="dd-cols"><div class="dd-col">${lastCard}${bestCard}</div><div class="dd-col">${expCard}${starCard}</div></div>`);
+}
+function pagePlain(t, p) { return withSide(`<div class="ttl"><div><h1>${t}</h1><p>${p}</p></div></div><section class="card dd-card"><p class="muted">Unchanged in this mockup. See the approved app mockup.</p></section>`); }
+
+// ---------- the backtest page ----------
+function backBtn(def) { const f = S.from || def; return `<button type="button" class="back" data-act="go" data-val="${f.hash}">← ${f.label}</button>`; }
+const statusBadge = b => b.st === 'failed' ? '<span class="badge bad">Failed</span>' : b.ex ? '<span class="badge">Example</span>' : '<span class="badge ok">Finished</span>';
+const pubPill = () => `<span class="pub-pill" title="Everyone on the CandleStack beta can see it">${ic('globe')}Public</span>`;
+const sinceStr = p => p[0] === TODAY ? `today ${p[1]}` : p[0] === TODAY - 1 ? `yesterday ${p[1]}` : `${dayStr(p[0])} ${p[1]}`;
+function authorCard(b) {
+  const a = author(b);
+  return `<section class="card r7-box auc"><div class="auc-top">${avatar(a, 'lg')}<div class="auc-t"><b>${a.name}</b><span class="hint">Published ${dayStr(b.pub[0])} 2026 at ${b.pub[1]}</span></div></div>
+    <button type="button" class="link" data-act="byAuthor" data-val="${b.by}">More by ${a.first} →</button></section>`;
+}
+function pageBt() {
+  const b = byKey(S.key); if (!b) return withSide('<p>Not found</p>');
+  const me = !!b.own, done = b.st === 'done', a = author(b), m = MODELS[b.model], on = inCmp(b.key);
+  const json = `<span class="r7-json"><button type="button" class="btn sm" ${me ? '' : 'title="Results, trades and setup. No model file."'}>${ic('dl')}Download JSON</button><button type="button" class="btn sm q" title="About the JSON format" aria-label="About the JSON format">?</button></span>`;
+  const add = `<button type="button" class="btn sm ${on ? 'added' : ''}" data-act="cmp" data-val="${b.key}" ${!done || (cmpFull() && !on) ? 'disabled' : ''} title="${cmpFull() && !on ? 'Up to 4 backtests. Remove one first' : ''}">${ic('scale')}${on ? 'Added to compare' : 'Add to compare'}</button>`;
+  let acts;
+  if (me) {
+    let pubBtn = '';
+    if (!b.ex) {
+      if (!done) pubBtn = `<span class="tipw ${S.tipOpen ? 'open' : ''}" tabindex="0" aria-describedby="tip-pub"><button type="button" class="btn sm" disabled>${ic('globe')}Publish</button><span class="tip" role="tooltip" id="tip-pub">${b.st === 'failed' ? 'A failed backtest has no results to publish. Only finished ones can go to Experiments.' : 'You can publish it once it finishes.'}</span></span>`;
+      else if (b.pub) pubBtn = `<button type="button" class="btn sm" data-act="copy">${ic('link')}Copy link</button><button type="button" class="btn sm" data-act="modal" data-val="unpublish">Unpublish</button>`;
+      else pubBtn = `<button type="button" class="btn sm" data-act="modal" data-val="publish">${ic('globe')}Publish</button>`;
+    }
+    acts = `<button type="button" class="btn sm">${ic('edit')}Rename</button>${done ? json : ''}${pubBtn}${done ? add : ''}`;
+  } else acts = `${json}${add}`;
+  const model = me ? `<button type="button" class="link">${b.model}</button>` : `<span class="ink">${b.model}</span>`;
+  const head = `${backBtn(me ? { hash: '#runs', label: 'Backtests' } : { hash: '#exp', label: 'Experiments' })}
+    <div class="r7-hd"><div class="r7-t"><h1>Backtest #${b.id}</h1>${statusBadge(b)}${me && b.pub ? pubPill() : ''}</div><div class="acts">${acts}</div></div>
+    <div class="r3-sub">${me ? '' : `<span class="s who-s">${avatar(a)}<b>${a.name}</b></span>`}<span class="s">${itile(b.inst, true)}<b>${b.inst}</b></span><span class="s">${fwIcon(m.fw, true)}${model}</span><span>${b.from} – ${b.to}</span><span>${me ? `${whenStr(...b.ran)} · ${b.dur}` : `Published ${pubDayL(b.pub[0])}`}</span>${me && b.pub ? `<span class="s"><span class="glb">${ic('globe')}</span>In Experiments since ${sinceStr(b.pub)}</span>` : ''}</div>`;
+  if (b.st === 'failed') return `${head}<div class="r7-grid"><div class="r7-main"><div class="err"><span class="dot"></span><span>${b.err}</span></div></div><aside class="r7-side">${setupBox(b)}</aside></div>`;
+  const strip = [['Return', pct(b.ret), b.ret >= 0 ? 'up' : 'down'], ['Buy and hold', pct(b.bh), ''], ['Sharpe', num(b.sharpe), ''], ['Max drawdown', pct(b.dd), 'down'], ['Trades', fmtN(b.trades), ''], ['Win rate', `${b.win.toFixed(1)} %`, '']];
+  const stripH = `<dl class="p5-facts">${strip.map(([k, v, c]) => `<div><dt>${k}</dt><dd class="${c}">${v}</dd></div>`).join('')}</dl>`;
+  const metrics = [['Total return', pct(b.ret), b.ret >= 0 ? 'up' : 'down'], ['Max drawdown', pct(b.dd), 'down'], ['Sharpe', num(b.sharpe), ''], ['Sortino', num(b.sortino), ''], ['Trades', fmtN(b.trades), ''], ['Win rate', `${b.win.toFixed(1)} %`, ''], ['Avg. trade', pct(b.avg), b.avg >= 0 ? 'up' : 'down'], ['Best trade', pct(b.best), 'up'], ['Worst trade', pct(b.worst), 'down'], ['Time in market', `${b.time.toFixed(1)} %`, ''], ['Fees paid', '0.0 %', ''], ['Buy and hold', pct(b.bh), b.bh >= 0 ? 'up' : 'down'], [b.bench, pct(b.benchRet), 'up']];
+  const all = `<section class="card r7-box"><h2>All metrics</h2><dl class="r7-all">${metrics.map(([k, v, c]) => `<div><dt>${k}</dt><dd class="${c}">${v}</dd></div>`).join('')}</dl></section>`;
+  const d = series(b), lt = d.trades.slice(-6).reverse();
+  const tr = lt.map(t => `<tr><td>${t.side > 0 ? 'Long' : 'Short'}</td><td class="d">${fmtT(d.bars[t.o].time)}</td><td class="num">${fmtP(d.bars[t.o].open)}</td><td class="d">${fmtT(d.bars[t.x].time)}</td><td class="num">${fmtP(d.bars[t.x].close)}</td><td class="num ${t.ret >= 0 ? 'up' : 'down'}">${pct(t.ret * 100)}</td><td class="num">${t.x - t.o + 1}</td><td class="muted">${t.why}</td></tr>`).join('');
+  const chart = `<section class="card r7-box"><div class="r3-hd"><h2>Price and trades</h2><span class="hint">Scroll to zoom, drag to move</span></div>
+    <div class="pt-wrap"><div id="pt-chart" data-key="${b.key}"></div>
+      <div class="lgd" id="lgd1"><div class="row"><span class="name">${b.inst} · ${m.tf} · ${INSTR[b.inst][2]}</span><span><span class="k">O</span> <span class="v" id="lg-o"></span></span><span><span class="k">H</span> <span class="v" id="lg-h"></span></span><span><span class="k">L</span> <span class="v" id="lg-l"></span></span><span><span class="k">C</span> <span class="v" id="lg-c"></span></span></div>
+        <div class="row" id="lg-key"><span><span style="color:var(--candle-up)">▲</span> Buy</span><span><span style="color:var(--candle-down)">▼</span> Sell</span><span><span class="box"></span>In a position</span><span class="k" id="lg-n"></span></div></div>
+      <div class="lgd" id="lgd2" style="top:300px"><div class="row"><span><span class="sw" style="background:var(--accent)"></span>Strategy <span class="v ${b.ret >= 0 ? 'up' : 'down'}">${pct(b.ret)}</span></span><span><span class="sw dash"></span>${b.bench} <span class="v muted">${pct(b.benchRet)}</span></span><span><span class="k">Drawdown</span> <span class="v down">${pct(b.dd)}</span></span></div></div>
+    </div>
+    <div class="cbar"><div class="cseg">${['1W', '1M', '3M', '1Y', 'All'].map(r => `<button type="button" class="${S.range === r ? 'on' : ''}" data-act="range" data-val="${r}">${r}</button>`).join('')}</div>
+      <div class="cseg"><span class="tf">${m.tf}</span><button type="button" class="sw-row" role="switch" aria-checked="${S.trades}" data-act="tradesSw"><span style="color:var(--candle-up)">▲</span>Trades<span class="tsw"><i></i></span></button></div></div></section>`;
+  const trades = `<section class="card r7-box"><div class="r3-hd"><h2>Trades <span class="muted" style="font-weight:400">${fmtN(b.trades)}</span></h2><button type="button" class="btn sm ghost">Show all</button></div><div class="tblwrap"><table class="tbl"><tr><th>Side</th><th>Opened</th><th class="num">at</th><th>Closed</th><th class="num">at</th><th class="num">Return</th><th class="num">Candles</th><th>Why</th></tr>${tr}</table></div></section>`;
+  return `${head}${stripH}<div class="r7-grid"><div class="r7-main">${chart}${trades}</div><aside class="r7-side">${me ? '' : authorCard(b)}${all}${setupBox(b)}</aside></div>`;
+}
+function setupBox(b) {
+  const me = !!b.own, m = MODELS[b.model], I = INSTR[b.inst], d = b.st === 'done' ? series(b) : null;
+  const t = b.timing || ['4.1 s', '0.2 s', '1.3 s', '0.1 s'];
+  return `<section class="card r7-box"><h2>Setup</h2><div class="setup">
+    <div class="grp"><div class="lab">MODEL</div><div class="ident">${fwIcon(m.fw)}${me ? `<button type="button" class="link">${b.model}</button>` : `<b>${b.model}</b>`}</div>
+      <dl><dt>Reads</dt><dd>${m.rep}</dd><dt>Timeframe</dt><dd>${m.tf}</dd><dt>Input</dt><dd>${m.inp}</dd></dl>
+      ${me ? '' : `<div class="priv">${ic('lock')}<span>The model file stays with ${author(b).first}. You see what it reads, not the file.</span></div>`}</div>
+    <div class="grp"><div class="lab">DATA</div><div class="ident">${itile(b.inst)}<span class="two"><b>${b.inst}</b><span>${I[0]}</span></span></div>
+      <dl><dt>From</dt><dd>${b.from}</dd><dt>To</dt><dd>${b.to}</dd><dt>Candles</dt><dd>${d ? fmtN(d.bars.length) : '–'}</dd></dl></div>
+    <div class="grp"><div class="lab">DECISION</div><dl><dt>Threshold</dt><dd>${b.th}</dd><dt>Positions</dt><dd>${b.pos}</dd></dl></div>
+    <div class="grp"><div class="lab">EXECUTION</div><dl><dt>Fills at</dt><dd>${b.fills}</dd><dt>Fees</dt><dd>${b.fee}</dd><dt>Slippage</dt><dd>${b.slip}</dd><dt>Benchmark</dt><dd>${b.bench}</dd></dl></div>
+    ${b.st === 'done' ? `<div class="grp"><div class="lab">RUN</div><span class="runt">${b.dur} in total</span><dl><dt>Load candles</dt><dd>${t[0]}</dd><dt>Wait in the queue</dt><dd>${t[1]}</dd><dt>Run the model</dt><dd>${t[2]}</dd><dt>Simulate trades</dt><dd>${t[3]}</dd></dl></div>` : ''}
+  </div></section>`;
+}
+
+// ---------- example series for a backtest page ----------
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const p2 = n => String(n).padStart(2, '0');
+const fmtT = t => { const d = new Date(t * 1000); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}<br>${p2(d.getUTCHours())}:${p2(d.getUTCMinutes())}`; };
+const fmtP = v => v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const SET = {};
+function series(b) {
+  if (SET[b.key]) return SET[b.key];
+  const rnd = mulberry(hashStr(b.key) + 7), I = INSTR[b.inst], m = MODELS[b.model], crypto = I[1] === 'crypto';
+  const tfSec = { '30m': 1800, '1h': 3600, '4h': 14400, '1d': 86400 }[m.tf];
+  const times = [], d0 = Date.UTC(2025, 0, 2) / 1000, d1 = Date.UTC(2025, 8, 30) / 1000;
+  for (let day = d0; day <= d1; day += 86400) {
+    const wd = new Date(day * 1000).getUTCDay();
+    if (!crypto && (wd === 0 || wd === 6)) continue;
+    if (tfSec === 86400) { times.push(day); continue; }
+    if (crypto) for (let s = 0; s < 86400; s += tfSec) times.push(day + s);
+    else for (let s = 9.5 * 3600; s <= 15.5 * 3600; s += tfSec) times.push(day + s);
+  }
+  const n = times.length, volB = (crypto ? 0.006 : 0.004) * Math.sqrt(tfSec / 3600);
+  const path = bridge(rnd, n, b.bh / 100, volB), p0 = I[3] / (1 + b.bh / 100), bars = [];
+  for (let i = 0; i < n; i++) {
+    const c = p0 * path[i], o = i ? bars[i - 1].close : c * (1 - gauss(rnd) * volB * 0.3);
+    const h = Math.max(o, c) * (1 + Math.abs(gauss(rnd)) * volB * 0.45), l = Math.min(o, c) * (1 - Math.abs(gauss(rnd)) * volB * 0.45);
+    bars.push({ time: times[i], open: o, high: h, low: l, close: c, volume: (crypto ? 900 : 2.6e6) * (0.6 + Math.abs(gauss(rnd))) });
+  }
+  const trades = [], k = b.trades, span = n / k, longOnly = b.pos === 'Long only';
+  for (let j = 0; j < k; j++) {
+    const o = Math.min(n - 2, Math.floor(j * span + rnd() * span * 0.2)), x = Math.min(n - 1, Math.max(o + 1, Math.floor((j + 1) * span) - (longOnly ? 1 + Math.floor(rnd() * span * 0.5) : 0)));
+    const side = longOnly ? 1 : (rnd() < 0.5 ? 1 : -1), ret = side * (bars[x].close / bars[o].open - 1);
+    trades.push({ o, x, side, ret, why: j === k - 1 ? 'end' : rnd() < 0.1 ? 'stop' : 'signal' });
+  }
+  const eq = bridge(mulberry(hashStr(b.key) + 11), n, b.ret / 100, volB * 0.75).map(v => (v - 1) * 100);
+  const bench = bridge(mulberry(hashStr(b.bench) + 3), n, b.benchRet / 100, volB * 0.6).map(v => (v - 1) * 100);
+  return SET[b.key] = { bars, trades, eq, bench, tfSec };
+}
+
+// ---------- lightweight-charts on the backtest page ----------
+let LWC = null, LWK = '';
+const tok = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+const rgba = (hex, a) => { const h = hex.replace('#', ''), n = parseInt(h.length === 3 ? h.replace(/./g, '$&$&') : h, 16); return `rgba(${n >> 16 & 255}, ${n >> 8 & 255}, ${n & 255}, ${a})`; };
+const RANGE_D = { '1W': 7, '1M': 30, '3M': 91, '1Y': 365, All: 0 };
+function mountChart() {
+  const box = document.getElementById('pt-chart');
+  if (!box) { if (LWC) { try { LWC.chart.remove(); } catch (e) {} LWC = null; } LWK = ''; return; }
+  const b = byKey(box.dataset.key), d = series(b), key = `${b.key}|${isDark()}`;
+  if (LWC && LWK === key && LWC.el) { box.replaceWith(LWC.el); LWC.applyView(); return; }
+  if (LWC) { try { LWC.chart.remove(); } catch (e) {} LWC = null; }
+  LWK = key;
+  const L = window.LightweightCharts;
+  if (!L) { box.innerHTML = svgFallback(d); return; }
+  const muted = tok('--muted'), bg = tok('--bg'), up = tok('--candle-up'), down = tok('--candle-down'), acc = tok('--accent'), rule = tok('--rule');
+  const chart = L.createChart(box, {
+    autoSize: true,
+    layout: { background: { type: L.ColorType.Solid, color: bg }, textColor: muted, fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 11, attributionLogo: false, panes: { separatorColor: rule } },
+    grid: { vertLines: { color: rgba(muted, 0.1) }, horzLines: { color: rgba(muted, 0.1) } },
+    crosshair: { mode: L.CrosshairMode.Normal, vertLine: { color: muted, style: L.LineStyle.Dashed, labelBackgroundColor: isDark() ? '#2a2d33' : '#444' }, horzLine: { color: muted, style: L.LineStyle.Dashed, labelBackgroundColor: isDark() ? '#2a2d33' : '#444' } },
+    rightPriceScale: { borderColor: rule, scaleMargins: { top: 0.24, bottom: 0.18 } },
+    timeScale: { borderColor: rule, rightOffset: 3, timeVisible: d.tfSec < 86400, fixLeftEdge: true },
+    localization: { locale: 'en-GB' },
+  });
+  const band = color => chart.addSeries(L.AreaSeries, { priceScaleId: 'pos', lineType: L.LineType.WithSteps, lineVisible: false, topColor: color, bottomColor: color, lastValueVisible: false, priceLineVisible: false, crosshairMarkerVisible: false, autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 1 } }) });
+  const longB = band(rgba(up, 0.09)), shortB = band(rgba(down, 0.09));
+  chart.priceScale('pos').applyOptions({ scaleMargins: { top: 0, bottom: 0 }, visible: false });
+  const pos = new Int8Array(d.bars.length); d.trades.forEach(t => { for (let i = t.o; i <= t.x; i++) pos[i] = t.side; });
+  const setBands = on => { longB.setData(d.bars.map((x, i) => ({ time: x.time, value: on && pos[i] > 0 ? 1 : 0 }))); shortB.setData(d.bars.map((x, i) => ({ time: x.time, value: on && pos[i] < 0 ? 1 : 0 }))); };
+  const candles = chart.addSeries(L.CandlestickSeries, { upColor: up, downColor: down, borderVisible: false, wickUpColor: up, wickDownColor: down, priceFormat: { type: 'price', precision: 2, minMove: 0.01 } });
+  candles.setData(d.bars.map(({ time, open, high, low, close }) => ({ time, open, high, low, close })));
+  const vol = chart.addSeries(L.HistogramSeries, { priceScaleId: 'vol', priceFormat: { type: 'volume' }, lastValueVisible: false, priceLineVisible: false });
+  chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.86, bottom: 0 }, visible: false });
+  vol.setData(d.bars.map(x => ({ time: x.time, value: x.volume, color: rgba(x.close >= x.open ? up : down, 0.22) })));
+  const pf = { type: 'custom', formatter: v => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(1)} %` };
+  const bh = chart.addSeries(L.LineSeries, { color: rgba(muted, 0.85), lineWidth: 1, lineStyle: L.LineStyle.Dashed, priceFormat: pf, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }, 1);
+  const eq = chart.addSeries(L.LineSeries, { color: acc, lineWidth: 2, priceFormat: pf, priceLineVisible: false, crosshairMarkerRadius: 3 }, 1);
+  bh.setData(d.bars.map((x, i) => ({ time: x.time, value: d.bench[i] })));
+  eq.setData(d.bars.map((x, i) => ({ time: x.time, value: d.eq[i] })));
+  try { chart.panes()[1].setHeight(108); } catch (e) {}
+  const mk = L.createSeriesMarkers ? L.createSeriesMarkers(candles, []) : null;
+  const lo = (arr, v) => { let a = 0, z = arr.length; while (a < z) { const m = (a + z) >> 1; if (d.bars[arr[m].o].time < v) a = m + 1; else z = m; } return a; };
+  function refresh() {
+    const r = chart.timeScale().getVisibleRange(); if (!r) return;
+    const a = lo(d.trades, r.from), z = lo(d.trades, r.to + 1), n = z - a, text = n <= 22, list = [];
+    if (S.trades && n <= 160) for (let k = Math.max(0, a - 1); k < Math.min(d.trades.length, z + 1); k++) {
+      const t = d.trades[k], o = d.bars[t.o].time, x = d.bars[t.x].time;
+      const B = (time, tx) => ({ time, position: 'belowBar', shape: 'arrowUp', color: up, text: text ? tx : '' }), Sx = (time, tx) => ({ time, position: 'aboveBar', shape: 'arrowDown', color: down, text: text ? tx : '' });
+      if (t.side > 0) list.push(B(o, 'Buy'), Sx(x, 'Sell')); else list.push(Sx(o, 'Sell'), B(x, 'Buy'));
+    }
+    list.sort((p, q) => p.time - q.time);
+    if (mk) mk.setMarkers(list);
+    const el = document.getElementById('lg-n'); if (el) el.textContent = `· ${n} trades in view`;
+  }
+  function legend(i) {
+    const c = d.bars[i == null ? d.bars.length - 1 : i], col = c.close >= c.open ? up : down;
+    [['lg-o', c.open], ['lg-h', c.high], ['lg-l', c.low], ['lg-c', c.close]].forEach(([id, v]) => { const e = document.getElementById(id); if (e) { e.textContent = fmtP(v); e.style.color = col; } });
+  }
+  const idx = new Map(d.bars.map((x, i) => [x.time, i]));
+  chart.subscribeCrosshairMove(p => legend(p && p.time != null ? idx.get(p.time) : null));
+  chart.timeScale().subscribeVisibleTimeRangeChange(() => refresh());
+  const placeL2 = () => { const l2 = document.getElementById('lgd2'); try { if (l2) l2.style.top = `${chart.panes()[0].getHeight() + 5}px`; } catch (e) {} };
+  function applyView() {
+    setBands(S.trades);
+    const last = d.bars[d.bars.length - 1].time, days = RANGE_D[S.range];
+    if (days) chart.timeScale().setVisibleRange({ from: last - days * 86400, to: last }); else chart.timeScale().fitContent();
+    requestAnimationFrame(() => { refresh(); legend(null); placeL2(); });
+  }
+  LWC = { chart, el: box, applyView, refresh };
+  applyView();
+  new ResizeObserver(() => requestAnimationFrame(placeL2)).observe(box);
+}
+function svgFallback(d) {
+  const n = d.bars.length, w = 800, h = 420, lo = Math.min(...d.bars.map(b => b.low)), hi = Math.max(...d.bars.map(b => b.high));
+  const path = d.bars.map((b, i) => `${i ? 'L' : 'M'}${(i / (n - 1) * w).toFixed(1)} ${(20 + (hi - b.close) / (hi - lo) * 280).toFixed(1)}`).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:100%"><path d="${path}" fill="none" stroke="var(--ink)" stroke-width="1.2" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+// ---------- Compare ----------
+function niceStep(span) { const raw = span / 4, mag = Math.pow(10, Math.floor(Math.log10(raw))), n = raw / mag; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * mag; }
+const lgLabel = b => b.own ? `#${b.id}` : `<span class="tag-o">${avatar(author(b), 'xxs')}#${b.id}</span>`;
+function cmpChart(title, field, ps) {
+  const vals = ps.flatMap(p => cser(p.b)[field]);
+  let lo = Math.min(0, ...vals), hi = Math.max(0, ...vals); const st = niceStep((hi - lo) || 0.1); lo = Math.floor(lo / st) * st; hi = Math.ceil(hi / st) * st;
+  const ticks = []; for (let v = lo; v <= hi + st / 2; v += st) ticks.push(v);
+  const y = v => (1 - (v - lo) / (hi - lo)) * 100;
+  const path = s => s.map((v, i) => `${i ? 'L' : 'M'}${(i / (CN - 1) * 1000).toFixed(1)} ${(y(v) * 2.4).toFixed(1)}`).join('');
+  return `<section class="card ch-card"><div class="ch-hd"><h2>${title}</h2><div class="ch-lg">${ps.map(p => `<span><i class="bar" style="background:var(${p.color})"></i>${lgLabel(p.b)}</span>`).join('')}</div></div>
+    <div class="ch-row"><div class="ch-plot">${ticks.map(v => `<div class="tk" style="top:${y(v).toFixed(2)}%;background:var(${Math.abs(v) < st / 1000 ? '--muted' : '--grid'})"></div>`).join('')}
+      <svg viewBox="0 0 1000 240" preserveAspectRatio="none" aria-hidden="true">${ps.map(p => `<path d="${path(cser(p.b)[field])}" style="stroke:var(${p.color})"/>`).join('')}</svg></div>
+      <div class="ch-ax">${ticks.map(v => `<span style="top:${y(v).toFixed(2)}%">${v < -1e-9 ? '−' : ''}${Math.abs(v * 100).toFixed(0)} %</span>`).join('')}</div></div>
+    <div class="ch-x"><span>Jan 2025</span><span>Mar</span><span>May</span><span>Jul</span><span>Sep 2025</span></div></section>`;
+}
+const C_METRICS = [['Total return', 'ret', 1, v => pct(v)], ['Max drawdown', 'dd', 1, v => pct(v)], ['Sharpe', 'sharpe', 1, num], ['Sortino', 'sortino', 1, num], ['Win rate', 'win', 1, v => `${v.toFixed(1)} %`], ['Avg. trade', 'avg', 1, v => pct(v, 2)], ['Best trade', 'best', 1, v => pct(v)], ['Worst trade', 'worst', 1, v => pct(v)], ['Trades', 'trades', 0, fmtN], ['Time in market', 'time', 0, v => `${v.toFixed(1)} %`], ['Buy and hold', 'bh', 0, v => pct(v)]];
+const C_SETUP = [['Author', b => b.own ? `${avatar(ME)}You` : `${avatar(author(b))}${author(b).name}`, 'who-c'], ['Instrument', b => b.inst], ['Model', b => b.model], ['Reads', b => reads(b.model)], ['Period', b => `${b.from} – ${b.to}`], ['Positions', b => b.pos], ['Fees', b => b.fee], ['Fills at', b => b.fills]];
+function goneNote() {
+  return S.cmp.filter(k => k && byKey(k).gone).map(byKey).map(b => `<div class="cmp-note">${avatar(author(b), 'md')}<span><b>${author(b).name}</b> unpublished #${b.id}, so it left your Compare.</span><span class="sp"></span><button type="button" class="ic" data-act="cmpDrop" data-val="${b.key}" aria-label="Dismiss" title="Dismiss">${ic('x')}</button></div>`).join('');
+}
+function pageCmp() {
+  const ps = picks(), n = ps.length, full = cmpFull(), cols = `180px repeat(${n + (full ? 0 : 1)}, minmax(0, 1fr))`;
+  const mine = ps.filter(p => p.b.own).length, theirs = n - mine;
+  const back = backBtn({ hash: '#dash', label: 'Dashboard' });
+  const sub = n ? `${n} of 4 backtests${theirs ? ` · ${mine} yours, ${theirs} from Experiments` : ''}${n === 1 ? '. Add one more to compare' : ''}` : '0 of 4 backtests';
+  const top = `${back}<div class="cmp-top"><div><h1>Compare backtests</h1><p class="muted" style="margin-top:4px">${sub}</p></div>${n ? '<button type="button" class="btn" data-act="cmpClear">Clear all</button>' : ''}</div>${goneNote()}`;
+  if (!n) return `${top}<section class="card ex-none" style="padding:56px 24px"><span class="dd-ic">${ic('scale')}</span><b>Nothing to compare yet</b><span class="hint">Add 2 to 4 finished backtests, yours or from Experiments.</span><button type="button" class="btn pri" data-act="modal" data-val="picker">Add backtests</button></section>`;
+  const head = `<div class="cmp-r" style="grid-template-columns:${cols}"><div class="lb" style="align-self:center">Backtest</div>${ps.map(p => { const b = p.b, a = author(b); return `<div class="cmp-h"><div style="min-width:0"><div class="t"><span class="dot" style="background:var(${p.color})"></span><button type="button" class="idl" data-act="open" data-val="${b.key}" style="font-size:14px">#${b.id}</button><b style="font-size:14px">${b.inst}</b></div><div class="hint m">${b.model}</div>${b.own ? '' : `<div class="a">${avatar(a)}<b>${a.name}</b></div>`}</div><button type="button" class="ic" data-act="cmp" data-val="${b.key}" aria-label="Remove #${b.id}" title="Remove from compare">${ic('x')}</button></div>`; }).join('')}${full ? '' : '<div style="align-self:center"><button type="button" class="btn sm" data-act="modal" data-val="picker">+ Add backtest</button></div>'}</div>`;
+  const res = C_METRICS.map(([l, f, better, w]) => {
+    const vs = ps.map(p => p.b[f]); let best = null, worst = null;
+    if (better && n > 1) { const s = [...vs].sort((a, c) => c - a); if (s[0] !== s[s.length - 1]) { best = s[0]; worst = s[s.length - 1]; } }
+    return `<div class="cmp-r" style="grid-template-columns:${cols}"><div class="lb">${l}</div>${vs.map(v => `<div class="val ${v === best ? 'best' : v === worst ? 'worst' : ''}">${w(v)}</div>`).join('')}${full ? '' : '<div></div>'}</div>`;
+  }).join('');
+  const set = C_SETUP.map(([l, f, c]) => `<div class="cmp-r" style="grid-template-columns:${cols}"><div class="lb">${l}</div>${ps.map(p => `<div class="txt ${c || ''}">${f(p.b)}</div>`).join('')}${full ? '' : '<div></div>'}</div>`).join('');
+  return `${top}<div class="cmp-ch">${cmpChart('Equity', 'eq', ps)}${cmpChart('Drawdown', 'fall', ps)}</div><section class="card cmp-t"><div class="cmp">${head}<div class="gp">Results</div>${res}<div class="gp">Setup</div>${set}</div></section>`;
+}
+function tray() {
+  if (S.page === 'cmp') return '';
+  const used = S.cmp.filter(Boolean).length, n = picks().length; if (!used) return '';
+  if (S.trayMin) return `<button type="button" class="btn tray-pill" data-act="trayMin">${ic('scale')}Compare <span class="mono muted" style="font-size:12px">${n} of 4</span></button>`;
+  const rows = S.cmp.map((k, i) => {
+    if (!k) return '<div class="tray-e"></div>';
+    const b = byKey(k);
+    if (b.gone) return `<div class="tray-r gone" title="${author(b).name} unpublished it">${avatar(author(b), 'xxs')}<span class="in">#${b.id} was unpublished</span><button type="button" class="ic" data-act="cmpDrop" data-val="${k}" aria-label="Dismiss" title="Dismiss">${ic('x')}</button></div>`;
+    return `<div class="tray-r"><span class="dot" style="background:var(${COLORS[i]})"></span><button type="button" class="idl" data-act="open" data-val="${k}">#${b.id}</button><span class="in">${b.inst}</span>${b.own ? '' : avatar(author(b), 'xxs')}<button type="button" class="ic" data-act="cmp" data-val="${k}" aria-label="Remove #${b.id}">${ic('x')}</button></div>`;
+  }).join('');
+  return `<aside class="tray" aria-label="Compare"><div class="tray-h"><span>Compare <span class="mono muted" style="font-size:12px;font-weight:500">${n} of 4</span></span><span style="display:inline-flex;align-items:center;gap:4px"><button type="button" class="link" data-act="cmpClear">Clear</button><button type="button" class="ic" data-act="trayMin" aria-label="Hide" title="Hide">${ic('chev')}</button></span></div><div class="tray-s">${rows}</div><button type="button" class="btn pri" data-act="go" data-val="#cmp" ${n < 2 ? 'disabled title="Add at least 2 backtests"' : ''} style="width:100%">Compare</button></aside>`;
+}
+
+// ---------- dialogs ----------
+function shell(title, body, foot, size, extra = '') {
+  return `<div class="mbg ${S.animM ? 'in' : ''}" data-act="close"><div class="mdl ${size || ''}" role="dialog" aria-modal="true" aria-label="${esc(title)}" data-act="stay">
+    <div class="mdl-h"><h2>${title}${extra}</h2><button type="button" class="btn ghost icon" data-act="close" aria-label="Close">${ic('x')}</button></div>
+    <div class="mdl-b">${body}</div>${foot ? `<div class="mdl-f">${foot}</div>` : ''}</div></div>`;
+}
+const ck = (ok, t, s) => `<li class="ck-r ${ok ? 'ok' : 'no'}"><span class="ck-i">${ic(ok ? 'ok' : 'x')}</span><span>${t}${s ? `<span class="s">${s}</span>` : ''}</span></li>`;
+const MODALS = {
+  publish() {
+    const b = byKey(S.key);
+    return shell(`Publish backtest #${b.id}?`, `<div class="pub-scope">${ic('users')}<span>Everyone on the CandleStack beta can see it. It never goes on the public web.</span></div>
+      <div class="pubg"><div class="pub-prev"><span class="eyebrow">Your card in Experiments</span>${gCard(b, { preview: true })}</div>
+      <div class="pub-lists"><div><h3>Others see</h3><ul class="cks">${ck(true, `Results, charts and all ${fmtN(b.trades)} trades`)}${ck(true, 'The setup', 'Data, decision, fees, benchmark')}${ck(true, 'The model’s name and what it reads', `<span class="mono">${b.model} · ${reads(b.model)}</span>`)}${ck(true, 'Your name and initials', `${avatar(ME, 'xxs')}${ME.name}`)}</ul></div>
+      <div><h3>Others don’t see</h3><ul class="cks">${ck(false, 'The model file', 'No download, no copy, no Run again')}${ck(false, 'Your email')}${ck(false, 'Your other backtests and models')}</ul></div></div></div>`,
+      `<span class="hint">You can unpublish it any time</span><button type="button" class="btn" data-act="close">Cancel</button><button type="button" class="btn pri" data-act="publish">${ic('globe')}Publish</button>`, 'xl');
+  },
+  unpublish() {
+    const b = byKey(S.key);
+    return shell(`Unpublish backtest #${b.id}?`, `<p>It leaves Experiments now. It also leaves the Compare of anyone who added it, and their panel says it was unpublished.</p><p class="muted">The backtest stays in your Backtests. You can publish it again later.</p>`,
+      '<button type="button" class="btn" data-act="close">Cancel</button><button type="button" class="btn pri" data-act="unpublish">Unpublish</button>');
+  },
+  picker() {
+    const q = S.pick.q.trim().toLowerCase(), mineTab = S.pick.tab === 'mine';
+    const list = (mineTab ? OWN.filter(b => b.st === 'done') : catalog().filter(b => !b.own).sort((a, c) => pubKey(c) - pubKey(a))).filter(b => !q || `#${b.id} ${b.inst} ${b.model} ${author(b).name}`.toLowerCase().includes(q));
+    const rows = list.map(b => `<div class="pk-r ${inCmp(b.key) ? 'picked' : ''}"><span class="rid">#${b.id}</span><b class="mono" style="font-weight:500">${b.inst}</b><span class="m">${mineTab ? '' : avatar(author(b), 'xxs')}${mineTab ? b.model : `${author(b).name} · ${b.model}`}</span><span class="num ${b.ret >= 0 ? 'up' : 'down'}" style="font-weight:600">${pct(b.ret)}</span><span>${cmpBtn(b)}</span></div>`).join('') || '<p class="muted" style="padding:24px;text-align:center">No backtests match</p>';
+    return shell('Add backtests',
+      `<nav class="st-tabs" style="margin-bottom:0">${[['mine', 'Yours', OWN.filter(b => b.st === 'done').length], ['exp', 'Experiments', catalog().filter(b => !b.own).length]].map(([k, l, n]) => `<button type="button" class="${S.pick.tab === k ? 'on' : ''}" data-act="pickTab" data-val="${k}">${l}<span class="tab-n">${n}</span></button>`).join('')}</nav>
+      <input class="inp" type="search" data-input="pq" value="${esc(S.pick.q)}" placeholder="${mineTab ? 'Number, instrument or model' : 'Instrument, model or author'}" aria-label="Search"><div class="pk-list" data-live="pk">${rows}</div>`,
+      '<button type="button" class="btn pri" data-act="close">Done</button>', '', ` <span class="mono muted" style="font-size:12px;font-weight:500;margin-left:4px">${picks().length} of 4</span>`);
+  },
+  notes() {
+    return shell('Notes · Public experiments', `<div class="notes">
+      <div><h3>The idea</h3><p class="muted">Experiments is the catalog of backtests people on the beta published. It opens as cards you scan by eye, and a table is one click away. Publishing is one outline button on the backtest page. Someone else’s backtest is the page you know, read only.</p></div>
+      <div><h3>What changes in the app</h3><ul>
+        <li>Sidebar. Dashboard, Backtests, Experiments, Models, Instruments, Settings. Experiments sits right after Backtests with the number of published backtests. Instruments has no count, as in the app now.</li>
+        <li>Dashboard. A New in Experiments widget with the four newest from other people, in the same rows as Starred backtests, and a link to Experiments.</li>
+        <li>Backtests list. A 14 px globe after the number of a public backtest. Filters gets Public only under Show. The count under the title says how many are public.</li>
+        <li>Backtest page header. Publish (outline, globe) between Download JSON and Add to compare. Once published, a green Public pill follows Finished, the line under the title says since when it is in Experiments, and Copy link and Unpublish take the place of Publish. No Share card in the right column.</li>
+        <li>Experiments. Search, the Market, Representation and Timeframe chips with counts, Sort, All · Mine and Cards · Table. Cards load 9 at a time with Load more. Table is the Backtests table with an Author column and what the model reads on a second line, 10 rows a page.</li>
+        <li>Someone else’s backtest. The normal page, read only, with an author card on top of the right column and More by Tymur under the name. Header actions are Download JSON and Add to compare. The model shows by name and what it reads, never as a link.</li>
+        <li>Compare. The picker gets two tabs, Yours and Experiments. Others’ backtests carry the author’s initials in the panel and the chart legends, the full name in the table head, and an Author row in Setup. A slot whose backtest was unpublished says so until you dismiss it.</li></ul></div>
+      <div><h3>Sizes</h3><ul>
+        <li>Experiment card. The dashboard widget’s card, 8 px radius, 1 px rule, 16 px inside (12 px on a phone), a 28 px instrument tile and a 16 px title. The grid is <code>repeat(auto-fill, minmax(272px, 1fr))</code> with 16 px gaps, so 3 a row at 1440 px, 2 on a tablet, 1 on a phone.</li>
+        <li>Mini chart on a card. 44 px high, the card’s width, a 1 px border at 70 % rule, 5 px radius. Strategy green above zero and red below with an 18 % fill, the zero line dotted, the benchmark 1 px dashed in muted. In dashboard rows it is 64 × 28 px without the benchmark, as Starred backtests has it now.</li>
+        <li>Tags. Representation and timeframe use the neutral 11 px mono badge, the same for Renko, Kagi and Candles.</li>
+        <li>Filter chips and Sort are 34 px high with a 6 px radius, like the Filters button. All · Mine and Cards · Table are the app’s segmented control at 34 px.</li>
+        <li>Public pill 20 px high, Geist Mono 11 px, globe 11 px, green text on a 12 % green tint.</li>
+        <li>Author avatar 40 px in the author card, 22 px on cards and in the table, 20 px in the compare head, 16 px in the panel and the legends.</li>
+        <li>Publish dialog 800 px with the card preview (296 px) beside the two lists, stacked under 980 px. Unpublish dialog 560 px.</li></ul></div>
+      <div><h3>Rules</h3><ul>
+        <li>Only signed-in accounts on the CandleStack beta see Experiments and published pages. A copied link opens only for them.</li>
+        <li>Only a finished backtest can be published. On a failed or running one Publish is disabled and says why. The example backtest has no Publish.</li>
+        <li>Others see the setup, metrics, charts, trades and what the model reads. Never the model file, the email, other backtests or Run again.</li>
+        <li>Download JSON for others gives results, trades and setup. The JSON never holds the model file.</li>
+        <li>Unpublish takes it out of Experiments at once. It also leaves other people’s Compare, where the slot says it was unpublished until they dismiss it. Delete does the same and removes the backtest.</li>
+        <li>The author is the profile display name with its initials. A new display name shows everywhere.</li>
+        <li>Cards is the default view. Cards or Table stays as you left it while you click around. Search, filters, Sort and All · Mine are shared by both.</li>
+        <li>Sort is Newest by default. Sharpe and Return go high to low, Max drawdown smallest first. In Table the headings sort down, then up, then back to Newest, and the Sort menu follows.</li></ul></div></div>`, '<button type="button" class="btn pri" data-act="close">Close</button>', 'wide');
+  },
+};
+
+// ---------- the Screens menu (review tool) ----------
+const SCREENS = [
+  ['Dashboard', [['#dash', 'Dashboard, New in Experiments']]],
+  ['Your backtests', [['#runs/all', 'Backtests list'], ['#runs/public', 'Backtests list, Public only'], ['#run/13/private', '#13, not published'], ['#run/13/publish', 'Publish dialog'], ['#run/13/public', '#13, published'], ['#run/13/unpublish', 'Unpublish dialog'], ['#run/10', 'Failed #10, Publish disabled']]],
+  ['Experiments · Cards', [['#exp/cards', 'Cards, the default'], ['#exp/cards-filtered', 'Filtered and sorted'], ['#exp/cards-chip', 'A filter chip open'], ['#exp/cards-more', 'After Load more'], ['#exp/mine', 'Mine'], ['#exp/mine-empty', 'Mine, nothing published'], ['#exp/none', 'Search with no results'], ['#exp/by-tt', 'More by Tymur']]],
+  ['Experiments · Table', [['#exp/table', 'Table'], ['#exp/table-sharpe', 'Table sorted by Sharpe'], ['#exp/table-p2', 'Table, page 2']]],
+  ['Someone else’s backtest', [['#x/tt9', 'Tymur · NVDA · Renko'], ['#x/bl14', 'Bohdan · ETHUSDT · Kagi']]],
+  ['Compare', [['#panel', 'Panel, yours and others'], ['#cmp/mix', 'Compare page, mixed'], ['#cmp/picker', 'Picker, Experiments tab'], ['#panel/unpublished', 'A slot was unpublished']]],
+  ['Notes', [['#notes', 'What changes, sizes, rules']]],
+];
+function scrMenu() {
+  const items = SCREENS.map(([g, l]) => `<div class="scr-g">${g}</div>${l.map(([h, t]) => `<button type="button" class="scr-o ${S.hash === h ? 'on' : ''}" data-act="jump" data-val="${h}">${t}<span class="k">${h}</span></button>`).join('')}`).join('');
+  return `<div class="scr">${S.menu ? `<div class="scr-p" role="menu"><div class="scr-f"><button type="button" class="btn sm" data-act="theme">${ic(isDark() ? 'sun' : 'moon')}${isDark() ? 'Light' : 'Dark'}</button><button type="button" class="btn sm" data-act="modal" data-val="notes">${ic('note')}Notes</button></div>${items}</div>` : ''}<button type="button" class="scr-t" data-act="menu" aria-expanded="${S.menu}" title="Every screen and state">${ic('grid')}Screens</button></div>`;
+}
+
+// ---------- render ----------
+let lastPage = '';
+function pageHtml() {
+  const main = { dash: pageDash, runs: pageRuns, exp: pageExp, run: pageBt, x: pageBt, cmp: pageCmp, models: () => pagePlain('Models', '4 models · 26.4 MB of 100 MB used'), inst: () => pagePlain('Instruments', 'Stocks and crypto you can backtest'), settings: () => pagePlain('Settings', 'Your account and how new backtests start') }[S.page]();
+  return `${header()}<main class="abody">${main}</main>${footer()}`;
+}
+function render() {
+  const html = pageHtml();
+  if (html !== lastPage) {
+    const old = document.getElementById('pt-chart');
+    if (old && LWC && LWC.el === old) old.remove();
+    document.getElementById('app').innerHTML = html; lastPage = html; mountChart();
+  }
+  document.body.classList.toggle('has-tray', S.page !== 'cmp' && S.cmp.some(Boolean));
+  document.getElementById('ov').innerHTML = `${tray()}${S.modal && MODALS[S.modal] ? MODALS[S.modal]() : ''}${S.toast ? `<div class="toast" role="status">${ic('ok')}${S.toast}</div>` : ''}${scrMenu()}`;
+  S.anim = false; S.animM = false;
+}
+function live() { document.querySelectorAll('[data-live]').forEach(el => { const f = LIVE[el.dataset.live]; if (f) el.innerHTML = f(); }); lastPage = pageHtml(); }
+const LIVE = { bt: bTable, bn: bCount, bp: () => pager(bRows().length, S.b.page, 'bPage'), eb: eBody, pk: () => { const m = document.createElement('div'); m.innerHTML = MODALS.picker(); const l = m.querySelector('.pk-list'); return l ? l.innerHTML : ''; } };
+let toastT = 0;
+function toast(t) { S.toast = t; clearTimeout(toastT); toastT = setTimeout(() => { S.toast = null; render(); }, 2800); }
+
+// ---------- routes ----------
+const SEC_LABEL = { dash: ['#dash', 'Dashboard'], runs: ['#runs', 'Backtests'], exp: ['#exp', 'Experiments'], cmp: ['#cmp', 'Compare'] };
+function route() {
+  const h = location.hash || '#dash', [a, b, c] = h.slice(1).split('/');
+  if (S.jump || !S.booted) { resetData(); S.cmp = ['o8', 'tt9', null, null]; S.trayMin = false; }
+  const prev = S.booted && !S.jump ? S.page : null; S.booted = true; S.jump = false;
+  S.hash = h; S.modal = null; S.pop = null; S.menu = false; S.tipOpen = false;
+  if (a === 'runs') { S.page = 'runs'; if (b === 'all') S.b = BDEF(); if (b === 'public') S.b = { ...BDEF(), f: 'pub' }; }
+  else if (a === 'exp') {
+    S.page = 'exp';
+    if (b) { S.e = EDEF(); S.view = b.startsWith('table') ? 'table' : 'cards'; }
+    if (b === 'cards-filtered') Object.assign(S.e, { mk: 'crypto', sort: { k: 'ret', dir: 'desc' } });
+    if (b === 'cards-chip') { S.pop = 'mk'; S.anim = true; }
+    if (b === 'cards-more') S.e.shown = E_STEP * 2;
+    if (b === 'mine' || b === 'mine-empty') S.e.tab = 'mine';
+    if (b === 'mine-empty') OWN.forEach(x => { x.pub = null; });
+    if (b === 'none') S.e.q = 'dogecoin';
+    if (b === 'by-tt') S.e.author = 'tt';
+    if (b === 'table-sharpe') S.e.sort = { k: 'sharpe', dir: 'desc' };
+    if (b === 'table-p2') S.e.page = 2;
+  }
+  else if (a === 'run') {
+    S.page = 'run'; S.key = `o${b}`; const r = byKey(S.key);
+    if (c === 'private' || c === 'publish') r.pub = null;
+    if ((c === 'public' || c === 'unpublish') && !r.pub) r.pub = [TODAY, '20:41'];
+    if (c === 'publish' || c === 'unpublish') { S.modal = c; S.animM = true; }
+    if (r.st === 'failed' && !prev) S.tipOpen = true;
+  }
+  else if (a === 'x') { S.page = 'x'; S.key = b; }
+  else if (a === 'cmp') { S.page = 'cmp'; if (b === 'mix' || b === 'picker' || picks().length < 2) S.cmp = ['o13', 'o8', 'tt9', 'ma3']; if (b === 'picker') { S.cmp = ['o13', 'o8', 'tt9', null]; S.modal = 'picker'; S.pick = { tab: 'exp', q: '' }; S.animM = true; } }
+  else if (a === 'panel') {
+    S.page = 'exp'; S.e = EDEF(); S.view = 'cards'; S.trayMin = false;
+    if (b === 'unpublished') { S.cmp = ['o8', 'tt9', 'vs57', null]; byKey('vs57').gone = true; } else S.cmp = ['o13', 'o8', 'tt9', null];
+  }
+  else if (a === 'notes') { if (!prev) S.page = 'dash'; S.modal = 'notes'; S.animM = true; }
+  else if (['models', 'inst', 'settings'].includes(a)) S.page = a;
+  else S.page = 'dash';
+  const sec = SEC_LABEL[prev], detail = p => p === 'run' || p === 'x';
+  if (detail(S.page)) {
+    if (sec) S.from = { hash: sec[0], label: sec[1] };
+    else if (!detail(prev)) S.from = null;
+    S.lastDetail = `#${a}/${b}`; S.lastKey = S.key;
+  } else if (S.page === 'cmp') {
+    if (sec && prev !== 'cmp') S.from = { hash: sec[0], label: sec[1] };
+    else if (detail(prev)) S.from = { hash: S.lastDetail, label: `Backtest #${byKey(S.lastKey).id}` };
+    else if (prev !== 'cmp') S.from = null;
+  } else if (a !== 'notes') S.from = null;
+  render(); if (a !== 'notes') window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', route);
+
+// ---------- actions ----------
+const go = h => { if (location.hash === h) route(); else location.hash = h; };
+const eReset = () => { S.e.page = 1; S.e.shown = E_STEP; };
+const ACT = {
+  go: (el, v) => { go(v); return false; },
+  jump: (el, v) => { S.jump = true; go(v); return false; },
+  open: (el, v) => { const b = byKey(v); go(b.own ? `#run/${b.id}` : `#x/${v}`); return false; },
+  theme: () => { document.documentElement.dataset.theme = isDark() ? 'light' : 'dark'; lastPage = ''; },
+  menu: () => { S.menu = !S.menu; },
+  modal: (el, v) => { S.modal = v; S.animM = true; S.menu = false; if (v === 'picker') S.pick = { tab: 'mine', q: '' }; },
+  close: () => { S.modal = null; },
+  stay: () => false,
+  publish: () => { const b = byKey(S.key); b.pub = [TODAY, '20:41']; S.modal = null; toast(`Backtest #${b.id} is in Experiments now`); },
+  unpublish: () => { const b = byKey(S.key); b.pub = null; S.modal = null; toast(`Backtest #${b.id} left Experiments`); },
+  copy: () => { toast('Link copied. It opens only for people on the CandleStack beta.'); },
+  star: (el, v) => { const b = byKey(v); b.star = !b.star; },
+  cmp: (el, v) => { const i = S.cmp.indexOf(v); if (i >= 0) S.cmp[i] = null; else { const f = S.cmp.indexOf(null); if (f < 0) return false; S.cmp[f] = v; S.trayMin = false; } },
+  cmpDrop: (el, v) => { const i = S.cmp.indexOf(v); if (i >= 0) S.cmp[i] = null; },
+  cmpClear: () => { S.cmp = [null, null, null, null]; },
+  trayMin: () => { S.trayMin = !S.trayMin; },
+  pop: (el, v) => { S.pop = S.pop === v ? null : v; S.anim = true; },
+  bF: (el, v) => { S.b.f = v; S.b.page = 1; }, bM: (el, v) => { S.b.m = v || null; S.b.page = 1; },
+  bSort: (el, v) => { S.b.page = 1; const s = S.b.sort, first = v === 'model' ? 'asc' : 'desc', second = first === 'asc' ? 'desc' : 'asc'; S.b.sort = !s || s.k !== v ? { k: v, dir: first } : s.dir === first ? { k: v, dir: second } : null; },
+  bPage: (el, v) => { S.b.page = +v; },
+  bestBy: (el, v) => { S.best = v; },
+  eTab: (el, v) => { S.e.tab = v; eReset(); },
+  eView: (el, v) => { S.view = v; },
+  eSet: (el, v) => { const k = el.dataset.k; S.e[k] = v; S.pop = null; eReset(); },
+  eSortPick: (el, v) => { S.e.sort = v === 'pub' ? null : { k: v, dir: 'desc' }; S.pop = null; eReset(); },
+  eSort: (el, v) => { eReset(); const s = S.e.sort; if (v === 'pub') { S.e.sort = !s ? { k: 'pub', dir: 'asc' } : null; return; } S.e.sort = !s || s.k !== v ? { k: v, dir: 'desc' } : s.dir === 'desc' ? { k: v, dir: 'asc' } : null; },
+  eAuthorX: () => { S.e.author = null; eReset(); },
+  eReset: () => { Object.assign(S.e, { mk: 'all', rep: 'all', tf: 'all', author: null, q: '' }); eReset(); },
+  eClear: () => { Object.assign(S.e, { q: '', mk: 'all', rep: 'all', tf: 'all', author: null }); eReset(); },
+  eMore: () => { S.e.shown += E_STEP; },
+  ePage: (el, v) => { S.e.page = +v; window.scrollTo(0, 0); },
+  byAuthor: (el, v) => { S.e = { ...EDEF(), author: v }; go('#exp'); return false; },
+  pickTab: (el, v) => { S.pick.tab = v; S.pick.q = ''; },
+  range: (el, v) => { S.range = v; },
+  tradesSw: () => { S.trades = !S.trades; },
+};
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  const tip = S.tipOpen; S.tipOpen = false;
+  if (!el) { let ch = tip; if (S.pop && !e.target.closest('[data-pop]')) { S.pop = null; ch = true; } if (S.menu && !e.target.closest('.scr')) { S.menu = false; ch = true; } if (ch) render(); return; }
+  const a = el.dataset.act;
+  if (S.pop && !el.closest('[data-pop]')) S.pop = null;
+  if (S.menu && !el.closest('.scr')) S.menu = false;
+  if (!ACT[a]) { render(); return; }
+  const r = ACT[a](el, el.dataset.val);
+  if (r === false) return;
+  render();
+});
+const INPUT = {
+  bq: el => { S.b.q = el.value; S.b.page = 1; },
+  eq: el => { S.e.q = el.value; eReset(); },
+  pq: el => { S.pick.q = el.value; },
+};
+document.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.input; if (k && INPUT[k]) { INPUT[k](e.target); live(); } });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && (S.modal || S.pop || S.menu)) { S.modal = null; S.pop = null; S.menu = false; render(); return; }
+  const el = e.target; if ((e.key === 'Enter' || e.key === ' ') && el.matches && el.matches('[role="link"][data-act]')) { e.preventDefault(); el.click(); }
+});
+
+route();
+</script>
+</body>
+</html>
