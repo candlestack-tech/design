@@ -1,0 +1,1364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Docs · CandleStack</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+  /* Tokens: website/src/styles/global.css. Series colors: the approved Compare (design/mockups/compare-backtests) */
+  :root {
+    --bg: #fafaf9; --ink: #141414; --muted: #686868; --rule: #e7e5e2; --accent: #0f766e;
+    --warn: #a15c07; --up: #0f766e; --down: #b42318; --grid: rgb(28 25 23 / 0.045);
+    --shadow: rgb(0 0 0 / 0.08); --on-accent: #fafaf9;
+    --s0: #1d5fd1; --s1: #b86e00; --s2: #7a4fd0; --s3: #8a8a8a;
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d0f11; --ink: #ecedee; --muted: #9ba1a6; --rule: #23272b; --accent: #3cc7a6;
+    --warn: #e8b45a; --up: #3cc7a6; --down: #f0616d; --grid: rgb(230 232 234 / 0.045);
+    --shadow: rgb(0 0 0 / 0.5); --on-accent: #0d0f11;
+    --s0: #5b9cf6; --s1: #f2a33c; --s2: #b794f6; --s3: #7d848a;
+    color-scheme: dark;
+  }
+  :root {
+    --surface: color-mix(in srgb, var(--ink) 4%, var(--bg));
+    --surface2: color-mix(in srgb, var(--ink) 8%, var(--bg));
+    --code: color-mix(in srgb, var(--ink) 3%, var(--bg));
+    --accent-soft: color-mix(in srgb, var(--accent) 11%, var(--bg));
+    --warn-soft: color-mix(in srgb, var(--warn) 11%, var(--bg));
+    --down-soft: color-mix(in srgb, var(--down) 11%, var(--bg));
+    --sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+    --mono: 'Geist Mono', ui-monospace, monospace;
+    --hdr: 60px;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-padding-top: calc(var(--hdr) + 16px); }
+  body { margin: 0; min-height: 100vh; background-color: var(--bg);
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px; color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  a:hover { color: var(--accent); }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+  [hidden] { display: none !important; }
+  h1, h2, h3, p { margin: 0; }
+  .mono { font-family: var(--mono); }
+  .muted { color: var(--muted); }
+  .i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+  /* Site header: the website's header (brand, nav, theme toggle), full width on docs pages */
+  .top { position: sticky; top: 0; z-index: 30; border-bottom: 1px solid var(--rule); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); }
+  .top-in { max-width: 1280px; margin: 0 auto; padding: 0 24px; height: var(--hdr); display: flex; align-items: center; gap: 16px; }
+  .brand { font-weight: 600; font-size: 17px; }
+  .brand-sl { color: var(--rule); font-weight: 400; margin: 0 2px; }
+  .brand-docs { font-weight: 500; font-size: 15px; color: var(--muted); }
+  .nav { margin-left: auto; display: flex; align-items: center; gap: 24px; font-size: 15px; }
+  .nav a { color: var(--muted); }
+  .nav a:hover, .nav a.on { color: var(--ink); }
+  .toggle { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; margin: 0 -6px 0 0; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; }
+  .toggle:hover { color: var(--ink); }
+  .toggle .i { width: 17px; height: 17px; stroke-width: 2; }
+
+  /* Docs grid: sidebar, page, contents */
+  .docs { max-width: 1280px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 232px minmax(0, 1fr) 200px; gap: 48px; align-items: start; }
+  .side { position: sticky; top: var(--hdr); max-height: calc(100vh - var(--hdr)); overflow: auto; padding: 28px 4px 32px 0; scrollbar-width: thin; }
+  .side-g { font: 500 11px/16px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 20px 10px 6px; }
+  .side-g:first-child { padding-top: 0; }
+  .side-l { display: block; padding: 5px 10px; border-radius: 6px; font-size: 14.5px; line-height: 1.4; color: var(--muted); }
+  .side-l:hover { color: var(--ink); background: var(--surface); }
+  .side-l.on { color: var(--ink); background: var(--surface2); font-weight: 500; }
+  .side-f { margin-top: 24px; padding: 14px 10px 0; border-top: 1px solid var(--rule); display: flex; flex-direction: column; gap: 6px; font: 12px var(--mono); color: var(--muted); }
+  .side-f a:hover { color: var(--accent); }
+  .side-site { display: none; }
+
+  .pg { min-width: 0; max-width: 720px; padding: 40px 0 96px; }
+  .crumbs { font: 12px var(--mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px; }
+  .crumbs i { font-style: normal; color: var(--rule); }
+  .pg h1 { margin-top: 14px; font-size: 38px; line-height: 1.12; font-weight: 600; letter-spacing: -0.025em; }
+  .pg h1.code-h { font-family: var(--mono); font-size: 32px; letter-spacing: -0.02em; }
+  .intro { margin-top: 14px; font-size: 17px; line-height: 1.6; color: var(--muted); }
+  .pact { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .pmeta { font: 12px var(--mono); color: var(--muted); margin-left: 4px; }
+  .pg h2 { margin: 48px 0 0; padding-top: 22px; border-top: 1px solid var(--rule); font-size: 22px; line-height: 1.3; font-weight: 600; letter-spacing: -0.015em; position: relative; }
+  .pg h2 .hlink, .pg h3 .hlink { margin-left: 8px; color: var(--muted); opacity: 0; font-weight: 400; }
+  .pg h2:hover .hlink, .pg h3:hover .hlink { opacity: 1; }
+  .pg h3 { margin: 28px 0 0; font-size: 17px; line-height: 1.4; font-weight: 600; }
+  .pg p { margin-top: 12px; font-size: 16px; line-height: 1.65; }
+  .pg h2 + p, .pg h3 + p { margin-top: 10px; }
+  .pg p a, .pg li a, .rows a .t a { color: var(--accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent); text-underline-offset: 3px; }
+  .pg code { font: 13.5px var(--mono); background: var(--surface); border: 1px solid var(--rule); padding: 0 5px; border-radius: 4px; overflow-wrap: anywhere; }
+  .small { font-size: 14px !important; color: var(--muted); }
+
+  .toc { position: sticky; top: var(--hdr); max-height: calc(100vh - var(--hdr)); overflow: auto; padding: 44px 0 32px; }
+  .toc-t { font: 500 11px/16px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .toc a { display: block; padding: 4px 0 4px 12px; border-left: 1px solid var(--rule); font-size: 13.5px; line-height: 1.4; color: var(--muted); }
+  .toc a.sub { padding-left: 24px; font-family: var(--mono); font-size: 12.5px; }
+  .toc a:hover { color: var(--ink); }
+  .toc a.on { color: var(--accent); border-left-color: var(--accent); }
+  .toc-x { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--rule); display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--muted); }
+  .toc-x a { border: 0; padding: 0; display: inline-flex; gap: 6px; align-items: center; font-size: 13px; }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink); font: 500 13.5px var(--sans); cursor: pointer; white-space: nowrap; transition: background-color .15s, border-color .15s, color .15s; }
+  .btn:hover { background: var(--surface); color: var(--ink); }
+  .btn:disabled { opacity: 0.45; cursor: default; background: var(--bg); }
+  .btn .i { width: 15px; height: 15px; }
+  .btn.pri { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .btn.pri:hover { background: color-mix(in srgb, var(--accent) 86%, var(--ink)); color: var(--on-accent); }
+  .btn.ghost { border-color: transparent; background: transparent; }
+  .btn.ghost:hover { background: var(--surface2); }
+  .btn.sm { height: 30px; padding: 0 10px; font-size: 13px; }
+  .btn.xs { height: 26px; padding: 0 8px; font-size: 12.5px; gap: 5px; }
+  .btn.xs .i { width: 13px; height: 13px; }
+  .btn.done, .btn.done:hover { color: var(--accent); }
+
+  /* Code block with a label or tabs, and Copy */
+  .cb { margin: 16px 0 0; border: 1px solid var(--rule); border-radius: 8px; background: var(--code); overflow: hidden; }
+  .cb-hd { display: flex; align-items: center; gap: 2px; min-height: 38px; padding: 0 6px 0 4px; border-bottom: 1px solid var(--rule); background: color-mix(in srgb, var(--ink) 2%, var(--bg)); }
+  .cb-lbl { font: 12px var(--mono); color: var(--muted); padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cb-tabs { display: flex; align-self: stretch; overflow-x: auto; scrollbar-width: none; }
+  .cb-tab { appearance: none; border: 0; background: none; padding: 0 10px; height: 38px; font: 500 13px var(--sans); color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; white-space: nowrap; }
+  .cb-tab:hover { color: var(--ink); }
+  .cb-tab.on { color: var(--ink); border-bottom-color: var(--accent); }
+  .cb-sp { flex: 1; }
+  .cb pre { margin: 0; padding: 14px 16px; overflow: auto; font: 13px/1.65 var(--mono); tab-size: 2; color: var(--ink); }
+  .cb.out pre { color: var(--muted); }
+  .t-s { color: var(--accent); }
+  .t-n { color: var(--warn); }
+  .t-c { color: var(--muted); font-style: italic; }
+  .t-k { color: var(--s0); }
+
+  /* Prompt to copy */
+  .prompt { margin: 16px 0 0; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); overflow: hidden; }
+  .prompt .cb-hd { background: var(--accent-soft); }
+  .prompt-l { display: inline-flex; align-items: center; gap: 6px; font: 500 12px var(--mono); color: var(--accent); padding: 0 8px; }
+  .prompt p { margin: 0 !important; padding: 14px 16px; font-size: 16px; line-height: 1.6; }
+
+  /* Callouts */
+  .co { margin: 18px 0 0; display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; padding: 12px 14px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--rule)); background: var(--accent-soft); font-size: 15px; line-height: 1.6; }
+  .co .i { margin-top: 3px; color: var(--accent); }
+  .co b { font-weight: 600; }
+  .co.warn { border-color: color-mix(in srgb, var(--warn) 32%, var(--rule)); background: var(--warn-soft); }
+  .co.warn .i { color: var(--warn); }
+
+  /* Website rows: a label column and text, rule on top */
+  .rows { margin: 14px 0 0; padding: 0; list-style: none; }
+  .rows li > *, .rows li.r { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 16px; padding: 11px 0; border-top: 1px solid var(--rule); font-size: 15px; line-height: 1.55; }
+  .rows .l { color: var(--muted); }
+  .rows .l.mono { font-size: 13px; padding-top: 2px; color: var(--ink); }
+  .rows a:hover .l, .rows a:hover .t { color: var(--accent); }
+  .rows a .t::after { content: " →"; color: var(--muted); }
+
+  /* Numbered steps, the website's numbered rows */
+  .steps { margin: 14px 0 0; padding: 0; list-style: none; counter-reset: st; }
+  .steps > li { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; padding: 16px 0 4px; border-top: 1px solid var(--rule); }
+  .steps > li > .n { font: 13px/26px var(--mono); color: var(--muted); }
+  .steps .s-t { font-size: 16px; font-weight: 600; line-height: 26px; }
+  .steps .s-b > :first-child { margin-top: 4px; }
+  .steps .s-b > *:last-child { margin-bottom: 12px; }
+  .steps .s-b p { margin-top: 6px; }
+
+  /* Where a screenshot goes */
+  .shot { margin: 14px 0 0; aspect-ratio: 16 / 7; max-height: 230px; width: 100%; border: 1.5px dashed color-mix(in srgb, var(--muted) 45%, var(--rule)); border-radius: 8px; display: grid; place-items: center; text-align: center; padding: 16px; background: color-mix(in srgb, var(--bg) 70%, transparent); }
+  .shot div { display: flex; flex-direction: column; align-items: center; gap: 6px; max-width: 380px; }
+  .shot .i { width: 22px; height: 22px; color: var(--muted); }
+  .shot b { font: 500 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .shot span { font-size: 13.5px; color: var(--muted); }
+
+  /* Tabs (clients) */
+  .tabs { margin: 18px 0 0; display: flex; gap: 4px; border-bottom: 1px solid var(--rule); overflow-x: auto; scrollbar-width: none; }
+  .tab { appearance: none; display: inline-flex; align-items: center; gap: 7px; border: 0; background: none; height: 42px; padding: 0 12px; font: 500 14.5px var(--sans); color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; white-space: nowrap; }
+  .tab:hover { color: var(--ink); }
+  .tab.on { color: var(--ink); border-bottom-color: var(--accent); }
+  .tab-meta { margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+  .oneclick { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; font-size: 14px; color: var(--muted); }
+
+  /* Tags */
+  .tag { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border-radius: 999px; font: 500 11.5px var(--mono); white-space: nowrap; border: 1px solid var(--rule); color: var(--muted); background: var(--bg); }
+  .tag .dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
+  .tag.ro { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
+  .tag.rw { color: var(--warn); background: var(--warn-soft); border-color: transparent; }
+  .tag.de { color: var(--down); background: var(--down-soft); border-color: transparent; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+  /* Server address */
+  .srv { margin: 22px 0 0; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); padding: 14px 16px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; }
+  .srv .k { font: 500 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); grid-column: 1 / -1; }
+  .srv .v { font: 500 16px var(--mono); overflow-wrap: anywhere; }
+  .srv .h { grid-column: 1 / -1; font-size: 14px; color: var(--muted); }
+
+  /* Agents landing: MCP or the API */
+  .pick { margin: 16px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .card { border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .card .k { font: 500 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+  .card h3 { margin: 0; font-size: 17px; }
+  .card p { margin: 0 !important; font-size: 14.5px !important; color: var(--muted); line-height: 1.55; }
+  .card ul { margin: 4px 0 6px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+  .card li { display: grid; grid-template-columns: 16px 1fr; gap: 8px; }
+  .card li .i { width: 14px; height: 14px; margin-top: 3px; color: var(--accent); }
+  .card .go { margin-top: auto; font-size: 14px; font-weight: 500; color: var(--accent); }
+  .card .clients { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  /* Tables */
+  .tw { margin: 14px 0 0; overflow-x: auto; }
+  table.pt { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.5; }
+  .pt th { text-align: left; font: 500 11px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 0 12px 8px 0; }
+  .pt td { border-top: 1px solid var(--rule); padding: 10px 12px 10px 0; vertical-align: top; }
+  .pt td.nm { font: 500 13px var(--mono); white-space: nowrap; }
+  .pt td.nm small { display: block; font: 11.5px var(--mono); color: var(--muted); font-weight: 400; margin-top: 2px; }
+  .pt td.ty { font: 12.5px var(--mono); color: var(--muted); white-space: nowrap; }
+  .pt td.num, .pt th.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .pt .best { color: var(--up); font-weight: 600; }
+  .pt .worst { color: var(--down); font-weight: 600; }
+  .pt tr.bench td { color: var(--muted); }
+
+  /* Tool reference */
+  .tidx { margin: 14px 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; }
+  .tidx-g { padding: 12px 0 10px; border-top: 1px solid var(--rule); }
+  .tidx-g .gt { font: 500 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .tidx-g ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 1px; }
+  .tidx-g a { display: inline-flex; align-items: center; gap: 8px; font: 13px/24px var(--mono); color: var(--muted); }
+  .tidx-g a.has { color: var(--ink); }
+  .tidx-g a:hover { color: var(--accent); }
+  .tdot { width: 7px; height: 7px; border-radius: 999px; flex: none; }
+  .tdot.ro { background: var(--accent); } .tdot.rw { background: var(--warn); } .tdot.de { background: var(--down); }
+  .legend { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13.5px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .tool { margin-top: 48px; padding-top: 22px; border-top: 1px solid var(--rule); }
+  .tool h2 { margin: 0 !important; padding: 0 !important; border: 0 !important; font: 600 22px var(--mono) !important; letter-spacing: -0.01em !important; }
+  .tool .tags { margin-top: 10px; }
+  .tool .lbl { margin-top: 22px; font: 500 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .tool .lbl + .cb, .tool .lbl + .tw { margin-top: 8px; }
+
+  /* Use case: meta, session, outcome */
+  .ucm { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 6px 16px; font: 12.5px var(--mono); color: var(--muted); }
+  .ucm span { display: inline-flex; align-items: center; gap: 6px; }
+  .ucm .i { width: 14px; height: 14px; }
+  .sbar { margin: 16px 0 0; position: sticky; top: calc(var(--hdr) + 8px); z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 8px; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); box-shadow: 0 6px 20px var(--shadow); }
+  .seg { display: inline-flex; padding: 2px; border-radius: 7px; background: var(--surface2); }
+  .seg button { appearance: none; border: 0; background: none; height: 28px; padding: 0 12px; border-radius: 5px; font: 500 13px var(--sans); color: var(--muted); cursor: pointer; }
+  .seg button.on { background: var(--bg); color: var(--ink); box-shadow: 0 1px 2px var(--shadow); }
+  .sbar .sp { flex: 1; }
+  .sbar .pos { font: 12.5px var(--mono); color: var(--muted); min-width: 84px; text-align: center; }
+  .prog { display: flex; gap: 3px; width: 100%; padding: 0 2px; }
+  .prog i { flex: 1; height: 3px; border-radius: 2px; background: var(--surface2); }
+  .prog i.on { background: var(--accent); }
+  .ss { margin: 18px 0 0; padding: 0; list-style: none; }
+  .st { position: relative; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 14px; padding-bottom: 18px; }
+  .st::before { content: ""; position: absolute; left: 13.5px; top: 30px; bottom: 2px; width: 1px; background: var(--rule); }
+  .st:last-child::before { display: none; }
+  .st-n { width: 28px; height: 28px; border-radius: 999px; border: 1px solid var(--rule); background: var(--bg); display: grid; place-items: center; font: 500 12px var(--mono); color: var(--muted); }
+  .st.cur .st-n { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .st-b { min-width: 0; display: flex; flex-direction: column; gap: 8px; padding-top: 2px; }
+  .who { font: 500 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .st-say { margin: 0 !important; font-size: 15.5px !important; line-height: 1.6 !important; }
+  .st.fin .st-say { font-size: 16px !important; }
+  .st.fin .st-b { padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--rule)); border-radius: 10px; background: var(--accent-soft); }
+  .tc { border: 1px solid var(--rule); border-radius: 8px; background: var(--code); overflow: hidden; }
+  .tc-h { appearance: none; width: 100%; display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 6px 10px; border: 0; background: none; text-align: left; cursor: pointer; font: 13px var(--mono); }
+  .tc-h:hover { background: var(--surface); }
+  .tc-h .i { width: 14px; height: 14px; color: var(--muted); }
+  .tc-nm { font-weight: 600; color: var(--ink); white-space: nowrap; }
+  .tc-args { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
+  .tc-res { color: var(--accent); white-space: nowrap; font-size: 12.5px; }
+  .tc-ch { transition: transform .15s; }
+  .tc.open .tc-ch { transform: rotate(90deg); }
+  .tc-io { border-top: 1px solid var(--rule); display: grid; grid-template-columns: minmax(0, 1fr); }
+  .tc-io .tl { padding: 8px 12px 0; font: 500 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+  .tc-io pre { margin: 0; padding: 6px 12px 12px; font: 12.5px/1.6 var(--mono); overflow: auto; max-height: 340px; }
+  .tc-io pre + .tl { border-top: 1px dashed var(--rule); padding-top: 10px; }
+  .st-more { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 14px; align-items: center; }
+  .st-more .st-n { border-style: dashed; }
+  .st-more .t { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--muted); }
+  .rnote { margin: 18px 0 0; padding: 10px 12px; border: 1px dashed color-mix(in srgb, var(--warn) 55%, var(--rule)); border-radius: 8px; font-size: 13px; color: var(--muted); }
+  .rnote b { color: var(--warn); font: 500 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; margin-right: 6px; }
+  details.nj { border: 1px solid var(--rule); border-radius: 8px; background: var(--code); }
+  details.nj summary { padding: 8px 10px; font: 13px var(--mono); cursor: pointer; }
+  details.nj summary b { font-weight: 600; }
+  details.nj pre { margin: 0; padding: 4px 12px 12px; font: 12.5px/1.6 var(--mono); overflow: auto; border-top: 1px solid var(--rule); }
+  details.nj .tl { padding: 8px 12px 0; font: 500 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+  .chart { margin: 16px 0 0; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); padding: 14px 16px 12px; }
+  .chart-hd { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+  .chart-hd h3 { margin: 0; font-size: 15px; }
+  .chart-lg { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--muted); }
+  .chart-lg span { display: inline-flex; align-items: center; gap: 6px; }
+  .chart-lg i { width: 14px; height: 0; border-top: 2px solid; display: inline-block; }
+  .chart-lg i.dash { border-top-style: dashed; }
+  .plot { position: relative; height: 230px; margin: 12px 0 0 38px; }
+  .plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .plot .gl { stroke: var(--rule); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .plot .base { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 3; vector-effect: non-scaling-stroke; opacity: .6; }
+  .plot path.ln { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; }
+  .yl { position: absolute; left: -38px; width: 32px; text-align: right; transform: translateY(-50%); font: 11px var(--mono); color: var(--muted); }
+  .xl { display: flex; justify-content: space-between; margin: 6px 0 0 38px; font: 11px var(--mono); color: var(--muted); }
+  .xh { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--muted); opacity: .5; pointer-events: none; }
+  .tip { position: absolute; top: 6px; z-index: 3; min-width: 168px; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); box-shadow: 0 8px 24px var(--shadow); font-size: 12.5px; pointer-events: none; }
+  .tip .d { font: 11.5px var(--mono); color: var(--muted); margin-bottom: 4px; }
+  .tip div.r { display: flex; align-items: center; gap: 6px; }
+  .tip div.r b { margin-left: auto; font: 500 12px var(--mono); padding-left: 10px; }
+  .tip i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+  .bn { display: flex; flex-direction: column; }
+  .bn b { font-weight: 600; font-size: 14px; }
+  .bn span { font: 11.5px var(--mono); color: var(--muted); }
+  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 8px; vertical-align: -1px; }
+
+  .pnav { margin-top: 56px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .pnav a { border: 1px solid var(--rule); border-radius: 10px; padding: 12px 14px; background: var(--bg); display: flex; flex-direction: column; gap: 2px; }
+  .pnav a:hover { border-color: var(--accent); color: var(--ink); }
+  .pnav .k { font: 12px var(--mono); color: var(--muted); }
+  .pnav .v { font-weight: 500; }
+  .pnav a.nx { text-align: right; grid-column: 2; }
+  .pfoot { margin-top: 18px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; font-size: 13px; color: var(--muted); }
+  .pfoot a { display: inline-flex; align-items: center; gap: 6px; }
+
+  /* Phone: the sidebar becomes a Menu drawer, the contents a fold */
+  .mbar { display: none; }
+  .toc-m { display: none; }
+  @media (max-width: 1180px) {
+    .docs { grid-template-columns: 220px minmax(0, 1fr); gap: 40px; }
+    .toc { display: none; }
+    .toc-m { display: block; margin-top: 20px; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); }
+    .toc-m summary { list-style: none; display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; font-size: 14px; font-weight: 500; cursor: pointer; }
+    .toc-m summary::-webkit-details-marker { display: none; }
+    .toc-m[open] summary .i { transform: rotate(180deg); }
+    .toc-m nav { padding: 0 12px 10px; display: flex; flex-direction: column; }
+    .toc-m nav a { padding: 5px 0; font-size: 14px; color: var(--muted); border-top: 1px solid var(--rule); }
+    .toc-m nav a.sub { padding-left: 14px; font: 13px var(--mono); }
+  }
+  @media (max-width: 900px) {
+    .top { position: relative; }
+    .top-in { padding: 0 16px; gap: 12px; }
+    .nav { gap: 14px; font-size: 14px; }
+    .nav .site { display: none; }
+    .mbar { display: flex; position: sticky; top: 0; z-index: 25; align-items: center; gap: 10px; height: 46px; padding: 0 16px; border-bottom: 1px solid var(--rule); background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(8px); font-size: 14px; }
+    .mbar button { appearance: none; display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px 0 8px; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); font: 500 13.5px var(--sans); cursor: pointer; }
+    .mbar .where { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13.5px; }
+    .mbar .where b { color: var(--ink); font-weight: 500; }
+    .docs { display: block; padding: 0 16px; }
+    .side { display: none; }
+    body.menu .side { display: block; position: fixed; z-index: 24; left: 0; right: 0; top: 0; bottom: 0; max-height: none; padding: 116px 16px 40px; background: var(--bg); }
+    body.menu .side-l { font-size: 16px; padding: 8px 10px; }
+    body.menu .side-site { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 16px; padding: 14px 10px 0; border-top: 1px solid var(--rule); font-size: 14px; color: var(--muted); }
+    html { scroll-padding-top: 62px; }
+    .sbar { top: 54px; }
+    .pg { padding: 24px 0 72px; }
+    .pg h1 { font-size: 30px; }
+    .pg h1.code-h { font-size: 24px; }
+    .intro { font-size: 16px; }
+    .pg h2 { margin-top: 40px; font-size: 20px; }
+    .rows li > *, .rows li.r { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+    .pick { grid-template-columns: minmax(0, 1fr); }
+    .tidx { grid-template-columns: minmax(0, 1fr); }
+    .pnav { grid-template-columns: 1fr; }
+    .pnav a.nx { grid-column: 1; }
+    .plot { height: 190px; margin-left: 34px; }
+    .yl { left: -34px; width: 28px; }
+    .xl { margin-left: 34px; }
+    .tc-args { display: none; }
+    .tc-res { margin-left: auto; overflow: hidden; text-overflow: ellipsis; }
+    .sbar .pos { min-width: 0; }
+    .pt.cmp .c-tr { display: none; }
+    .hide-xs { display: none; }
+  }
+
+  /* The .md version as the browser shows it */
+  .mdv { min-height: 100vh; background: var(--bg); }
+  .mdv-bar { position: sticky; top: 0; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 16px; border-bottom: 1px solid var(--rule); background: var(--surface); font: 13px var(--mono); color: var(--muted); }
+  .mdv-url { flex: 1; max-width: 720px; height: 28px; border-radius: 999px; background: var(--bg); border: 1px solid var(--rule); display: flex; align-items: center; gap: 8px; padding: 0 12px; overflow: hidden; white-space: nowrap; }
+  .mdv-url b { color: var(--ink); font-weight: 400; }
+  .mdv pre { margin: 0; padding: 16px; font: 13px/1.6 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); max-width: 960px; }
+
+  /* Phone frames */
+  .ph { min-height: 100vh; padding: 28px 24px 90px; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .ph-t { text-align: center; }
+  .ph-t h1 { font-size: 20px; font-weight: 600; }
+  .ph-t p { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  .ph-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 36px; }
+  .ph-c { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .ph-c .cap { font: 12px var(--mono); color: var(--muted); }
+  .ph-dev { border-radius: 30px; padding: 10px; background: #0b0c0e; box-shadow: 0 20px 60px rgb(0 0 0 / 0.35); overflow: hidden; }
+  .ph-dev iframe { display: block; width: 390px; height: 844px; border: 0; border-radius: 21px; background: var(--bg); transform-origin: 0 0; }
+
+  /* Review tools: the Screens menu, theme and Notes. Not part of the site. */
+  .scr { position: fixed; left: 16px; bottom: 16px; z-index: 80; font-family: var(--sans); }
+  .scr-t { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--warn) 55%, var(--rule)); background: var(--bg); color: var(--ink); font: 500 13px var(--sans); cursor: pointer; box-shadow: 0 6px 24px var(--shadow); }
+  .scr-p { position: absolute; left: 0; bottom: calc(100% + 8px); width: 340px; max-height: calc(100vh - 90px); overflow: auto; padding: 8px; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); box-shadow: 0 12px 34px var(--shadow); }
+  .scr-g { font: 500 10.5px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 10px 8px 4px; }
+  .scr-o { appearance: none; display: flex; align-items: center; gap: 8px; width: 100%; padding: 5px 8px; border: 0; border-radius: 6px; background: none; color: var(--ink); font: 13px var(--sans); text-align: left; cursor: pointer; }
+  .scr-o:hover { background: var(--surface); }
+  .scr-o.on { background: var(--accent-soft); color: var(--accent); }
+  .scr-o .k { margin-left: auto; font: 11px var(--mono); color: var(--muted); }
+  .scr-f { display: flex; gap: 6px; padding: 4px 4px 10px; border-bottom: 1px solid var(--rule); margin-bottom: 2px; }
+  .scr-f .btn { flex: 1; }
+  .mbg { position: fixed; inset: 0; z-index: 90; background: color-mix(in srgb, var(--ink) 40%, transparent); display: grid; place-items: center; padding: 16px; }
+  .mdl { width: min(720px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--bg); border: 1px solid var(--rule); border-radius: 12px; box-shadow: 0 20px 60px var(--shadow); }
+  .mdl-h { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--rule); position: sticky; top: 0; background: var(--bg); }
+  .mdl-h h2 { font-size: 16px; }
+  .notes { padding: 16px 18px 20px; display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; line-height: 1.55; }
+  .notes h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .notes ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+  .notes li::marker { color: var(--muted); }
+  .notes code { font: 12.5px var(--mono); background: var(--surface); padding: 1px 5px; border-radius: 4px; }
+  [data-embed] .scr { display: none !important; }
+  @media (max-width: 640px) { .scr { left: 12px; bottom: 12px; } .scr-p { width: calc(100vw - 24px); } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="ov"></div>
+<script>
+// The page itself, before anything renders: the phone frames load it in an iframe
+const SRC = '<!doctype html>' + document.documentElement.outerHTML;
+const ROOT = document.documentElement;
+const EMBED = ROOT.dataset.embed === '1';
+
+// ---------- icons ----------
+const ICONS = {
+  copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  md: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h5"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  warn: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+  image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  chev: '<path d="m9 6 6 6-6 6"/>',
+  down: '<path d="m6 9 6 6 6-6"/>',
+  left: '<path d="m15 18-6-6 6-6"/>',
+  right: '<path d="m9 18 6-6-6-6"/>',
+  tool: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>',
+  grid: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+  note: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/>',
+  ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+  edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  term: '<path d="m4 17 6-5-6-5M12 19h8"/>',
+  cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/>',
+  steps: '<path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/>',
+  dl: '<path d="M12 4v12M6 12l6 6 6-6M4 20h16"/>',
+};
+const ic = (n, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+// Inline text: `code`, **bold**, [text](/docs/path/)
+function inl(s) {
+  return esc(s)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, t, h) => `<a href="${href(h)}">${t}</a>`);
+}
+// Docs paths that this mockup shows; the rest are links to pages not designed here
+const PATHS = {
+  '/docs/agents/': '#agents', '/docs/mcp/install/': '#install/claude-code', '/docs/mcp/tools/': '#tools',
+  '/docs/api/backtests/': '#api/curl', '/docs/use-cases/compare-three-models-nvda/': '#case/step-1',
+  '/docs/mcp/tools/#start_backtest': '#tools', '/docs/mcp/tools/#get_backtest': '#tools',
+};
+const href = h => PATHS[h] || (h.startsWith('http') ? h : '#none');
+
+// Code colors: strings, numbers, comments, flags
+function hl(code, lang) {
+  if (lang === 'text') return esc(code);
+  const com = lang === 'js' ? '(^|\\s)(\\/\\/[^\\n]*)' : lang === 'json' ? '(?!)()' : '(^|\\s)(#[^\\n]*)';
+  const re = new RegExp(`${com}|("(?:[^"\\\\\\n]|\\\\.)*"|'(?:[^'\\\\\\n]|\\\\.)*')|(\\s--?[a-z][a-z-]*)|(\\b-?\\d+(?:\\.\\d+)?\\b)`, 'gm');
+  let out = '', last = 0, m;
+  while ((m = re.exec(code))) {
+    out += esc(code.slice(last, m.index));
+    if (m[2] !== undefined) out += esc(m[1]) + `<span class="t-c">${esc(m[2])}</span>`;
+    else if (m[3] !== undefined) out += `<span class="t-s">${esc(m[3])}</span>`;
+    else if (m[4] !== undefined) out += lang === 'bash' ? `<span class="t-k">${esc(m[4])}</span>` : esc(m[4]);
+    else if (m[5] !== undefined) out += `<span class="t-n">${esc(m[5])}</span>`;
+    last = re.lastIndex;
+    if (m[0] === '') re.lastIndex++;
+  }
+  return out + esc(code.slice(last));
+}
+const J = o => JSON.stringify(o, null, 2);
+
+// ---------- content ----------
+const BASE = 'https://app.candlestack.tech';
+const MCP_URL = `${BASE}/mcp`;
+
+const NAV = [
+  ['Agents', [['Overview', 'agents'], ['Docs for agents', null]]],
+  ['MCP', [['Overview', null], ['Install', 'install'], ['Tools', 'tools'], ['Sign-in and scopes', null]]],
+  ['API', [['Overview', null], ['Keys', null], ['Run a backtest', 'api'], ['Upload a model', null], ['Errors', null], ['Rate limits', null], ['Data terms', null]]],
+  ['Concepts', [['Models and manifests', null], ['Representations', null], ['Decision rules', null], ['Backtest JSON', null], ['Compare', null], ['Experiments', null]]],
+  ['Use cases', [['Upload and check a model', null], ['Compare three models on NVDA', 'case'], ['Stability study', null], ['Weekly report', null]]],
+];
+const PAGE_HASH = { agents: '#agents', install: '#install/claude-code', tools: '#tools', api: '#api/curl', case: '#case/step-1' };
+
+const CLIENTS = [
+  { k: 'claude-code', name: 'Claude Code', how: 'key' },
+  { k: 'claude-ai', name: 'claude.ai', how: 'account' },
+  { k: 'chatgpt', name: 'ChatGPT', how: 'account' },
+  { k: 'cursor', name: 'Cursor', how: 'key' },
+  { k: 'vscode', name: 'VS Code', how: 'key' },
+];
+const LANGS = [['curl', 'curl', 'bash'], ['python', 'Python', 'py'], ['js', 'JavaScript', 'js']];
+
+const CMD_CLAUDE = `claude mcp add --transport http candlestack ${MCP_URL} \\
+  --header "Authorization: Bearer $CANDLESTACK_KEY"`;
+const CURSOR_JSON = `{
+  "mcpServers": {
+    "candlestack": {
+      "url": "${MCP_URL}",
+      "headers": {
+        "Authorization": "Bearer \${env:CANDLESTACK_KEY}"
+      }
+    }
+  }
+}`;
+const VSCODE_JSON = `{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "candlestack-key",
+      "description": "CandleStack API key",
+      "password": true
+    }
+  ],
+  "servers": {
+    "candlestack": {
+      "type": "http",
+      "url": "${MCP_URL}",
+      "headers": {
+        "Authorization": "Bearer \${input:candlestack-key}"
+      }
+    }
+  }
+}`;
+
+const CLIENT_BODY = {
+  'claude-code': [
+    { t: 'steps', items: [
+      { title: 'Create a key', body: [
+        { t: 'p', s: 'In the app open Settings, then API and MCP, and create a key with the `read` and `backtests` scopes. It is shown once. Keep it in your shell, not in a file you commit.' },
+        { t: 'code', lang: 'bash', label: 'Terminal', code: 'export CANDLESTACK_KEY="cs_your_key"' },
+      ] },
+      { title: 'Add the server', body: [
+        { t: 'code', lang: 'bash', label: 'Terminal', code: CMD_CLAUDE },
+        { t: 'p', s: 'Add `--scope user` to use it in every project, not only this one.' },
+      ] },
+      { title: 'Check it', body: [
+        { t: 'p', s: 'Run `/mcp` in Claude Code. CandleStack shows as connected, with its tools.' },
+        { t: 'shot', s: 'Claude Code after /mcp, CandleStack connected with 35 tools' },
+      ] },
+    ] },
+  ],
+  'claude-ai': [
+    { t: 'steps', items: [
+      { title: 'Add a custom connector', body: [{ t: 'p', s: 'Open Settings, then Connectors, and choose Add custom connector.' }] },
+      { title: 'Paste the address', body: [
+        { t: 'p', s: 'Name it CandleStack and paste the server address. Leave the advanced settings empty.' },
+        { t: 'shot', s: 'The Add custom connector dialog with the name and address filled in' },
+      ] },
+      { title: 'Sign in and allow', body: [
+        { t: 'p', s: 'Choose Connect. Sign in with GitHub or Google, pick what Claude may do and allow it.' },
+        { t: 'shot', s: 'CandleStack’s consent screen with the four scopes' },
+      ] },
+      { title: 'Turn it on in a chat', body: [{ t: 'p', s: 'Open the tools menu under the message box and switch CandleStack on.' }] },
+    ] },
+    { t: 'callout', kind: 'note', s: 'On Team and Enterprise plans an owner adds the connector for everyone first.' },
+  ],
+  chatgpt: [
+    { t: 'steps', items: [
+      { title: 'Turn on developer mode', body: [{ t: 'p', s: 'Open Settings, then Apps and Connectors, then Advanced settings, and turn on Developer mode.' }] },
+      { title: 'Create the connector', body: [
+        { t: 'p', s: 'Choose Create. Name it CandleStack, paste the server address and pick OAuth to sign in.' },
+        { t: 'shot', s: 'ChatGPT’s New connector form with the address and OAuth' },
+      ] },
+      { title: 'Sign in and allow', body: [{ t: 'p', s: 'Sign in with GitHub or Google and allow the scopes you want.' }] },
+      { title: 'Use it in a chat', body: [
+        { t: 'p', s: 'In a new chat choose Developer mode in the tools menu and pick CandleStack.' },
+        { t: 'shot', s: 'A ChatGPT chat with CandleStack picked in the tools menu' },
+      ] },
+    ] },
+    { t: 'callout', kind: 'warn', s: 'In developer mode ChatGPT asks before each call that changes data. Read what it is about to start, rename or publish before you confirm.' },
+  ],
+  cursor: [
+    { t: 'oneclick', label: 'Add to Cursor', s: 'Opens Cursor with the server filled in. You still set the key.' },
+    { t: 'steps', items: [
+      { title: 'Keep your key in the shell', body: [
+        { t: 'p', s: 'Create a key with the `read` and `backtests` scopes in Settings, then API and MCP. Add it to your shell profile so Cursor can read it.' },
+        { t: 'code', lang: 'bash', label: '~/.zshrc', code: 'export CANDLESTACK_KEY="cs_your_key"' },
+      ] },
+      { title: 'Add the server', body: [
+        { t: 'p', s: 'Put this in `~/.cursor/mcp.json` for every project, or in `.cursor/mcp.json` for one.' },
+        { t: 'code', lang: 'json', label: '~/.cursor/mcp.json', code: CURSOR_JSON },
+      ] },
+      { title: 'Check it', body: [
+        { t: 'p', s: 'Open Cursor Settings, then MCP. CandleStack has a green dot and lists its tools.' },
+        { t: 'shot', s: 'Cursor Settings, MCP, CandleStack with a green dot and its tools' },
+      ] },
+    ] },
+  ],
+  vscode: [
+    { t: 'oneclick', label: 'Install in VS Code', s: 'Adds the server to your user settings. VS Code asks for the key when it starts.' },
+    { t: 'steps', items: [
+      { title: 'Add the server', body: [
+        { t: 'p', s: 'Put this in `.vscode/mcp.json` in your project. The key is asked for once and kept in VS Code’s secret storage.' },
+        { t: 'code', lang: 'json', label: '.vscode/mcp.json', code: VSCODE_JSON },
+      ] },
+      { title: 'Start it', body: [{ t: 'p', s: 'Choose Start above `candlestack` in the file and paste your key when asked.' }] },
+      { title: 'Use it in Copilot Chat', body: [
+        { t: 'p', s: 'Open Copilot Chat in Agent mode, open the tools list and check that CandleStack is on.' },
+        { t: 'shot', s: 'Copilot Chat in Agent mode with the CandleStack tools listed' },
+      ] },
+    ] },
+  ],
+};
+
+// The tool index: every tool by area, with what it does to your data
+const TOOLS = [
+  ['Account', [['get_me', 'ro'], ['get_preferences', 'ro'], ['get_backtest_defaults', 'ro'], ['update_backtest_defaults', 'rw']]],
+  ['Market data', [['search_instruments', 'ro'], ['get_instrument', 'ro'], ['get_candles', 'ro'], ['top_instruments', 'ro'], ['preprocessing_catalog', 'ro']]],
+  ['Models', [['list_models', 'ro'], ['get_model', 'ro'], ['get_manifest', 'ro'], ['validate_manifest', 'ro'], ['set_manifest', 'rw'], ['rename_model', 'rw'], ['star_model', 'rw'], ['create_model_upload', 'rw'], ['get_model_upload', 'ro'], ['delete_model', 'de']]],
+  ['Backtests', [['validate_backtest', 'ro'], ['start_backtest', 'rw'], ['wait_for_backtest', 'ro'], ['get_backtest_status', 'ro'], ['get_backtest', 'ro'], ['compare_backtests', 'ro'], ['list_backtests', 'ro'], ['rename_backtest', 'rw'], ['star_backtest', 'rw'], ['cancel_backtest', 'rw'], ['run_sweep', 'rw'], ['get_sweep', 'ro'], ['get_dashboard', 'ro']]],
+  ['Experiments', [['list_experiments', 'ro'], ['publish_backtest', 'de'], ['unpublish_backtest', 'de']]],
+];
+const KIND = { ro: ['Read only', 'Reads, never changes anything'], rw: ['Changes data', 'Creates or edits your things'], de: ['Destructive', 'Deletes or shows to others, asks first'] };
+
+const BT = 'bt_7f3k2m9qx4';
+const TOOL_ENTRIES = [
+  {
+    name: 'start_backtest', kind: 'rw', scope: 'backtests', api: 'POST /api/v1/backtests',
+    desc: 'Starts a backtest of one of your models on one instrument and period. It joins your queue and runs when the one before it ends. Settings you leave out come from your backtest defaults. Call `validate_backtest` first to catch problems without starting anything.',
+    params: [
+      ['model_id', 'string', true, 'One of your models, from `list_models`.'],
+      ['instrument', 'string', true, 'Market and symbol, like `stock:NVDA` or `crypto:BTCUSDT`.'],
+      ['start', 'date', true, 'First day of the test.'],
+      ['end', 'date', true, 'Last day of the test.'],
+      ['decision', 'object', false, 'How predictions become trades. See [Decision rules](/docs/concepts/decision-rules/).'],
+      ['execution', 'object', false, 'Fill, fees, slippage, stop loss and position size.'],
+      ['benchmark', 'string', false, '`bh` for buy and hold, or `SPY`, `QQQ`, `DIA` for stocks. Default `bh`.'],
+    ],
+    call: { model_id: 'mdl_r4n8ko21vb', instrument: 'stock:NVDA', start: '2025-01-02', end: '2025-06-30' },
+    answer: { id: BT, number: 41, name: 'Silent Orion', status: 'queued', queue_position: 1, url: `${BASE}/backtests/${BT}` },
+    errors: [['queue-full', '20 backtests already wait. Cancel one or wait for one to finish.'], ['period-out-of-range', 'The period starts before the data or ends in the future.'], ['manifest-missing', 'The model has no manifest yet. Set one with `set_manifest`.']],
+  },
+  {
+    name: 'get_backtest', kind: 'ro', scope: 'read', api: 'GET /api/v1/backtests/{id}',
+    desc: 'Reads a backtest without the megabytes. You get the summary, the metrics, the setup and the benchmark, the equity curve in at most 200 points and one page of trades, with a link to the backtest in the app. While it runs, call `wait_for_backtest` instead.',
+    params: [
+      ['id', 'string', true, 'The backtest, from `start_backtest` or `list_backtests`.'],
+      ['trades_page', 'integer', false, '50 trades a page, newest last. Default 1.'],
+      ['equity_points', 'integer', false, '20 to 200 points of the equity curve. Default 200.'],
+    ],
+    call: { id: BT, trades_page: 1, equity_points: 20 },
+    answer: {
+      id: BT, name: 'Silent Orion', status: 'done',
+      setup: { model: 'renko-lstm.keras', representation: 'Renko', instrument: 'stock:NVDA', timeframe: '1h', period: ['2025-01-02', '2025-06-30'] },
+      metrics: { total_return: 0.184, sharpe: 1.36, max_drawdown: -0.098, trades: 41, win_rate: 0.56 },
+      benchmark: { name: 'Buy and hold NVDA', total_return: 0.141, max_drawdown: -0.369 },
+      equity: { t: [1735776000, 1736553600, '…'], v: [1, 1.012, '…'] },
+      trades: { page: 1, pages: 1, items: [{ side: 'long', opened: '2025-01-06T15:30Z', closed: '2025-01-08T19:30Z', return: 0.021 }, '… 40 more'] },
+      url: `${BASE}/backtests/${BT}`,
+    },
+    errors: [['not-found', 'No backtest with this ID is yours or published.']],
+  },
+];
+
+// API page code, one per language
+const API_CODE = {
+  start: {
+    curl: `curl ${BASE}/api/v1/backtests \\
+  -H "Authorization: Bearer $CANDLESTACK_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": {"id": "mdl_r4n8ko21vb"},
+    "data": {
+      "instrument": {"id": "stock:NVDA"},
+      "period": {"start": 1735776000, "end": 1751328000}
+    }
+  }'`,
+    python: `import os
+
+import httpx
+
+api = httpx.Client(
+    base_url="${BASE}/api/v1",
+    headers={"Authorization": f"Bearer {os.environ['CANDLESTACK_KEY']}"},
+    timeout=60,
+)
+backtest = api.post("/backtests", json={
+    "model": {"id": "mdl_r4n8ko21vb"},
+    "data": {
+        "instrument": {"id": "stock:NVDA"},
+        "period": {"start": 1735776000, "end": 1751328000},  # 2 Jan to 30 Jun 2025
+    },
+}).raise_for_status().json()
+print(backtest["name"], backtest["status"])`,
+    js: `const api = (path, init = {}) =>
+  fetch(\`${BASE}/api/v1\${path}\`, {
+    ...init,
+    headers: {
+      Authorization: \`Bearer \${process.env.CANDLESTACK_KEY}\`,
+      "Content-Type": "application/json",
+    },
+  }).then((r) => r.json());
+
+let backtest = await api("/backtests", {
+  method: "POST",
+  body: JSON.stringify({
+    model: { id: "mdl_r4n8ko21vb" },
+    data: {
+      instrument: { id: "stock:NVDA" },
+      period: { start: 1735776000, end: 1751328000 }, // 2 Jan to 30 Jun 2025
+    },
+  }),
+});
+console.log(backtest.name, backtest.status);`,
+  },
+  wait: {
+    curl: `curl -s ${BASE}/api/v1/backtests/${BT} \\
+  -H "Authorization: Bearer $CANDLESTACK_KEY" | jq .status`,
+    python: `import time
+
+while backtest["status"] in ("queued", "running"):
+    time.sleep(5)
+    backtest = api.get(f"/backtests/{backtest['id']}").json()
+print(backtest["status"])  # done or failed`,
+    js: `while (["queued", "running"].includes(backtest.status)) {
+  await new Promise((r) => setTimeout(r, 5000));
+  backtest = await api(\`/backtests/\${backtest.id}\`);
+}
+console.log(backtest.status); // done or failed`,
+  },
+  read: {
+    curl: `curl -s ${BASE}/api/v1/backtests/${BT} \\
+  -H "Authorization: Bearer $CANDLESTACK_KEY" \\
+  | jq '.metrics | {total_return, sharpe, max_drawdown, trades}'`,
+    python: `m = backtest["metrics"]
+print(f"Return {m['total_return']:.1%}  Sharpe {m['sharpe']:.2f}  "
+      f"Max drawdown {m['max_drawdown']:.1%}  Trades {m['trades']}")`,
+    js: `const m = backtest.metrics;
+console.log(
+  \`Return \${(m.total_return * 100).toFixed(1)}%  Sharpe \${m.sharpe.toFixed(2)}  \` +
+  \`Max drawdown \${(m.max_drawdown * 100).toFixed(1)}%  Trades \${m.trades}\`
+);`,
+  },
+};
+const API_OUT = {
+  start: { lang: 'json', label: 'Answer 201, shortened', code: J({ id: BT, number: 41, name: 'Silent Orion', status: 'queued', queue_position: 1 }) },
+  wait: { lang: 'text', label: 'Output', code: { curl: '"done"', python: 'done', js: 'done' } },
+  read: { lang: 'text', label: 'Output', code: { curl: J({ total_return: 0.184, sharpe: 1.36, max_drawdown: -0.098, trades: 41 }), python: 'Return 18.4%  Sharpe 1.36  Max drawdown -9.8%  Trades 41', js: 'Return 18.4%  Sharpe 1.36  Max drawdown -9.8%  Trades 41' } },
+};
+
+// The use case: one recorded session
+const M = { renko: 'mdl_r4n8ko21vb', win: 'mdl_w9q3tz58ke', kagi: 'mdl_k7g2pa60xm' };
+const B3 = { renko: 'bt_3hq8wz1m5c', win: 'bt_9vd2kr7p4x', kagi: 'bt_6tn4ya0e8j' };
+const PROMPT = 'Compare my three NVDA models on 1h candles for the first half of 2025. Run each with my usual settings, then tell me which one is the most stable and why.';
+const SESSION = [
+  { say: 'I’ll find your models first and check which of them read 1h candles.',
+    calls: [{ name: 'list_models', kind: 'ro', args: {}, res: '3 models, all 1h', answer: { items: [
+      { id: M.renko, name: 'renko-lstm.keras', representation: 'renko-triples@2', timeframe: '1h', state: 'verified' },
+      { id: M.win, name: 'blesk-window-32.keras', representation: 'candles@1', timeframe: '1h', state: 'verified' },
+      { id: M.kagi, name: 'kagi-tcn.onnx', representation: 'kagi@1', timeframe: '1h', state: 'verified' },
+    ], total: 3 } }] },
+  { calls: [{ name: 'get_instrument', kind: 'ro', args: { id: 'stock:NVDA' }, res: 'data since Jan 2016', answer: { id: 'stock:NVDA', name: 'NVIDIA Corporation', exchange: 'NASDAQ', timeframes: ['1m', '5m', '15m', '30m', '1h', '4h', '1d'], available_from: '2016-01-04T14:30:00Z' } }] },
+  { say: 'All three read 1h candles and NVDA has data back to 2016. I’ll check one setup before starting anything.',
+    calls: [{ name: 'validate_backtest', kind: 'ro', args: { model_id: M.renko, instrument: 'stock:NVDA', start: '2025-01-02', end: '2025-06-30' }, res: 'no problems, 868 candles', answer: { ok: true, candles: 868, warmup_candles: 96, problems: [], from_defaults: ['decision', 'execution', 'benchmark'] } }] },
+  { say: 'The setup is fine. Starting all three with your defaults, they run one after another.',
+    calls: [
+      { name: 'start_backtest', kind: 'rw', args: { model_id: M.renko, instrument: 'stock:NVDA', start: '2025-01-02', end: '2025-06-30' }, res: 'Silent Orion, running', answer: { id: B3.renko, number: 41, name: 'Silent Orion', status: 'running' } },
+      { name: 'start_backtest', kind: 'rw', args: { model_id: M.win, instrument: 'stock:NVDA', start: '2025-01-02', end: '2025-06-30' }, res: 'Bright Vega, queued 1', answer: { id: B3.win, number: 42, name: 'Bright Vega', status: 'queued', queue_position: 1 } },
+      { name: 'start_backtest', kind: 'rw', args: { model_id: M.kagi, instrument: 'stock:NVDA', start: '2025-01-02', end: '2025-06-30' }, res: 'Quiet Lyra, queued 2', answer: { id: B3.kagi, number: 43, name: 'Quiet Lyra', status: 'queued', queue_position: 2 } },
+    ] },
+  { say: 'Waiting for the last one in the queue. The other two finish before it.',
+    calls: [{ name: 'wait_for_backtest', kind: 'ro', args: { id: B3.kagi, timeout_s: 60 }, res: 'done after 52 s', answer: { id: B3.kagi, name: 'Quiet Lyra', status: 'done', waited_s: 52, queue: { running: 0, queued: 0 } } }] },
+  { calls: [{ name: 'compare_backtests', kind: 'ro', args: { ids: [B3.renko, B3.win, B3.kagi] }, res: 'Silent Orion best on Sharpe and drawdown', answer: {
+    backtests: ['Silent Orion', 'Bright Vega', 'Quiet Lyra'],
+    metrics: [
+      { key: 'total_return', values: [0.184, 0.227, 0.062], best: 1, worst: 2 },
+      { key: 'sharpe', values: [1.36, 0.88, 0.52], best: 0, worst: 2 },
+      { key: 'max_drawdown', values: [-0.098, -0.241, -0.145], best: 0, worst: 1 },
+      { key: 'trades', values: [41, 96, 33] },
+    ],
+    differs: ['model'],
+    benchmark: { name: 'Buy and hold NVDA', total_return: 0.141, sharpe: 0.41, max_drawdown: -0.369 },
+    equity: { points: 200, lines: 4 },
+  } }] },
+  { fin: true, say: 'Silent Orion, the Renko model, is the most stable. It made 18.4 % with the smallest fall, 9.8 %, and the best Sharpe, 1.36. Bright Vega earned more, 22.7 %, but fell 24.1 % in April when NVDA dropped, so it followed the market more than it read it. Quiet Lyra traded least and made 6.2 %. Buy and hold made 14.1 % and fell 36.9 % on the way. Six months of one stock is a small sample, so I would run the same three on AMD and on 2024 before trusting this.' },
+];
+const CALLS = SESSION.reduce((n, s) => n + (s.calls ? s.calls.length : 0), 0);
+
+// Outcome: equity of the three backtests and buy and hold (example figures)
+const SERIES = [
+  { k: 'renko', name: 'Silent Orion', sub: 'NVDA · Renko · 1h', c: 'var(--s0)', ret: 0.184, sh: 1.36, dd: -0.098, tr: 41,
+    a: [[0, 100], [0.15, 103], [0.3, 107.5], [0.45, 111], [0.58, 100.1], [0.7, 106], [0.85, 113], [1, 118.4]] },
+  { k: 'win', name: 'Bright Vega', sub: 'NVDA · Windows · 1h', c: 'var(--s1)', ret: 0.227, sh: 0.88, dd: -0.241, tr: 96,
+    a: [[0, 100], [0.1, 105], [0.17, 96], [0.3, 108], [0.45, 104], [0.6, 82], [0.75, 100], [0.9, 115], [1, 122.7]] },
+  { k: 'kagi', name: 'Quiet Lyra', sub: 'NVDA · Kagi · 1h', c: 'var(--s2)', ret: 0.062, sh: 0.52, dd: -0.145, tr: 33,
+    a: [[0, 100], [0.2, 104], [0.35, 108], [0.5, 101], [0.6, 92.3], [0.8, 101], [1, 106.2]] },
+  { k: 'bh', name: 'Buy and hold NVDA', sub: 'Benchmark', c: 'var(--s3)', dash: true, ret: 0.141, sh: 0.41, dd: -0.369, tr: null,
+    a: [[0, 100], [0.1, 104], [0.17, 88], [0.3, 101], [0.45, 86], [0.55, 66], [0.6, 63.1], [0.7, 80], [0.85, 100], [1, 114.1]] },
+];
+const NPTS = 120;
+(function buildSeries() {
+  let seed = 11;
+  const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 - 0.5; };
+  SERIES.forEach(s => {
+    s.v = [];
+    for (let i = 0; i < NPTS; i++) {
+      const t = i / (NPTS - 1);
+      let j = 0; while (j < s.a.length - 2 && s.a[j + 1][0] < t) j++;
+      const [t0, v0] = s.a[j], [t1, v1] = s.a[j + 1];
+      const f = (t - t0) / (t1 - t0);
+      const wob = Math.sin(Math.PI * f) * rnd() * (s.k === 'bh' ? 5 : s.k === 'win' ? 3.4 : 1.6);
+      s.v.push(v0 + (v1 - v0) * f + wob);
+    }
+  });
+})();
+const D0 = Date.UTC(2025, 0, 2), D1 = Date.UTC(2025, 5, 30);
+const dateAt = i => new Date(D0 + (D1 - D0) * i / (NPTS - 1));
+const fmtD = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+const pct = (x, sign = true) => `${sign && x > 0 ? '+' : x < 0 ? '−' : ''}${Math.abs(x * 100).toFixed(1)} %`;
+
+// ---------- pages ----------
+const PAGES = {
+  agents: {
+    nav: 'agents', crumbs: ['Docs', 'Agents'], path: '/docs/agents/',
+    title: 'CandleStack for agents',
+    intro: 'Everything you do in the app, an agent can do for you. Connect Claude, ChatGPT or Cursor through MCP, or call the API from your own code.',
+    next: ['Install the MCP server', 'install'],
+    blocks: () => [
+      { t: 'callout', kind: 'note', s: 'Agents work for accounts on the beta list. They see your own models and backtests and what others published to Experiments, nothing else.' },
+      { t: 'h2', id: 'can-do', s: 'What an agent can do' },
+      { t: 'rows', items: [
+        ['Find data', 'Search stocks and crypto and read candles in any timeframe from 1m to 1d.'],
+        ['Check models', 'Read a manifest, test a new one before saving it, upload a model file through a one-time link.'],
+        ['Run backtests', 'Start up to 20 in your queue, wait for them and read the metrics and trades.'],
+        ['Compare', 'Put 2 to 20 backtests side by side with the best and worst value of each metric marked.'],
+        ['Sweep', 'Run one setup over a grid of representations, timeframes and periods, ranked by the metric you pick.'],
+        ['Publish', 'Share a good backtest in Experiments, or take it back.'],
+      ] },
+      { t: 'h2', id: 'pick', s: 'MCP or the API' },
+      { t: 'pick' },
+      { t: 'p', s: 'Not sure? Start with MCP. You can script the same steps later. Every tool has an API endpoint that does the same.', cls: 'small' },
+      { t: 'h2', id: 'first', s: 'First backtest from a chat in 2 minutes' },
+      { t: 'steps', items: [
+        { title: 'Create a key', body: [{ t: 'p', s: 'In the app open Settings, then API and MCP, and create a key with the `read` and `backtests` scopes. On claude.ai and ChatGPT you skip this and sign in instead.' }] },
+        { title: 'Add the server', body: [
+          { t: 'code', lang: 'bash', label: 'Terminal', code: CMD_CLAUDE },
+          { t: 'p', s: 'Using another client? [Install](/docs/mcp/install/) has the steps for claude.ai, ChatGPT, Cursor and VS Code.' },
+        ] },
+        { title: 'Ask', body: [
+          { t: 'prompt', s: 'Run my newest model on AAPL for the first half of 2025 with my usual settings. Then tell me how it did against buy and hold.' },
+          { t: 'p', s: 'The agent finds your model, checks the setup, starts the backtest, waits for it and answers with the metrics and a link to the backtest in the app.', cls: 'small' },
+        ] },
+      ] },
+      { t: 'h2', id: 'web-only', s: 'What stays in the web app' },
+      { t: 'p', s: 'Deleting your account, your sign-in methods and signing out are only in the app. No key and no agent can do them.' },
+      { t: 'h2', id: 'next', s: 'Next' },
+      { t: 'rows', links: true, items: [
+        ['Install', 'Claude Code, claude.ai, ChatGPT, Cursor and VS Code', '/docs/mcp/install/'],
+        ['Tools', 'Every tool with its parameters and an example', '/docs/mcp/tools/'],
+        ['API', 'Run a backtest from a script in three requests', '/docs/api/backtests/'],
+        ['Use cases', 'Real sessions, step by step', '/docs/use-cases/compare-three-models-nvda/'],
+      ] },
+    ],
+  },
+  install: {
+    nav: 'install', crumbs: ['Docs', 'MCP', 'Install'], path: '/docs/mcp/install/',
+    title: 'Install the MCP server',
+    intro: 'Connect CandleStack to your AI client. It takes about a minute.',
+    prev: ['CandleStack for agents', 'agents'], next: ['Tools', 'tools'],
+    blocks: () => [
+      { t: 'addr' },
+      { t: 'h2', id: 'client', s: 'Pick your client' },
+      { t: 'clients' },
+      { t: 'h2', id: 'check', s: 'Check that it works' },
+      { t: 'p', s: 'Ask this in a new chat.' },
+      { t: 'prompt', s: 'What is my CandleStack account, and how many models do I have?' },
+      { t: 'p', s: 'The agent calls `get_me` and `list_models` and answers with your name and your models.', cls: 'small' },
+      { t: 'h2', id: 'scopes', s: 'Scopes' },
+      { t: 'p', s: 'A key or a connected app can do only what its scopes allow. Give it the fewest you need.' },
+      { t: 'rows', mono: true, items: [
+        ['read', 'Read your models, backtests, market data and Experiments.'],
+        ['backtests', 'Start, rename, star and cancel backtests and run sweeps.'],
+        ['models', 'Upload, rename and delete models and set their manifests.'],
+        ['publish', 'Publish backtests to Experiments and take them back.'],
+      ] },
+      { t: 'h2', id: 'trouble', s: 'If it does not connect' },
+      { t: 'rows', items: [
+        ['401 Unauthorized', 'The key is wrong, expired or revoked. Create a new one in Settings.'],
+        ['Not on the beta list', 'Your account needs a place on the beta list. Ask for one from the sign-in page.'],
+        ['Tools are missing', 'The key lacks a scope. Tools that need it stay hidden until you add it.'],
+        ['Nothing changes', 'Restart the client after you edit its config file.'],
+      ] },
+    ],
+  },
+  tools: {
+    nav: 'tools', crumbs: ['Docs', 'MCP', 'Tools'], path: '/docs/mcp/tools/',
+    title: 'Tools',
+    intro: 'Every tool of the MCP server, generated from the server itself. Each one does the same as an API endpoint, with the same checks.',
+    meta: '35 tools · generated 6 Nov 2026',
+    prev: ['Install the MCP server', 'install'], next: ['Sign-in and scopes', null],
+    blocks: () => [
+      { t: 'legend' },
+      { t: 'h2', id: 'all', s: 'All tools' },
+      { t: 'tindex' },
+      ...TOOL_ENTRIES.map(e => ({ t: 'tool', e })),
+    ],
+  },
+  api: {
+    nav: 'api', crumbs: ['Docs', 'API', 'Run a backtest'], path: '/docs/api/backtests/',
+    title: 'Run a backtest from a script',
+    intro: 'Start a backtest, wait for it and read the results in three requests. The same steps work for one backtest or a batch of twenty.',
+    prev: ['Keys', null], next: ['Upload a model', null],
+    blocks: () => [
+      { t: 'callout', kind: 'note', s: 'You need a key with the `read` and `backtests` scopes. Keep it in the environment variable `CANDLESTACK_KEY`, never in your code.' },
+      { t: 'h2', id: 'start', s: 'Start the backtest' },
+      { t: 'p', s: 'Send the model, the instrument and the period. Times are UTC seconds of a candle’s open and the end is not included. Everything else comes from your backtest defaults.' },
+      { t: 'langs', step: 'start' },
+      { t: 'out', step: 'start' },
+      { t: 'h2', id: 'wait', s: 'Wait for it' },
+      { t: 'p', s: 'A backtest waits in your queue, then runs. Ask for its status every few seconds until it is `done` or `failed`.' },
+      { t: 'langs', step: 'wait' },
+      { t: 'out', step: 'wait' },
+      { t: 'h2', id: 'read', s: 'Read the results' },
+      { t: 'p', s: 'The answer holds the metrics, the trades and the equity curve. Every field is in [Backtest JSON](/docs/concepts/backtest-json/).' },
+      { t: 'langs', step: 'read' },
+      { t: 'out', step: 'read' },
+      { t: 'h2', id: 'errors', s: 'Errors' },
+      { t: 'p', s: 'Every error is a problem document with a `type` link that explains it.' },
+      { t: 'rows', items: [
+        ['401 invalid-key', 'The key is missing, wrong, expired or revoked.'],
+        ['403 missing-scope', 'The key lacks the scope this call needs. The answer names it.'],
+        ['409 queue-full', '20 backtests already wait. Cancel one or wait.'],
+        ['429 rate-limited', 'Wait `Retry-After` seconds and send it again.'],
+      ] },
+    ],
+  },
+  case: {
+    nav: 'case', crumbs: ['Docs', 'Use cases', 'Compare three models on NVDA'], path: '/docs/use-cases/compare-three-models-nvda/',
+    title: 'Compare three models on NVDA',
+    intro: 'Three models read the same stock in different ways. The agent runs all three, compares them and says which one is the most stable.',
+    prev: ['Upload and check a model', null], next: ['Stability study', null],
+    blocks: () => [
+      { t: 'ucmeta' },
+      { t: 'h2', id: 'prompt', s: 'The prompt' },
+      { t: 'prompt', s: PROMPT },
+      { t: 'h2', id: 'session', s: 'The session' },
+      { t: 'session' },
+      { t: 'h2', id: 'outcome', s: 'The outcome' },
+      { t: 'chart' },
+      { t: 'cmp' },
+      { t: 'callout', kind: 'warn', s: 'Six months of one stock is a small sample and past results do not predict future ones. Run the same models on other periods before you rely on them.' },
+      { t: 'h2', id: 'try', s: 'Try it yourself' },
+      { t: 'p', s: 'Connect CandleStack with [Install](/docs/mcp/install/), then paste the prompt with your own models and instrument. The tools it used are `list_models`, `validate_backtest`, `start_backtest`, `wait_for_backtest` and `compare_backtests` in [Tools](/docs/mcp/tools/).' },
+    ],
+  },
+};
+
+// ---------- state ----------
+const S = { page: 'agents', client: 'claude-code', lang: 'curl', step: 1, mode: 'step', open: {}, menu: false, tocOpen: false, copied: null, sm: false, notes: false, hash: '' };
+try { const l = localStorage.getItem('docs-lang'); if (l && LANGS.some(x => x[0] === l)) S.lang = l; } catch (e) { /* storage can be blocked */ }
+
+// ---------- block renderers (HTML) ----------
+let cbN = 0;
+function copyBtn(id, label = 'Copy') {
+  const done = S.copied === id;
+  return `<button type="button" class="btn xs ghost ${done ? 'done' : ''}" data-act="copy" data-id="${id}" aria-label="${label}">${ic(done ? 'check' : 'copy')}${done ? 'Copied' : label}</button>`;
+}
+function codeBlock(b, extra = '') {
+  const id = b.id || `cb${cbN++}`;
+  CODE[id] = b.code;
+  return `<div class="cb ${extra}"><div class="cb-hd"><span class="cb-lbl">${esc(b.label || '')}</span><span class="cb-sp"></span>${S.mode === 'nojs' ? '' : copyBtn(id)}</div><pre><code>${hl(b.code, b.lang)}</code></pre></div>`;
+}
+const CODE = {};
+function block(b) {
+  switch (b.t) {
+    case 'h2': return `<h2 id="${b.id}">${esc(b.s)}<a class="hlink" href="#none" aria-hidden="true">#</a></h2>`;
+    case 'h3': return `<h3>${esc(b.s)}</h3>`;
+    case 'p': return `<p class="${b.cls || ''}">${inl(b.s)}</p>`;
+    case 'code': return codeBlock(b);
+    case 'callout': return `<div class="co ${b.kind === 'warn' ? 'warn' : ''}" role="note">${ic(b.kind === 'warn' ? 'warn' : 'info')}<div><b>${b.kind === 'warn' ? 'Warning' : 'Note'}</b> ${inl(b.s)}</div></div>`;
+    case 'prompt': { const id = `pr${cbN++}`; CODE[id] = b.s; return `<div class="prompt"><div class="cb-hd"><span class="prompt-l">${ic('term')}Prompt</span><span class="cb-sp"></span>${S.mode === 'nojs' ? '' : copyBtn(id)}</div><p>${esc(b.s)}</p></div>`; }
+    case 'shot': return `<div class="shot" role="img" aria-label="Screenshot: ${esc(b.s)}"><div>${ic('image')}<b>Screenshot</b><span>${esc(b.s)}</span></div></div>`;
+    case 'rows': return `<ul class="rows">${b.items.map(([l, t, h]) => h
+      ? `<li><a href="${href(h)}"><span class="l">${esc(l)}</span><span class="t">${inl(t)}</span></a></li>`
+      : `<li class="r"><span class="l ${b.mono ? 'mono' : ''}">${inl(l)}</span><span class="t">${inl(t)}</span></li>`).join('')}</ul>`;
+    case 'steps': return `<ol class="steps">${b.items.map((s, i) => `<li><span class="n">${i + 1}</span><div><div class="s-t">${esc(s.title)}</div><div class="s-b">${s.body.map(block).join('')}</div></div></li>`).join('')}</ol>`;
+    case 'addr': { const id = 'addr'; CODE[id] = MCP_URL; return `<div class="srv"><span class="k">Server address</span><span class="v">${MCP_URL}</span>${copyBtn(id)}<span class="h">Streamable HTTP. Sign in with an API key or with your CandleStack account.</span></div>`; }
+    case 'clients': {
+      const c = CLIENTS.find(x => x.k === S.client);
+      return `<div class="tabs" role="tablist">${CLIENTS.map(x => `<button type="button" role="tab" class="tab ${x.k === S.client ? 'on' : ''}" aria-selected="${x.k === S.client}" data-act="client" data-val="${x.k}">${esc(x.name)}</button>`).join('')}</div>
+        <div class="tab-meta">${c.how === 'key' ? '<span class="tag">API key</span>Signs in with a key you create in Settings.' : '<span class="tag ro">Your account</span>Signs you in with GitHub or Google. No key to copy.'}</div>
+        ${CLIENT_BODY[S.client].map(block).join('')}`;
+    }
+    case 'oneclick': return `<div class="oneclick"><button type="button" class="btn pri">${ic('dl')}${esc(b.label)}</button><span>${esc(b.s)} Or add it by hand.</span></div>`;
+    case 'pick': return `<div class="pick">
+      <div class="card"><span class="k">MCP server</span><h3>For chats and coding agents</h3><p>Add one address to your AI client. The agent picks the tools, runs them and explains what it found.</p>
+        <div class="clients">${CLIENTS.map(c => `<span class="tag">${esc(c.name)}</span>`).join('')}</div>
+        <ul><li>${ic('check')}<span>Sign in once, with your account or a key</span></li><li>${ic('check')}<span>35 tools from data to Experiments</span></li><li>${ic('check')}<span>Asks before it deletes or publishes</span></li></ul>
+        <a class="go" href="${href('/docs/mcp/install/')}">Install the server →</a></div>
+      <div class="card"><span class="k">REST API</span><h3>For scripts and your own code</h3><p>Send JSON over HTTPS with a key in the header. Good for notebooks, scheduled jobs and pipelines.</p>
+        <div class="clients"><span class="tag">curl</span><span class="tag">Python</span><span class="tag">JavaScript</span></div>
+        <ul><li>${ic('check')}<span>The same actions as the MCP tools</span></li><li>${ic('check')}<span>Keys with scopes and an expiry</span></li><li>${ic('check')}<span>Full reference with every field</span></li></ul>
+        <a class="go" href="${href('/docs/api/backtests/')}">Run a backtest from a script →</a></div>
+    </div>`;
+    case 'legend': return `<div class="legend">${Object.entries(KIND).map(([k, [n, d]]) => `<span><span class="tag ${k}"><span class="dot"></span>${n}</span>${d}</span>`).join('')}</div>`;
+    case 'tindex': return `<div class="tidx">${TOOLS.map(([g, ts]) => `<div class="tidx-g"><div class="gt">${g}</div><ul>${ts.map(([n, k]) => { const has = TOOL_ENTRIES.some(e => e.name === n); return `<li><a href="${has ? '#tool-' + n : '#none'}" class="${has ? 'has' : ''}" data-act="${has ? 'jumpto' : ''}" data-val="tool-${n}"><span class="tdot ${k}" title="${KIND[k][0]}"></span>${n}</a></li>`; }).join('')}</ul></div>`).join('')}</div>`;
+    case 'tool': return toolEntry(b.e);
+    case 'langs': return langBlock(b.step);
+    case 'out': {
+      const o = API_OUT[b.step];
+      return codeBlock({ lang: o.lang, label: o.label, code: typeof o.code === 'string' ? o.code : o.code[S.lang] }, 'out');
+    }
+    case 'ucmeta': return `<div class="ucm"><span>${ic('term')}Claude Code</span><span>${ic('steps')}${SESSION.length} steps · ${CALLS} tool calls</span><span>${ic('clock')}2 min 51 s</span><span>${ic('cal')}Recorded 6 Nov 2026</span></div>`;
+    case 'session': return session();
+    case 'chart': return chart();
+    case 'cmp': return cmpTable();
+  }
+  return '';
+}
+function langBlock(step) {
+  const lang = LANGS.find(l => l[0] === S.lang);
+  const id = `api-${step}`; CODE[id] = API_CODE[step][S.lang];
+  return `<div class="cb"><div class="cb-hd"><div class="cb-tabs" role="tablist">${LANGS.map(([k, n]) => `<button type="button" role="tab" class="cb-tab ${k === S.lang ? 'on' : ''}" aria-selected="${k === S.lang}" data-act="lang" data-val="${k}">${n}</button>`).join('')}</div><span class="cb-sp"></span>${copyBtn(id)}</div><pre><code>${hl(API_CODE[step][S.lang], lang[2])}</code></pre></div>`;
+}
+function toolEntry(e) {
+  return `<section class="tool" id="tool-${e.name}">
+    <h2>${e.name}<a class="hlink" href="#none" aria-hidden="true">#</a></h2>
+    <div class="tags"><span class="tag ${e.kind}"><span class="dot"></span>${KIND[e.kind][0]}</span><span class="tag">scope ${e.scope}</span><span class="tag">${esc(e.api)}</span></div>
+    <p>${inl(e.desc)}</p>
+    <div class="lbl">Parameters</div>
+    <div class="tw"><table class="pt"><tr><th>Name</th><th>Type</th><th>What it is</th></tr>${e.params.map(([n, t, r, d]) => `<tr><td class="nm">${n}<small>${r ? 'required' : 'optional'}</small></td><td class="ty">${t}</td><td>${inl(d)}</td></tr>`).join('')}</table></div>
+    <div class="lbl">Example call</div>
+    ${codeBlock({ lang: 'json', label: e.name, code: J(e.call) })}
+    <div class="lbl">Answer</div>
+    ${codeBlock({ lang: 'json', label: 'structuredContent', code: J(e.answer) }, 'out')}
+    <div class="lbl">Errors</div>
+    <ul class="rows">${e.errors.map(([n, d]) => `<li class="r"><span class="l mono">${n}</span><span>${inl(d)}</span></li>`).join('')}</ul>
+  </section>`;
+}
+function argLine(a) { return Object.entries(a).map(([k, v]) => `${k} ${Array.isArray(v) ? v.length + ' ids' : v}`).join(', ') || 'no arguments'; }
+function toolCall(c, key, open) {
+  return `<div class="tc ${open ? 'open' : ''}">
+    <button type="button" class="tc-h" data-act="tc" data-val="${key}" aria-expanded="${open}">${ic('chev', 'tc-ch')}<span class="tc-nm">${c.name}</span><span class="tc-args">${esc(argLine(c.args))}</span><span class="tc-res">→ ${esc(c.res)}</span></button>
+    ${open ? `<div class="tc-io"><div class="tl">Call <span class="tag ${c.kind}"><span class="dot"></span>${KIND[c.kind][0]}</span></div><pre><code>${hl(J(c.args), 'json')}</code></pre><div class="tl">Answer</div><pre><code>${hl(J(c.answer), 'json')}</code></pre></div>` : ''}
+  </div>`;
+}
+function session() {
+  const n = SESSION.length;
+  if (S.mode === 'nojs') {
+    // Without JavaScript: every step open in plain HTML, no controls
+    return `<ol class="ss">${SESSION.map((s, i) => `<li class="st ${s.fin ? 'fin' : ''}"><div class="st-n">${i + 1}</div><div class="st-b">${s.say ? `<div class="who">${s.fin ? 'Agent’s answer' : 'Agent'}</div><p class="st-say">${esc(s.say)}</p>` : ''}${(s.calls || []).map(c => `<details class="nj" open><summary><b>${c.name}</b> <span class="muted">→ ${esc(c.res)}</span></summary><div class="tl">Call</div><pre>${hl(J(c.args), 'json')}</pre><div class="tl">Answer</div><pre>${hl(J(c.answer), 'json')}</pre></details>`).join('')}</div></li>`).join('')}</ol>`;
+  }
+  const all = S.mode === 'all';
+  const shown = all ? n : S.step;
+  const bar = `<div class="sbar"><div class="seg" role="tablist"><button type="button" class="${all ? '' : 'on'}" data-act="mode" data-val="step">Step by step</button><button type="button" class="${all ? 'on' : ''}" data-act="mode" data-val="all">All steps</button></div><span class="sp"></span>
+    ${all ? `<span class="pos">${n} steps · ${CALLS} calls</span>` : `<button type="button" class="btn sm" data-act="prev" ${S.step <= 1 ? 'disabled' : ''} aria-label="Previous step">${ic('left')}<span class="hide-xs">Previous</span></button><span class="pos">Step ${S.step} of ${n}</span><button type="button" class="btn pri" data-act="next" ${S.step >= n ? 'disabled' : ''}>Next${ic('right')}</button>`}
+    ${all ? '' : `<div class="prog">${SESSION.map((_, i) => `<i class="${i < S.step ? 'on' : ''}"></i>`).join('')}</div>`}</div>`;
+  const items = SESSION.slice(0, shown).map((s, i) => {
+    const cur = !all && i === S.step - 1;
+    return `<li class="st ${cur ? 'cur' : ''} ${s.fin ? 'fin' : ''}"><div class="st-n">${i + 1}</div><div class="st-b">${s.say ? `<div class="who">${s.fin ? 'Agent’s answer' : 'Agent'}</div><p class="st-say">${esc(s.say)}</p>` : ''}${(s.calls || []).map((c, j) => { const key = `${i}-${j}`; const open = S.open[key] !== undefined ? S.open[key] : (all || cur); return toolCall(c, key, open); }).join('')}</div></li>`;
+  }).join('');
+  const more = !all && shown < n ? `<li class="st-more"><div class="st-n">${ic('down')}</div><div class="t">${n - shown} more ${n - shown === 1 ? 'step' : 'steps'}<button type="button" class="btn sm" data-act="mode" data-val="all">Show all</button></div></li>` : '';
+  return `${bar}<ol class="ss">${items}${more}</ol>`;
+}
+function chart() {
+  const lo = 60, hi = 125, y = v => (hi - v) / (hi - lo) * 100;
+  const paths = SERIES.map(s => `<path class="ln" d="${s.v.map((v, i) => `${i ? 'L' : 'M'}${(i / (NPTS - 1) * 1000).toFixed(1)},${y(v).toFixed(2)}`).join('')}" stroke="${s.c}" ${s.dash ? 'stroke-dasharray="5 4"' : ''}/>`).join('');
+  const ticks = [70, 80, 90, 100, 110, 120];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
+  return `<div class="chart"><div class="chart-hd"><h3>Equity, 2 Jan to 30 Jun 2025</h3><div class="chart-lg">${SERIES.map(s => `<span><i class="${s.dash ? 'dash' : ''}" style="border-color:${s.c}"></i>${esc(s.name)}</span>`).join('')}</div></div>
+    <div class="plot" id="plot"><svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-label="Equity of the three backtests and buy and hold, starting at 100">${ticks.map(t => `<line class="${t === 100 ? 'base' : 'gl'}" x1="0" x2="1000" y1="${y(t)}" y2="${y(t)}"/>`).join('')}${paths}</svg>
+    ${ticks.map(t => `<span class="yl" style="top:${y(t)}%">${t}</span>`).join('')}<div class="xh" id="xh" hidden></div><div class="tip" id="tip" hidden></div></div>
+    <div class="xl">${months.map(m => `<span>${m}</span>`).join('')}</div></div>`;
+}
+function cmpTable() {
+  const bt = SERIES.slice(0, 3);
+  const best = (k, dir) => bt.reduce((a, b) => (dir * b[k] > dir * a[k] ? b : a)).k;
+  const worst = (k, dir) => bt.reduce((a, b) => (dir * b[k] < dir * a[k] ? b : a)).k;
+  const cell = (s, k, dir, f) => { const c = s.k === 'bh' ? '' : s.k === best(k, dir) ? 'best' : s.k === worst(k, dir) ? 'worst' : ''; return `<td class="num ${c}">${f(s[k])}</td>`; };
+  return `<div class="tw"><table class="pt cmp"><tr><th>Backtest</th><th class="num">Return</th><th class="num">Sharpe</th><th class="num">Max drawdown</th><th class="num c-tr">Trades</th></tr>${SERIES.map(s => `<tr class="${s.k === 'bh' ? 'bench' : ''}"><td><div class="bn"><b><span class="sw" style="background:${s.c}"></span>${esc(s.name)}</b><span>${esc(s.sub)}</span></div></td>${cell(s, 'ret', 1, pct)}${cell(s, 'sh', 1, v => v.toFixed(2))}${cell(s, 'dd', 1, pct)}<td class="num c-tr">${s.tr === null ? '–' : s.tr}</td></tr>`).join('')}</table></div>
+    <p class="small">Best value of each column in green, worst in red, as on the Compare page. Example figures for this design.</p>`;
+}
+
+// ---------- Markdown versions ----------
+function mdBlock(b) {
+  switch (b.t) {
+    case 'h2': return `## ${b.s}`;
+    case 'h3': return `### ${b.s}`;
+    case 'p': return b.s;
+    case 'code': return '```' + (b.lang === 'py' ? 'python' : b.lang) + '\n' + b.code + '\n```';
+    case 'callout': return `> **${b.kind === 'warn' ? 'Warning' : 'Note'}.** ${b.s}`;
+    case 'prompt': return '```text\n' + b.s + '\n```';
+    case 'shot': return `![${b.s}](screenshot.png)`;
+    case 'rows': return b.items.map(([l, t, h]) => h ? `- [${l}](${h}) ${t}` : `- **${l}** ${t}`).join('\n');
+    case 'steps': return b.items.map((s, i) => `${i + 1}. **${s.title}**\n\n${s.body.map(mdBlock).join('\n\n').replace(/^/gm, '   ')}`).join('\n\n');
+    case 'addr': return `Server address \`${MCP_URL}\`, Streamable HTTP.`;
+    case 'clients': return CLIENTS.map(c => `### ${c.name}\n\n${CLIENT_BODY[c.k].map(mdBlock).join('\n\n')}`).join('\n\n');
+    case 'oneclick': return `[${b.label}](#) ${b.s}`;
+    case 'pick': return '- **MCP server**, for chats and coding agents. [Install the server](/docs/mcp/install/)\n- **REST API**, for scripts and your own code. [Run a backtest from a script](/docs/api/backtests/)';
+    case 'legend': return Object.values(KIND).map(([n, d]) => `- **${n}** ${d}`).join('\n');
+    case 'tindex': return TOOLS.map(([g, ts]) => `- ${g} · ${ts.map(([n]) => '`' + n + '`').join(', ')}`).join('\n');
+    case 'tool': { const e = b.e; return `## ${e.name}\n\n${KIND[e.kind][0]} · scope \`${e.scope}\` · \`${e.api}\`\n\n${e.desc}\n\n| Name | Type | Required | What it is |\n| --- | --- | --- | --- |\n${e.params.map(([n, t, r, d]) => `| \`${n}\` | ${t} | ${r ? 'yes' : 'no'} | ${d} |`).join('\n')}\n\nExample call\n\n\`\`\`json\n${J(e.call)}\n\`\`\`\n\nAnswer\n\n\`\`\`json\n${J(e.answer)}\n\`\`\``; }
+    case 'langs': return LANGS.map(([k, n, l]) => `${n}\n\n\`\`\`${l === 'py' ? 'python' : l}\n${API_CODE[b.step][k]}\n\`\`\``).join('\n\n');
+    case 'out': { const o = API_OUT[b.step]; return `${o.label}\n\n\`\`\`${o.lang}\n${typeof o.code === 'string' ? o.code : o.code.python}\n\`\`\``; }
+    case 'ucmeta': return `Claude Code · ${SESSION.length} steps · ${CALLS} tool calls · 2 min 51 s · recorded 6 Nov 2026`;
+    case 'session': return SESSION.map((s, i) => `### Step ${i + 1}${s.calls ? ' · ' + [...new Set(s.calls.map(c => c.name))].join(', ') : ' · the answer'}\n\n${s.say ? (s.fin ? '> ' : '') + s.say + '\n\n' : ''}${(s.calls || []).map(c => `Call \`${c.name}\`\n\n\`\`\`json\n${J(c.args)}\n\`\`\`\n\nAnswer\n\n\`\`\`json\n${J(c.answer)}\n\`\`\``).join('\n\n')}`.trim()).join('\n\n');
+    case 'chart': return '![Equity of the three backtests and buy and hold, 2 Jan to 30 Jun 2025](equity.svg)';
+    case 'cmp': return `| Backtest | Return | Sharpe | Max drawdown | Trades |\n| --- | --- | --- | --- | --- |\n${SERIES.map(s => `| ${s.name} (${s.sub}) | ${pct(s.ret)} | ${s.sh.toFixed(2)} | ${pct(s.dd)} | ${s.tr ?? ''} |`).join('\n')}`;
+  }
+  return '';
+}
+function mdOf(key) {
+  const p = PAGES[key];
+  return `# ${p.title}\n\n${p.intro}\n\n${p.blocks().map(mdBlock).filter(Boolean).join('\n\n')}\n`;
+}
+
+// ---------- layout ----------
+function header() {
+  return `<header class="top"><div class="top-in">
+    <a class="brand" href="#agents">CandleStack</a><span class="brand-sl">/</span><a class="brand-docs" href="#agents">Docs</a>
+    <nav class="nav" aria-label="Site"><a class="site" href="#none">Status</a><a class="site" href="#none">Meetings</a><a class="site" href="#none">Team</a><a class="on" href="#agents">Docs</a><a href="#none">GitHub</a>
+    <button type="button" class="toggle" data-act="theme" aria-label="Toggle dark mode" title="Toggle dark mode">${ic(ROOT.dataset.theme === 'dark' ? 'sun' : 'moon')}</button></nav>
+  </div></header>`;
+}
+function sidebar(cur) {
+  return `<aside class="side" aria-label="Docs">${NAV.map(([g, items]) => `<div class="side-g">${g}</div>${items.map(([t, k]) => `<a class="side-l ${k === cur ? 'on' : ''}" href="${k ? PAGE_HASH[k] : '#none'}" ${k === cur ? 'aria-current="page"' : ''}>${esc(t)}</a>`).join('')}`).join('')}
+    <div class="side-f"><a href="#none">llms.txt</a><a href="#none">llms-full.txt</a></div>
+    <div class="side-site"><a href="#none">Status</a><a href="#none">Meetings</a><a href="#none">Team</a><a href="#none">GitHub</a></div></aside>`;
+}
+function tocItems(p) {
+  const out = [];
+  p.blocks().forEach(b => { if (b.t === 'h2') out.push([b.id, b.s, false]); if (b.t === 'tool') out.push([`tool-${b.e.name}`, b.e.name, true]); });
+  return out;
+}
+function page(key) {
+  cbN = 0;
+  const p = PAGES[key];
+  const toc = tocItems(p);
+  const tocLinks = toc.map(([id, t, sub]) => `<a href="#${id}" data-act="jumpto" data-val="${id}" class="${sub ? 'sub' : ''}" data-toc="${id}">${esc(t)}</a>`).join('');
+  const nojs = S.mode === 'nojs' && key === 'case';
+  const body = p.blocks().map(block).join('');
+  const pager = [p.prev ? `<a class="pv" href="${p.prev[1] ? PAGE_HASH[p.prev[1]] : '#none'}"><span class="k">← Previous</span><span class="v">${esc(p.prev[0])}</span></a>` : '', p.next ? `<a class="nx" href="${p.next[1] ? PAGE_HASH[p.next[1]] : '#none'}"><span class="k">Next →</span><span class="v">${esc(p.next[0])}</span></a>` : ''].join('');
+  const where = p.crumbs.slice(1);
+  return `${header()}
+  <div class="mbar"><button type="button" data-act="menu" aria-expanded="${S.menu}">${ic(S.menu ? 'x' : 'menu')}${S.menu ? 'Close' : 'Menu'}</button><span class="where">${where.slice(0, -1).map(esc).join(' / ')}${where.length > 1 ? ' / ' : ''}<b>${esc(where[where.length - 1])}</b></span></div>
+  <div class="docs">
+    ${sidebar(p.nav)}
+    <main class="pg" id="main">
+      <div class="crumbs">${p.crumbs.map(esc).join('<i>/</i>')}</div>
+      <h1>${esc(p.title)}</h1>
+      <p class="intro">${esc(p.intro)}</p>
+      ${nojs ? '' : `<div class="pact">${copyBtnPage(key)}<a class="btn" href="#md/${key}">${ic('md')}View as Markdown</a>${p.meta ? `<span class="pmeta">${esc(p.meta)}</span>` : ''}</div>`}
+      ${nojs ? `<div class="rnote"><b>Review</b>This is the page with JavaScript off. Every step is open as plain text, and the Copy buttons, the tabs and the step controls are gone.</div>` : ''}
+      <details class="toc-m" ${S.tocOpen ? 'open' : ''}><summary>On this page ${ic('down')}</summary><nav>${toc.map(([id, t, sub]) => `<a href="#${id}" data-act="jumpto" data-val="${id}" class="${sub ? 'sub' : ''}">${esc(t)}</a>`).join('')}</nav></details>
+      ${body}
+      <nav class="pnav" aria-label="Pages">${pager}</nav>
+      <div class="pfoot"><span>Updated 6 Nov 2026</span><a href="#none">${ic('edit')}Edit this page on GitHub</a></div>
+    </main>
+    <aside class="toc" aria-label="On this page"><div class="toc-t">On this page</div>${tocLinks}
+      <div class="toc-x"><a href="#md/${key}">${ic('md')}View as Markdown</a><a href="#none">${ic('edit')}Edit on GitHub</a></div></aside>
+  </div>`;
+}
+function copyBtnPage(key) {
+  CODE['page-' + key] = mdOf(key);
+  const done = S.copied === 'page-' + key;
+  return `<button type="button" class="btn ${done ? 'done' : ''}" data-act="copy" data-id="page-${key}">${ic(done ? 'check' : 'copy')}${done ? 'Copied' : 'Copy page'}</button>`;
+}
+function mdPage(key) {
+  const p = PAGES[key];
+  return `<div class="mdv"><div class="mdv-bar"><a class="btn xs" href="${PAGE_HASH[key]}">${ic('left')}Back</a><div class="mdv-url">candlestack.tech<b>${p.path.replace(/\/$/, '')}.md</b></div><span>text/markdown</span></div><pre>${esc(mdOf(key))}</pre></div>`;
+}
+function phonePage(which) {
+  const sets = {
+    case: { t: 'Use case on a phone', p: 'The page at 390 px, and with the Menu open. Desktop first, the phone only needs to look right.', f: [['case/step-4', 'Step 4 of 7'], ['case/step-4/menu', 'Menu open']] },
+    install: { t: 'Install on a phone', p: 'Client tabs scroll sideways, code scrolls inside its block, On this page folds at the top.', f: [['install/cursor', 'Cursor tab'], ['install/cursor/toc', 'On this page open']] },
+  }[which];
+  return `<div class="ph"><div class="ph-t"><h1>${sets.t}</h1><p>${sets.p}</p></div><div class="ph-row">${sets.f.map(([r, c], i) => `<div class="ph-c"><span class="cap">${c} · 390 × 844</span><div class="ph-dev" data-ph="${i}"><iframe title="${esc(c)}" data-route="${r}"></iframe></div></div>`).join('')}</div></div>`;
+}
+
+// ---------- the Screens menu (review tool) ----------
+const SCREENS = [
+  ['Docs layout', [['#agents', 'Agents landing page']]],
+  ['MCP install', [['#install/claude-code', 'Claude Code'], ['#install/claude-ai', 'claude.ai'], ['#install/chatgpt', 'ChatGPT'], ['#install/cursor', 'Cursor'], ['#install/vscode', 'VS Code'], ['#install/copied', 'After Copy, Copied']]],
+  ['Tool reference', [['#tools', 'Index and two entries']]],
+  ['API', [['#api/curl', 'curl'], ['#api/python', 'Python'], ['#api/js', 'JavaScript']]],
+  ['Use case', [['#case/step-1', 'Step by step, step 1'], ['#case/step-4', 'Step by step, step 4'], ['#case/step-4/open', 'Step 4, an earlier call opened'], ['#case/all', 'All steps'], ['#case/nojs', 'Without JavaScript']]],
+  ['View as Markdown', [['#md/case', 'Use case .md'], ['#md/install', 'Install .md'], ['#md/tools', 'Tools .md']]],
+  ['Phone 390 px', [['#phone/case', 'Use case and Menu'], ['#phone/install', 'Install and On this page']]],
+];
+function scrMenu() {
+  if (EMBED) return '';
+  const items = SCREENS.map(([g, l]) => `<div class="scr-g">${g}</div>${l.map(([h, t]) => `<button type="button" class="scr-o ${S.hash === h ? 'on' : ''}" data-act="jump" data-val="${h}">${t}<span class="k">${h}</span></button>`).join('')}`).join('');
+  return `<div class="scr">${S.sm ? `<div class="scr-p" role="menu"><div class="scr-f"><button type="button" class="btn sm" data-act="theme">${ic(ROOT.dataset.theme === 'dark' ? 'sun' : 'moon')}${ROOT.dataset.theme === 'dark' ? 'Light' : 'Dark'}</button><button type="button" class="btn sm" data-act="notes">${ic('note')}Notes</button></div>${items}</div>` : ''}<button type="button" class="scr-t" data-act="sm" aria-expanded="${S.sm}" title="Every screen and state">${ic('grid')}Screens</button></div>`;
+}
+const NOTES = `<div class="mbg" data-act="notes-x"><div class="mdl" role="dialog" aria-label="Notes"><div class="mdl-h"><h2>Notes for review</h2><button type="button" class="btn xs" data-act="notes-x">${ic('x')}Close</button></div><div class="notes">
+  <div><h3>Look</h3><ul>
+    <li>The website’s look: Geist and Geist Mono, its color tokens, the 40 px grid, the plain “CandleStack” brand and the muted nav. Docs joins the nav after Team.</li>
+    <li>The chart side decorations of the website are left out on docs pages, the sidebar and the contents take the sides.</li>
+    <li>Real 22 px headings with a rule above, so the contents and anchors work. The website’s small mono labels stay for sidebar groups, crumbs and table heads.</li>
+  </ul></div>
+  <div><h3>Layout</h3><ul>
+    <li>Desktop: sidebar 232 px, page up to 720 px, On this page 200 px, max width 1280 px.</li>
+    <li>Under 1180 px On this page folds at the top of the page. Under 900 px the sidebar becomes a Menu drawer under the header and the site links move into it.</li>
+    <li><code>/docs/</code> opens the Agents page. Previous and Next at the bottom, then the date and Edit this page on GitHub.</li>
+    <li>The sidebar ends with <code>llms.txt</code> and <code>llms-full.txt</code>. No search in the first version.</li>
+  </ul></div>
+  <div><h3>Pieces</h3><ul>
+    <li>Copy page copies the page’s Markdown. View as Markdown opens <code>&lt;page&gt;.md</code>, where tabs become sections and the session becomes headings with JSON blocks.</li>
+    <li>Code blocks have a label or tabs and Copy, which turns into Copied for 1.6 s. Strings in the accent, numbers in the warn color, comments muted.</li>
+    <li>The language picked on one block switches every block on the page and is remembered. The client tab is part of the link, <code>/docs/mcp/install/#cursor</code>.</li>
+    <li>Two callouts only, Note and Warning. Screenshots are dashed frames with a caption until the real ones exist.</li>
+    <li>Cursor and VS Code get a one-click install button above the manual steps.</li>
+  </ul></div>
+  <div><h3>Tools and use cases</h3><ul>
+    <li>A tool entry has its type (Read only, Changes data, Destructive), its scope and the API endpoint that does the same, then parameters, Example call, Answer and Errors.</li>
+    <li>The session opens step by step at step 1. The current step is open, earlier ones fold to one line per call with a short result, later ones are a “N more steps” line. All steps opens everything.</li>
+    <li>The outcome is always visible, also before the last step. The chart uses the Compare colors with buy and hold dashed, the table marks the best and worst like Compare.</li>
+    <li>Without JavaScript the steps are open <code>&lt;details&gt;</code> elements and the controls are gone.</li>
+    <li>Figures in the use case are made up for this design. Backtests carry their generated names.</li>
+  </ul></div>
+</div></div></div>`;
+
+// ---------- render ----------
+function render() {
+  let html;
+  if (S.page === 'md') html = mdPage(S.md);
+  else if (S.page === 'phone') html = phonePage(S.phone);
+  else html = page(S.page);
+  document.getElementById('app').innerHTML = html;
+  document.body.classList.toggle('menu', !!S.menu);
+  renderOv();
+  document.title = S.page === 'md' ? `${PAGES[S.md].path.replace(/\/$/, '')}.md` : S.page === 'phone' ? 'Phone · Docs · CandleStack' : `${PAGES[S.page].title} · Docs · CandleStack`;
+  if (S.page === 'phone') mountPhones();
+  bindPlot();
+  spy();
+}
+function renderOv() { document.getElementById('ov').innerHTML = `${scrMenu()}${S.notes ? NOTES : ''}`; }
+
+function mountPhones() {
+  const k = Math.min(1, (innerHeight - 170) / 864);
+  document.querySelectorAll('.ph-dev').forEach(dev => {
+    const fr = dev.querySelector('iframe');
+    fr.style.transform = `scale(${k})`;
+    dev.style.width = `${390 * k + 20}px`; dev.style.height = `${844 * k + 20}px`;
+    fr.srcdoc = SRC.replace(/<html[^>]*>/, `<html lang="en" data-embed="1" data-theme="${ROOT.dataset.theme}" data-route="${fr.dataset.route}">`);
+  });
+}
+
+// Crosshair and values under the pointer
+function bindPlot() {
+  const plot = document.getElementById('plot'); if (!plot) return;
+  const xh = document.getElementById('xh'), tip = document.getElementById('tip');
+  const move = e => {
+    const r = plot.getBoundingClientRect();
+    const f = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+    const i = Math.round(f * (NPTS - 1));
+    const x = i / (NPTS - 1) * r.width;
+    xh.hidden = false; xh.style.left = `${x}px`;
+    tip.hidden = false;
+    tip.innerHTML = `<div class="d">${fmtD(dateAt(i))} 2025</div>${SERIES.map(s => `<div class="r"><i style="background:${s.c}"></i>${esc(s.name)}<b>${s.v[i].toFixed(1)}</b></div>`).join('')}`;
+    const w = tip.offsetWidth;
+    tip.style.left = `${x + 12 + w > r.width ? x - w - 12 : x + 12}px`;
+  };
+  plot.addEventListener('pointermove', move);
+  plot.addEventListener('pointerleave', () => { xh.hidden = true; tip.hidden = true; });
+}
+
+// On this page follows the scroll
+function spy() {
+  const links = [...document.querySelectorAll('.toc a[data-toc]')];
+  if (!links.length) return;
+  let cur = links[0].dataset.toc;
+  links.forEach(a => { const el = document.getElementById(a.dataset.toc); if (el && el.getBoundingClientRect().top < 140) cur = a.dataset.toc; });
+  links.forEach(a => a.classList.toggle('on', a.dataset.toc === cur));
+}
+addEventListener('scroll', spy, { passive: true });
+
+// ---------- routes ----------
+function route(h) {
+  const raw = (h || '#agents').replace(/^#/, '');
+  const [a, b, c] = raw.split('/');
+  Object.assign(S, { open: {}, menu: false, tocOpen: false, copied: null, mode: 'step', sm: false, notes: false });
+  if (a === 'install') { S.page = 'install'; if (b === 'copied') { S.client = 'claude-code'; S.copied = 'addr'; } else S.client = CLIENTS.some(x => x.k === b) ? b : 'claude-code'; }
+  else if (a === 'tools') S.page = 'tools';
+  else if (a === 'api') { S.page = 'api'; if (LANGS.some(x => x[0] === b)) S.lang = b; }
+  else if (a === 'case') {
+    S.page = 'case';
+    if (b === 'all') S.mode = 'all';
+    else if (b === 'nojs') S.mode = 'nojs';
+    else { S.step = Math.min(SESSION.length, Math.max(1, parseInt((b || 'step-1').split('-')[1], 10) || 1)); }
+    if (c === 'open') S.open['0-0'] = true;
+  }
+  else if (a === 'md' && PAGES[b]) { S.page = 'md'; S.md = b; }
+  else if (a === 'phone') { S.page = 'phone'; S.phone = b === 'install' ? 'install' : 'case'; }
+  else S.page = 'agents';
+  if (c === 'menu') S.menu = true;
+  if (c === 'toc') S.tocOpen = true;
+  S.hash = '#' + raw;
+  render();
+  scrollTo(0, 0);
+}
+
+// ---------- events ----------
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[href="#none"]');
+  if (a) { e.preventDefault(); return; }
+  const t = e.target.closest('[data-act]'); if (!t) return;
+  const act = t.dataset.act, val = t.dataset.val;
+  if (act === 'notes-x') { if (e.target === t || t.tagName === 'BUTTON') { S.notes = false; renderOv(); } return; }
+  if (act === 'sm') { S.sm = !S.sm; renderOv(); return; }
+  if (act === 'notes') { S.notes = true; S.sm = false; renderOv(); return; }
+  if (act === 'jump') { if (location.hash === val) route(val); else location.hash = val; return; }
+  if (act === 'theme') {
+    ROOT.dataset.theme = ROOT.dataset.theme === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem('theme', ROOT.dataset.theme); } catch (err) { /* blocked storage */ }
+    const y = scrollY; render(); scrollTo(0, y); return;
+  }
+  if (act === 'jumpto') {
+    e.preventDefault();
+    const el = document.getElementById(val); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (S.tocOpen) { S.tocOpen = false; }
+    return;
+  }
+  if (act === 'copy') {
+    const id = t.dataset.id;
+    try { navigator.clipboard.writeText(CODE[id]); } catch (err) { /* clipboard can be blocked */ }
+    S.copied = id; rerender();
+    clearTimeout(copyT); copyT = setTimeout(() => { S.copied = null; rerender(); }, 1600);
+    return;
+  }
+  if (act === 'client') { S.client = val; S.hash = `#install/${val}`; history.replaceState(null, '', S.hash); rerender(); return; }
+  if (act === 'lang') { S.lang = val; try { localStorage.setItem('docs-lang', val); } catch (err) { /* blocked storage */ } if (S.page === 'api') { S.hash = `#api/${val}`; history.replaceState(null, '', S.hash); } rerender(); return; }
+  if (act === 'mode') { S.mode = val; S.open = {}; if (val === 'step') S.step = 1; rerender(); return; }
+  if (act === 'next' || act === 'prev') { S.step = Math.max(1, Math.min(SESSION.length, S.step + (act === 'next' ? 1 : -1))); S.open = {}; rerender(); const cur = document.querySelector('.st.cur'); if (cur && act === 'next') cur.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); return; }
+  if (act === 'tc') { const open = t.getAttribute('aria-expanded') === 'true'; S.open[val] = !open; rerender(); return; }
+  if (act === 'menu') { S.menu = !S.menu; rerender(); return; }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { if (S.notes) { S.notes = false; renderOv(); } else if (S.sm) { S.sm = false; renderOv(); } else if (S.menu) { S.menu = false; rerender(); } }
+  if (S.page === 'case' && S.mode === 'step' && !e.target.closest('input, textarea') && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+    S.step = Math.max(1, Math.min(SESSION.length, S.step + (e.key === 'ArrowRight' ? 1 : -1))); S.open = {}; rerender();
+  }
+});
+let copyT = 0;
+function rerender() { const y = scrollY; render(); scrollTo(0, y); }
+addEventListener('resize', () => { if (S.page === 'phone') mountPhones(); });
+
+// ---------- boot ----------
+(() => {
+  if (!ROOT.dataset.theme) {
+    let saved = null; try { saved = localStorage.getItem('theme'); } catch (e) { /* blocked storage */ }
+    ROOT.dataset.theme = (saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  }
+  addEventListener('hashchange', () => route(location.hash));
+  route(EMBED ? '#' + (ROOT.dataset.route || 'agents') : location.hash);
+})();
+</script>
+</body>
+</html>
