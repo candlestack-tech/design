@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CandleStack</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+  /* Tokens: the approved app (design/mockups/app) and Backtest names (design/mockups/backtest-names) */
+  :root {
+    --bg: #fafaf9; --ink: #141414; --muted: #686868; --rule: #e7e5e2; --accent: #0f766e;
+    --warn: #a15c07; --down: #b42318; --up: #1a7f37;
+    --grid: rgb(28 25 23 / 0.09); --shadow: rgb(0 0 0 / 0.08); --on-accent: #fafaf9; --tile: #ffffff;
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d0f11; --ink: #ecedee; --muted: #9ba1a6; --rule: #23272b; --accent: #3cc7a6;
+    --warn: #e8b45a; --down: #f0616d; --up: #43b049;
+    --grid: rgb(230 232 234 / 0.075); --shadow: rgb(0 0 0 / 0.5); --on-accent: #0d0f11; --tile: #ffffff;
+    color-scheme: dark;
+  }
+  :root {
+    --surface: color-mix(in srgb, var(--ink) 5%, var(--bg));
+    --surface2: color-mix(in srgb, var(--ink) 9%, var(--bg));
+    --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+    --warn-soft: color-mix(in srgb, var(--warn) 11%, var(--bg));
+    --down-soft: color-mix(in srgb, var(--down) 11%, var(--bg));
+    --up-soft: color-mix(in srgb, var(--up) 11%, var(--bg));
+    --sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+    --mono: 'Geist Mono', ui-monospace, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  button, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: 2px; }
+  h1, h2, h3, p { margin: 0; }
+  [hidden] { display: none !important; }
+  .mono { font-family: var(--mono); }
+  .muted { color: var(--muted); }
+  .eyebrow { font: 500 11px/16px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .hint { font-size: 12px; color: var(--muted); }
+  .i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+  /* The app frame */
+  .frame { min-height: 100vh; display: flex; flex-direction: column;
+    background-color: var(--bg);
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px; }
+  .frame > main { flex: 1; }
+  .ahdr { position: relative; z-index: 30; padding: 0 24px; border-bottom: 1px solid var(--rule); background: color-mix(in srgb, var(--bg) 88%, transparent); }
+  .ahdr-in { max-width: 1152px; margin: 0 auto; height: 56px; display: flex; align-items: center; gap: 20px; }
+  .ahdr .sp { flex: 1; }
+  .ahdr .r { display: flex; align-items: center; gap: 8px; }
+  .home-link { appearance: none; border: 0; background: none; padding: 0; line-height: 0; border-radius: 6px; cursor: pointer; }
+  .logo { height: 28px; width: 152px; display: block; }
+  .lg-a { fill: var(--accent); } .lg-b { fill: var(--bg); } .lg-c { fill: var(--ink); }
+  .avatar { width: 30px; height: 30px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); display: inline-grid; place-items: center; font: 600 12px var(--mono); flex: none; }
+  .av-btn { appearance: none; border: 0; padding: 0; cursor: pointer; border-radius: 999px; line-height: 0; background: none; }
+  .abody { max-width: 1200px; width: 100%; margin: 0 auto; padding: 28px 24px 40px; }
+  .afoot { border-top: 1px solid var(--rule); background: var(--bg); }
+  .afoot > div { max-width: 1200px; margin: 0 auto; padding: 16px 24px; display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: 12px; color: var(--muted); }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; padding: 0 14px; border-radius: 6px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink); font: 500 14px var(--sans); cursor: pointer; white-space: nowrap; text-decoration: none; }
+  .btn:hover { background: var(--surface); }
+  .btn:disabled { opacity: 0.45; cursor: default; }
+  .btn:disabled:hover { background: var(--bg); }
+  .btn.pri { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .btn.pri:hover { background: color-mix(in srgb, var(--accent) 86%, var(--ink)); }
+  .btn.pri:disabled:hover { background: var(--accent); }
+  .btn.ghost { border-color: transparent; background: transparent; }
+  .btn.ghost:hover { background: var(--surface); }
+  .btn.danger { color: var(--down); border-color: color-mix(in srgb, var(--down) 40%, var(--rule)); }
+  .btn.danger:hover { background: var(--down-soft); }
+  .btn.danger.solid { background: var(--down); border-color: var(--down); color: #fff; }
+  .btn.danger.solid:hover { background: color-mix(in srgb, var(--down) 86%, var(--ink)); }
+  .btn.sm { height: 28px; padding: 0 10px; font-size: 13px; }
+  .btn.sm .i { width: 14px; height: 14px; }
+  .btn.icon { width: 34px; padding: 0; }
+  .btn.done { color: var(--up); border-color: color-mix(in srgb, var(--up) 45%, var(--rule)); }
+  .link { appearance: none; border: 0; background: none; padding: 0; color: var(--accent); font: 500 13px var(--sans); cursor: pointer; text-decoration: none; text-align: left; display: inline-flex; align-items: center; gap: 4px; }
+  .link:hover { text-decoration: underline; text-underline-offset: 2px; }
+  .link .i { width: 12px; height: 12px; }
+
+  .card { background: var(--bg); border: 1px solid var(--rule); border-radius: 8px; min-width: 0; }
+  .ttl { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .ttl h1 { font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.025em; }
+  .ttl p { color: var(--muted); margin-top: 4px; }
+  .sec-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .sec-h h2 { font-size: 16px; font-weight: 600; }
+  .sec-r { display: flex; align-items: center; gap: 10px; }
+  .dd-h { display: flex; align-items: center; gap: 10px; }
+  .dd-ic { flex: none; width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+  .dd-ic .i { width: 15px; height: 15px; }
+  .tag { display: inline-flex; align-items: center; gap: 4px; font: 500 11px/16px var(--mono); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--rule); color: var(--muted); white-space: nowrap; }
+  .tag.warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, var(--rule)); }
+  .tag.err { color: var(--down); border-color: color-mix(in srgb, var(--down) 45%, var(--rule)); }
+  .tag .i { width: 11px; height: 11px; }
+  .chip { display: inline-block; font: 500 11.5px/18px var(--mono); padding: 0 7px; border: 1px solid var(--rule); border-radius: 999px; background: var(--bg); color: var(--ink); white-space: nowrap; }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+
+  /* Sidebar workspace (the live Sidebar.tsx) */
+  .dd-ws { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 24px; align-items: start; }
+  .dd-main { min-width: 0; }
+  .dd-side { display: flex; flex-direction: column; gap: 2px; padding: 8px; }
+  .dd-nav { appearance: none; display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: 0; border-radius: 6px; background: none; color: var(--muted); font: 14px var(--sans); cursor: default; text-align: left; white-space: nowrap; }
+  .dd-nav.on { color: var(--ink); background: var(--surface2); font-weight: 500; }
+  .dd-nav .dd-n { margin-left: auto; padding-left: 8px; font: 400 12px var(--mono); color: var(--muted); }
+  .dd-sfoot { margin-top: 10px; padding: 12px 10px 4px; border-top: 1px solid var(--rule); display: flex; flex-direction: column; gap: 6px; }
+  .meter { display: block; height: 6px; border-radius: 3px; background: var(--surface2); overflow: hidden; }
+  .meter i { display: block; height: 100%; background: var(--accent); }
+  .dd-s { font: 12px var(--mono); }
+
+  /* Settings (the live SettingsTabs, rows.tsx and DashboardCard) */
+  .st-tabs { display: flex; gap: 2px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); margin-bottom: 16px; }
+  .st-tabs button { appearance: none; position: relative; padding: 9px 12px 11px; border: 0; background: none; color: var(--muted); font: 14px var(--sans); cursor: default; white-space: nowrap; }
+  .st-tabs button.on { color: var(--ink); font-weight: 500; }
+  .st-tabs button.on::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 2px; border-radius: 2px; background: var(--accent); }
+  .st-one { max-width: 720px; display: flex; flex-direction: column; gap: 16px; }
+  .st-card { display: flex; flex-direction: column; gap: 4px; padding: 16px; scroll-margin-top: 16px; }
+  .st-intro { margin: -4px 0 8px; }
+  .st-r { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 12px; align-items: center; padding: 9px 0; border-top: 1px solid var(--rule); }
+  .st-r.top { align-items: start; }
+  .st-l { display: flex; flex-direction: column; font-size: 13.5px; }
+  .st-l .hint { font-size: 11.5px; }
+  .st-c { min-width: 0; }
+  .st-sub { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 14px 0 8px; border-top: 1px solid var(--rule); margin-top: 6px; }
+  .st-sub h3 { font-size: 14px; font-weight: 600; display: inline-flex; gap: 8px; align-items: baseline; }
+  .st-sub h3 .n { font: 400 12px var(--mono); color: var(--muted); }
+  .count { font: 12px var(--mono); color: var(--muted); }
+  .count.full { color: var(--warn); }
+
+  /* The address with Copy (.st-id code) */
+  .urlbox { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .urlbox code { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 13px var(--mono); padding: 4px 8px; border-radius: 5px; background: var(--surface); }
+
+  /* A key, an app: one bordered row as the Sign-in card's providers */
+  .rows { display: flex; flex-direction: column; gap: 8px; }
+  .kr { display: grid; grid-template-columns: 34px minmax(0, 1fr) minmax(0, 200px) auto; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 8px; }
+  .kr.off { background: var(--surface); }
+  .kr.off .kr-n b { color: var(--muted); }
+  .kr-ic { width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center; background: var(--surface); color: var(--muted); }
+  .kr-ic .i { width: 17px; height: 17px; }
+  .kr-ic.app { background: var(--surface2); color: var(--ink); font: 700 15px var(--sans); }
+  .kr-m { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .kr-n { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+  .kr-n b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .kr-n code { font: 12px var(--mono); color: var(--muted); white-space: nowrap; }
+  .kr-n .dom { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .kr-t { display: flex; flex-direction: column; gap: 1px; font-size: 12.5px; min-width: 0; }
+  .kr-t .hint { font-size: 11.5px; }
+  .kr-t .warn { color: var(--warn); }
+  .kr-t .err { color: var(--down); }
+  .st-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 26px 16px 22px; border: 1px dashed var(--rule); border-radius: 8px; text-align: center; }
+  .st-empty .dd-ic { width: 38px; height: 38px; border-radius: 10px; margin-bottom: 4px; }
+  .st-empty .dd-ic .i { width: 19px; height: 19px; }
+  .st-empty b { font-size: 14.5px; font-weight: 600; }
+  .st-empty .btn { margin-top: 8px; }
+  .st-empty.sm { padding: 18px 16px; }
+  .note { display: flex; gap: 9px; align-items: flex-start; padding: 10px 12px; border-radius: 8px; font-size: 13px; background: var(--surface); }
+  .note .i { margin-top: 2px; width: 15px; height: 15px; }
+  .note.warn { background: var(--warn-soft); border: 1px solid color-mix(in srgb, var(--warn) 35%, var(--rule)); }
+  .note.warn .i { color: var(--warn); }
+  .note.err { background: var(--down-soft); border: 1px solid color-mix(in srgb, var(--down) 35%, var(--rule)); }
+  .note.err .i { color: var(--down); }
+  .note.ok { background: var(--up-soft); border: 1px solid color-mix(in srgb, var(--up) 35%, var(--rule)); }
+  .note.ok .i { color: var(--up); }
+  .note b { font-weight: 600; }
+  .note .t { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+  /* MCP clients: one line each, with its install guide */
+  .cl { display: flex; flex-direction: column; }
+  .cl-r { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px 0; }
+  .cl-r + .cl-r { border-top: 1px dashed var(--rule); }
+  .cl-ic { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; background: var(--surface2); font: 700 11px var(--sans); color: var(--ink); }
+  .cl-r .w { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; min-width: 0; font-size: 13.5px; }
+  .cl-r .w span { font-size: 12.5px; color: var(--muted); }
+
+  /* Dialogs */
+  .mbg { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: color-mix(in srgb, #000 45%, transparent); padding: 16px; }
+  .mdl { width: min(520px, 100%); max-height: calc(100dvh - 32px); display: flex; flex-direction: column; background: var(--bg); border: 1px solid var(--rule); border-radius: 12px; box-shadow: 0 20px 50px var(--shadow); }
+  .mdl.wide { width: min(600px, 100%); }
+  .mdl.xl { width: min(760px, 100%); }
+  .mdl-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px 10px 20px; }
+  .mdl-h h2 { font-size: 17px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mdl-b { padding: 4px 20px 18px; overflow: auto; display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+  .mdl-f { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--rule); }
+  .mdl-f .hint { margin-right: auto; }
+  .fld { display: flex; flex-direction: column; gap: 6px; }
+  .fld-l { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; font-weight: 500; }
+  .fld-l .cnt { font: 400 11.5px var(--mono); color: var(--muted); }
+  .inp { height: 36px; border: 1px solid var(--rule); border-radius: 6px; padding: 0 10px; background: var(--bg); font: 14px var(--sans); color: var(--ink); width: 100%; min-width: 0; }
+  .inp:focus { outline: none; border-color: color-mix(in srgb, var(--accent) 55%, var(--rule)); }
+  .seg { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+  .seg button { appearance: none; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); color: var(--muted); font: 500 13px var(--sans); cursor: pointer; white-space: nowrap; }
+  .seg button:hover { color: var(--ink); }
+  .seg button.on { color: var(--accent); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+
+  /* A scope with its box (the Create key dialog, the consent screen) */
+  .scs { display: flex; flex-direction: column; border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
+  .sc { appearance: none; display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 10px; align-items: start; width: 100%; padding: 10px 12px; border: 0; background: var(--bg); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .sc + .sc { border-top: 1px solid var(--rule); }
+  .sc:hover { background: var(--surface); }
+  .sc.fixed { cursor: default; }
+  .sc.fixed:hover { background: var(--bg); }
+  .sc .w { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .sc .w b { font-weight: 500; font-size: 13.5px; display: inline-flex; gap: 8px; align-items: baseline; }
+  .sc .w b code { font: 400 11.5px var(--mono); color: var(--muted); }
+  .sc .w span { font-size: 12.5px; color: var(--muted); }
+  .sc .side { font-size: 11.5px; color: var(--muted); padding-top: 1px; }
+  .box { width: 18px; height: 18px; margin-top: 1px; border-radius: 5px; border: 1.5px solid color-mix(in srgb, var(--muted) 60%, var(--rule)); display: grid; place-items: center; background: var(--bg); color: var(--on-accent); }
+  .box .i { width: 12px; height: 12px; stroke-width: 3; visibility: hidden; }
+  .sc.on .box { background: var(--accent); border-color: var(--accent); }
+  .sc.on .box .i { visibility: visible; }
+  .sc.fixed .box { opacity: 0.55; }
+
+  /* The key, once */
+  .secret { display: flex; align-items: center; gap: 8px; padding: 10px 10px 10px 12px; border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--rule)); border-radius: 8px; background: var(--accent-soft); }
+  .secret code { flex: 1; min-width: 0; font: 500 13.5px/1.45 var(--mono); overflow-wrap: anywhere; }
+  .snip { position: relative; border: 1px solid var(--rule); border-radius: 8px; background: var(--surface); }
+  .snip pre { margin: 0; padding: 12px 44px 12px 12px; font: 12.5px/1.6 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .snip .c { color: var(--muted); }
+  .snip .btn { position: absolute; top: 8px; right: 8px; width: 28px; padding: 0; }
+  .who-k { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: var(--surface); min-width: 0; }
+  .who-k .kr-ic { background: var(--bg); }
+  .who-k .kr-m { flex: 1; }
+
+  /* A page of its own in the middle of the grid (the sign-in page's .si) */
+  .cen { min-height: calc(100vh - 56px - 130px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 48px 16px; }
+  .one { width: min(440px, 100%); padding: 28px 28px 24px; border: 1px solid var(--rule); border-radius: 12px; background: var(--bg); box-shadow: 0 10px 30px var(--shadow); display: flex; flex-direction: column; gap: 18px; }
+  .one.mid { align-items: center; text-align: center; }
+  .one h1 { font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.02em; }
+  .one .intro { margin-top: 6px; color: var(--muted); }
+  .one .intro b { color: var(--ink); font-weight: 500; }
+  .one .acts { display: flex; gap: 10px; }
+  .one .acts .btn { flex: 1; height: 40px; }
+  .one.mid .acts { justify-content: center; }
+  .one.mid .acts .btn { flex: none; }
+  .legal { font-size: 12px; color: var(--muted); text-align: center; max-width: 440px; }
+  .mark { width: 44px; height: 44px; display: block; }
+  .pair { display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .pair .app { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; background: var(--surface2); font: 700 19px var(--sans); color: var(--ink); }
+  .pair .dots { display: flex; gap: 4px; color: var(--muted); }
+  .pair .dots i { width: 4px; height: 4px; border-radius: 999px; background: currentColor; opacity: 0.6; }
+  .pair .lk { width: 26px; height: 26px; border-radius: 999px; display: grid; place-items: center; border: 1px solid var(--rule); background: var(--bg); color: var(--muted); }
+  .pair .lk .i { width: 13px; height: 13px; }
+  .cn-top { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; }
+  .acct { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); flex-wrap: wrap; justify-content: center; }
+  .acct .avatar { width: 20px; height: 20px; font-size: 9px; }
+  .acct b { color: var(--ink); font-weight: 500; }
+  .acct .link { font-size: 13px; font-weight: 400; }
+  .never { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; color: var(--muted); }
+  .never .i { width: 14px; height: 14px; margin-top: 2px; }
+  .si-btns { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+  .si-b { appearance: none; display: flex; align-items: center; justify-content: center; gap: 10px; height: 44px; width: 100%; border-radius: 8px; font: 500 15px var(--sans); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s, background-color 0.15s; }
+  .si-b svg { width: 18px; height: 18px; flex: none; }
+  .si-b.gh { border: 1px solid var(--ink); background: var(--ink); color: var(--bg); }
+  .si-b.gg { border: 1px solid var(--rule); background: var(--bg); color: var(--ink); }
+  .si-b:hover { transform: translateY(-1px); box-shadow: 0 6px 16px var(--shadow); }
+  .si-note { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+  .si-dot { flex: none; width: 7px; height: 7px; border-radius: 999px; background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .st-ic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--surface2); color: var(--muted); }
+  .st-ic .i { width: 21px; height: 21px; }
+  .st-ic.warn { background: var(--warn-soft); color: var(--warn); }
+  .st-ic.err { background: var(--down-soft); color: var(--down); }
+  .st-ic.ok { background: var(--up-soft); color: var(--up); }
+
+  /* The upload page of a one-time link */
+  .one.ul { width: min(480px, 100%); }
+  .ul-top { display: flex; flex-direction: column; gap: 6px; }
+  .ul-from { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted); }
+  .ul-from .cl-ic { width: 18px; height: 18px; font-size: 9.5px; border-radius: 5px; }
+  .file { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 8px; }
+  .file .fw { width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center; background: color-mix(in srgb, #D00000 12%, transparent); }
+  .file .fw svg { width: 17px; height: 17px; fill: color-mix(in srgb, #D00000, #fff var(--fw-lift, 0%)); }
+  :root[data-theme="dark"] .file .fw svg { --fw-lift: 25%; }
+  .file .w { display: flex; flex-direction: column; min-width: 0; }
+  .file .w b { font: 500 13.5px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file .w span { font-size: 12px; color: var(--muted); }
+  .file.err { border-color: color-mix(in srgb, var(--down) 45%, var(--rule)); }
+  .file .r { display: flex; align-items: center; gap: 6px; }
+  .ul-drop { appearance: none; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 26px 16px; border: 1.5px dashed color-mix(in srgb, var(--accent) 35%, var(--rule)); border-radius: 10px; background: var(--surface); color: inherit; font: inherit; text-align: center; cursor: pointer; transition: border-color 0.15s; }
+  .ul-drop:hover { border-color: var(--accent); }
+  .ul-drop .qi { width: 36px; height: 36px; border-radius: 9px; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); }
+  .ul-drop .qi .i { width: 18px; height: 18px; }
+  .ul-drop b { font-weight: 600; }
+  .ul-drop b code { font: 600 13.5px var(--mono); }
+  .ul-drop span { font-size: 12.5px; color: var(--muted); }
+  .bar { height: 6px; border-radius: 3px; background: var(--surface2); overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+  .ul-p { display: flex; flex-direction: column; gap: 6px; }
+  .ul-p .ln { display: flex; justify-content: space-between; gap: 10px; font: 12px var(--mono); color: var(--muted); }
+  .ul-meta { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--muted); padding-top: 12px; border-top: 1px solid var(--rule); }
+  .ul-meta span { display: inline-flex; align-items: center; gap: 6px; }
+  .ul-meta .i { width: 13px; height: 13px; }
+  .cks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .ck-r { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; line-height: 1.4; }
+  .ck-i { flex: none; width: 18px; height: 18px; border-radius: 999px; display: grid; place-items: center; margin-top: 0; }
+  .ck-i .i { width: 11px; height: 11px; stroke-width: 2.5; }
+  .ck-r.ok .ck-i { background: var(--up-soft); color: var(--up); }
+  .ck-r.no .ck-i { background: var(--surface2); }
+  .ck-r.no { color: var(--muted); }
+  .ck-r.err .ck-i { background: var(--down-soft); color: var(--down); }
+  .ck-r.run .ck-i { border: 2px solid var(--accent); border-right-color: transparent; animation: spin 0.7s linear infinite; }
+  .ck-r .s { display: block; margin-top: 2px; font-size: 12.5px; color: var(--muted); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Review tools: the Screens menu, theme and Notes. Not part of the app. */
+  .scr { position: fixed; left: 16px; bottom: 16px; z-index: 80; font-family: var(--sans); }
+  .scr-t { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--warn) 55%, var(--rule)); background: var(--bg); color: var(--ink); font: 500 13px var(--sans); cursor: pointer; box-shadow: 0 6px 24px var(--shadow); }
+  .scr-p { position: absolute; left: 0; bottom: calc(100% + 8px); width: 340px; max-height: calc(100vh - 90px); overflow: auto; padding: 8px; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); box-shadow: 0 12px 34px var(--shadow); }
+  .scr-g { font: 500 10.5px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 10px 8px 4px; }
+  .scr-o { appearance: none; display: flex; align-items: center; gap: 8px; width: 100%; padding: 5px 8px; border: 0; border-radius: 6px; background: none; color: var(--ink); font: 13px var(--sans); text-align: left; cursor: pointer; }
+  .scr-o:hover { background: var(--surface); }
+  .scr-o.on { background: var(--accent-soft); color: var(--accent); }
+  .scr-o .k { margin-left: auto; font: 11px var(--mono); color: var(--muted); }
+  .scr-f { display: flex; gap: 6px; padding: 4px 4px 10px; border-bottom: 1px solid var(--rule); margin-bottom: 2px; }
+  .scr-f .btn { flex: 1; }
+  .notes { display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; }
+  .notes h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .notes ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+  .notes li::marker { color: var(--muted); }
+  .notes code { font: 12.5px var(--mono); background: var(--surface); padding: 1px 5px; border-radius: 4px; }
+
+  /* Motion */
+  @keyframes fx-in { from { opacity: 0; } }
+  @keyframes fx-dlg { from { opacity: 0; transform: translateY(10px) scale(0.97); } }
+  @keyframes fx-up { from { opacity: 0; transform: translateY(8px); } }
+  .mbg.in { animation: fx-in 0.16s ease-out; }
+  .mbg.in .mdl { animation: fx-dlg 0.22s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .one.in { animation: fx-up 0.22s ease-out; }
+  .btn, .link, .sc, .seg button, .scr-o { transition: background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+  @media (max-width: 980px) {
+    .dd-ws { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    .dd-side { flex-direction: row; overflow-x: auto; padding: 4px; scrollbar-width: none; }
+    .dd-nav { width: auto; flex: none; }
+    .dd-sfoot { display: none; }
+  }
+  @media (max-width: 640px) {
+    .ahdr { padding: 0 16px; } .abody { padding: 20px 16px 120px; } .afoot > div { padding-left: 16px; padding-right: 16px; }
+    .ahdr-in { gap: 10px; } .logo { width: 130px; height: 24px; }
+    .nb-t { display: none; }
+    .ttl h1 { font-size: 26px; line-height: 32px; }
+    .st-card { padding: 12px; }
+    .st-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .st-r { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+    .kr { grid-template-columns: 34px minmax(0, 1fr) auto; row-gap: 6px; }
+    .kr-t { grid-column: 2 / 4; grid-row: 2; }
+    .kr > .btn { grid-column: 3; grid-row: 1; }
+    .one { padding: 24px 18px 20px; }
+    .cen { padding: 28px 16px 120px; justify-content: flex-start; }
+    .scr { left: 12px; bottom: 12px; }
+    .scr-p { width: calc(100vw - 24px); }
+    .mdl-f .hint { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="frame" id="app"></div>
+<div id="ov"></div>
+
+<script>
+// ===================== API keys, the MCP server and the upload link (#392) =====================
+// Base: the approved app (design/mockups/app) and the live Settings > API and MCP (ApiSection.tsx).
+// A design, not a prototype: the Screens menu opens every screen and state. Buttons move between
+// them, nothing is computed or stored.
+
+const LOGO = `<svg class="logo" viewBox="0 0 174 32" role="img" aria-label="CandleStack"><rect class="lg-a" width="32" height="32" rx="7"></rect><g class="lg-b"><rect x="10" y="12" width="2" height="14"></rect><rect x="8" y="16" width="6" height="8"></rect><rect x="20" y="6" width="2" height="18"></rect><rect x="18" y="10" width="6" height="10"></rect></g><path class="lg-c" d="M48.18 24.16Q46.05 24.16 44.42 23.18Q42.79 22.2 41.87 20.39Q40.95 18.57 40.95 16.02Q40.95 13.51 41.85 11.68Q42.75 9.84 44.38 8.84Q46.01 7.84 48.21 7.84Q51.2 7.84 52.85 9.32Q54.5 10.81 55 13.47L52.01 13.62Q51.73 12.08 50.78 11.2Q49.83 10.32 48.21 10.32Q46.23 10.32 45.06 11.86Q43.89 13.4 43.89 16.02Q43.89 18.66 45.07 20.17Q46.25 21.68 48.18 21.68Q49.92 21.68 50.88 20.72Q51.84 19.76 52.1 18.09L55.09 18.24Q54.63 20.99 52.88 22.58Q51.13 24.16 48.18 24.16ZM60.33 24.07Q58.48 24.07 57.36 23.24Q56.24 22.4 56.24 20.86Q56.24 19.34 57.18 18.49Q58.13 17.63 60.06 17.25L63.96 16.48Q63.96 13.98 61.69 13.98Q60.68 13.98 60.09 14.45Q59.49 14.92 59.29 15.8L56.43 15.67Q56.79 13.82 58.15 12.81Q59.51 11.8 61.69 11.8Q64.2 11.8 65.49 13.06Q66.77 14.33 66.77 16.68V20.95Q66.77 21.41 66.94 21.59Q67.1 21.76 67.43 21.76H67.81V23.81Q67.43 23.9 66.77 23.9Q65.83 23.9 65.17 23.5Q64.51 23.11 64.33 22.03V22.01Q63.89 22.93 62.83 23.5Q61.76 24.07 60.33 24.07ZM60.9 22.03Q62.31 22.03 63.13 21.21Q63.96 20.4 63.96 19.06V18.4L60.92 19.01Q59.98 19.21 59.57 19.6Q59.16 19.98 59.16 20.6Q59.16 22.03 60.9 22.03ZM69.13 23.81V12.06H71.68L71.75 14.06Q72.23 12.85 73.16 12.33Q74.1 11.8 75.27 11.8Q77.2 11.8 78.24 13.04Q79.27 14.28 79.27 16.26V23.81H76.45V17.17Q76.45 15.67 76 14.88Q75.55 14.09 74.41 14.09Q73.26 14.09 72.6 14.88Q71.94 15.67 71.94 17.17V23.81ZM85.98 24.07Q84.48 24.07 83.39 23.33Q82.31 22.58 81.71 21.2Q81.12 19.83 81.12 17.94Q81.12 16.07 81.72 14.68Q82.33 13.29 83.42 12.55Q84.51 11.8 85.98 11.8Q87.21 11.8 88.15 12.3Q89.08 12.81 89.57 13.73V8.19H92.38V23.81H89.7L89.63 22.07Q89.15 23.02 88.18 23.55Q87.21 24.07 85.98 24.07ZM86.84 21.79Q88.14 21.79 88.85 20.78Q89.57 19.78 89.57 17.94Q89.57 16.07 88.86 15.08Q88.16 14.09 86.84 14.09Q85.56 14.09 84.8 15.11Q84.04 16.13 84.04 17.94Q84.04 19.7 84.8 20.74Q85.56 21.79 86.84 21.79ZM97.73 23.81Q96.43 23.81 95.67 23.15Q94.91 22.49 94.91 21.04V8.19H97.73V20.75Q97.73 21.63 98.61 21.63H99.47V23.81ZM105.98 24.07Q104.22 24.07 102.92 23.31Q101.62 22.56 100.92 21.17Q100.21 19.78 100.21 17.94Q100.21 16.09 100.92 14.7Q101.62 13.32 102.91 12.56Q104.2 11.8 105.91 11.8Q107.58 11.8 108.84 12.55Q110.09 13.29 110.78 14.7Q111.48 16.11 111.48 18.09V18.73H103.14Q103.21 20.27 103.98 21.05Q104.75 21.83 106 21.83Q107.91 21.83 108.44 20.2L111.32 20.38Q110.84 22.09 109.42 23.08Q108 24.07 105.98 24.07ZM103.14 16.84H108.57Q108.46 15.41 107.75 14.71Q107.03 14.02 105.91 14.02Q104.77 14.02 104.04 14.75Q103.32 15.47 103.14 16.84ZM119.46 24.16Q117.53 24.16 116.12 23.48Q114.71 22.8 113.91 21.58Q113.11 20.36 112.97 18.73L115.88 18.55Q116.08 20.07 116.98 20.88Q117.88 21.7 119.51 21.7Q120.89 21.7 121.65 21.18Q122.41 20.66 122.41 19.67Q122.41 19.08 122.13 18.62Q121.84 18.16 121.03 17.76Q120.21 17.36 118.61 16.99Q116.67 16.55 115.5 15.99Q114.34 15.43 113.81 14.58Q113.28 13.73 113.28 12.46Q113.28 11.09 113.96 10.05Q114.65 9 115.9 8.42Q117.15 7.84 118.91 7.84Q120.78 7.84 122.09 8.51Q123.4 9.18 124.14 10.35Q124.88 11.51 125.05 13.03L122.17 13.16Q122.02 11.89 121.18 11.09Q120.34 10.3 118.87 10.3Q117.64 10.3 116.92 10.87Q116.21 11.45 116.21 12.35Q116.21 12.99 116.5 13.4Q116.8 13.82 117.57 14.13Q118.34 14.44 119.73 14.75Q121.82 15.21 123.05 15.88Q124.28 16.55 124.81 17.45Q125.34 18.35 125.34 19.52Q125.34 20.95 124.6 21.99Q123.86 23.04 122.55 23.6Q121.25 24.16 119.46 24.16ZM132.2 23.81Q130.44 23.81 129.62 23.01Q128.79 22.2 128.79 20.44V14.24H126.94V12.06H128.79V9.31H131.61V12.06H134.71V14.24H131.61V20.18Q131.61 21.02 131.97 21.32Q132.33 21.63 133.06 21.63H134.71V23.81ZM139.75 24.07Q137.9 24.07 136.78 23.24Q135.66 22.4 135.66 20.86Q135.66 19.34 136.6 18.49Q137.55 17.63 139.48 17.25L143.38 16.48Q143.38 13.98 141.11 13.98Q140.1 13.98 139.51 14.45Q138.91 14.92 138.71 15.8L135.85 15.67Q136.21 13.82 137.57 12.81Q138.93 11.8 141.11 11.8Q143.62 11.8 144.91 13.06Q146.19 14.33 146.19 16.68V20.95Q146.19 21.41 146.36 21.59Q146.52 21.76 146.85 21.76H147.23V23.81Q146.85 23.9 146.19 23.9Q145.25 23.9 144.59 23.5Q143.93 23.11 143.75 22.03V22.01Q143.31 22.93 142.24 23.5Q141.18 24.07 139.75 24.07ZM140.32 22.03Q141.73 22.03 142.55 21.21Q143.38 20.4 143.38 19.06V18.4L140.34 19.01Q139.4 19.21 138.99 19.6Q138.58 19.98 138.58 20.6Q138.58 22.03 140.32 22.03ZM153.65 24.07Q151.89 24.07 150.59 23.31Q149.3 22.56 148.58 21.17Q147.87 19.78 147.87 17.94Q147.87 16.09 148.58 14.7Q149.3 13.32 150.59 12.56Q151.89 11.8 153.65 11.8Q155.9 11.8 157.38 12.96Q158.87 14.13 159.13 16.22L156.23 16.37Q156.05 15.25 155.36 14.67Q154.66 14.09 153.65 14.09Q152.29 14.09 151.54 15.1Q150.79 16.11 150.79 17.94Q150.79 19.76 151.54 20.77Q152.29 21.79 153.65 21.79Q154.69 21.79 155.38 21.19Q156.07 20.6 156.23 19.34L159.13 19.48Q158.89 21.59 157.4 22.83Q155.92 24.07 153.65 24.07ZM160.76 23.81V8.19H163.57V17.36L168.39 12.06H171.87L167.27 16.95L172.02 23.81H168.85L165.42 18.62L163.57 20.58V23.81Z"></path></svg>`;
+const MARK = '<svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect class="lg-a" width="32" height="32" rx="7"></rect><g class="lg-b"><rect x="10" y="12" width="2" height="14"></rect><rect x="8" y="16" width="6" height="8"></rect><rect x="20" y="6" width="2" height="18"></rect><rect x="18" y="10" width="6" height="10"></rect></g></svg>';
+const FW_IC = {
+  'Keras': ['#D00000', 'M24 0H0v24h24V0zM8.45 5.16l.2.17v6.24l6.46-6.45h1.96l.2.4-5.14 5.1 5.47 7.94-.2.3h-1.94l-4.65-6.88-2.16 2.08v4.6l-.19.2H7l-.2-.2V5.33l.17-.17h1.48z']
+};
+const GH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>';
+const GG = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+
+// ---------- icons ----------
+const IC = {
+  dash: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+  runs: '<path d="M3 17l5-5 4 4 8-8"/><path d="M14 8h6v6"/>',
+  exp: '<path d="M9 3h6"/><path d="M10 3v6.5L4.6 18.4A1.8 1.8 0 0 0 6.1 21h11.8a1.8 1.8 0 0 0 1.5-2.6L14 9.5V3"/><path d="M7.5 15h9"/>',
+  models: '<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/>',
+  inst: '<path d="M7 3v4M7 17v4M17 3v3M17 14v7"/><rect x="4.5" y="7" width="5" height="10" rx="1" fill="currentColor"/><rect x="14.5" y="6" width="5" height="8" rx="1"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+  code: '<path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/>',
+  plug: '<path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0z"/><path d="M12 18v4"/>',
+  key: '<circle cx="8" cy="14" r="4"/><path d="M11 11l9-9M16 6l3 3M14 8l2 2"/>',
+  copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>',
+  ok: '<path d="M5 12l4 4 10-10"/>',
+  x: '<path d="M6 6l12 12M18 6L6 18"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  ext: '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+  up: '<path d="M12 15V4M7 9l5-5 5 5"/><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/>',
+  warn: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>',
+  shield: '<path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  note: '<path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7z"/><path d="M14 3v4h4M9 13h6M9 17h4"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+};
+const ic = (k, cls = 'i') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${IC[k]}</svg>`;
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+const fwTile = () => `<span class="fw"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${FW_IC.Keras[1]}"/></svg></span>`;
+
+// ---------- example data (today is 8 Nov 2026) ----------
+const ME = { email: 'you@example.com', ini: 'Y' };
+const HOST = 'https://app.candlestack.tech';
+// Scopes: the API's names and what they mean in plain words
+const SCOPES = [
+  ['read', 'Read', 'See your backtests, models and market data'],
+  ['backtests', 'Run backtests', 'Start, rename and star backtests'],
+  ['models', 'Manage models', 'Upload, rename and delete your models'],
+  ['publish', 'Publish', 'Publish and unpublish backtests in Experiments'],
+];
+// A key: name, the prefix the app keeps (cs_ and 8 characters), scopes, created, last used, expires
+const KEYS = [
+  { name: 'Claude Code on my laptop', pre: 'cs_7Hq2Lm9x', sc: ['read', 'backtests', 'models'], made: '3 Nov 2026', used: '12 min ago', exp: '1 Feb 2027' },
+  { name: 'Nightly sweep script', pre: 'cs_K4pW8nRt', sc: ['read', 'backtests'], made: '14 Aug 2026', used: 'Today 02:00', exp: '13 Nov 2026', soon: true },
+  { name: 'Cursor', pre: 'cs_Z2bE6yQa', sc: ['read'], made: '28 Oct 2026', used: null, exp: null },
+  { name: 'Old notebook', pre: 'cs_M9tD3sVf', sc: ['read', 'backtests'], made: '2 Aug 2026', used: '30 Oct 2026', exp: '1 Nov 2026', gone: true },
+];
+const MORE_KEYS = [
+  { name: 'Weekly report job', pre: 'cs_R8nQ1wXe', sc: ['read'], made: '20 Oct 2026', used: 'Yesterday 07:00', exp: '20 Jan 2027' },
+  { name: 'Jupyter on the lab PC', pre: 'cs_B5yU7kLp', sc: ['read', 'backtests'], made: '18 Oct 2026', used: '2 Nov 2026', exp: '18 Jan 2027' },
+  { name: 'GitHub Actions smoke test', pre: 'cs_F3cH9vTn', sc: ['read', 'backtests'], made: '12 Oct 2026', used: 'Today 06:12', exp: null },
+  { name: 'Claude Code on the desktop', pre: 'cs_W6mJ2sDa', sc: ['read', 'backtests', 'models', 'publish'], made: '9 Oct 2026', used: '4 h ago', exp: '9 Jan 2027' },
+  { name: 'Grid search notebook', pre: 'cs_N1pV4qZr', sc: ['read', 'backtests'], made: '5 Oct 2026', used: '28 Oct 2026', exp: '5 Jan 2027' },
+  { name: 'Thesis charts', pre: 'cs_T7xE5bKw', sc: ['read'], made: '1 Oct 2026', used: '6 Nov 2026', exp: null },
+  { name: 'Model upload script', pre: 'cs_H2gL8cYm', sc: ['read', 'models'], made: '29 Sep 2026', used: '1 Nov 2026', exp: '29 Dec 2026' },
+];
+// Apps that signed in with OAuth
+const APPS = [
+  { name: 'Claude', ini: 'C', dom: 'claude.ai', sc: ['read', 'backtests', 'models'], made: '2 Nov 2026', used: '5 min ago' },
+  { name: 'ChatGPT', ini: 'G', dom: 'chatgpt.com', sc: ['read'], made: '6 Nov 2026', used: 'Yesterday 21:40' },
+];
+// MCP clients and how each connects
+const CLIENTS = [
+  ['C', 'Claude', 'Add a custom connector, sign in with CandleStack', 'claude'],
+  ['G', 'ChatGPT', 'Add a connector, sign in with CandleStack', 'chatgpt'],
+  ['>', 'Claude Code', 'One command with an API key', 'claude-code'],
+  ['Cu', 'Cursor', 'One entry in mcp.json with an API key', 'cursor'],
+  ['+', 'Other clients', 'Any MCP client over Streamable HTTP', 'other'],
+];
+// The key of the Key shown once screen. An example, not a real key.
+const NEW_KEY = 'cs_P3vN8kWq_example0key0for0the0design0only';
+const FILE = { name: 'my-tsmixer.keras', size: '31.4 MB' };
+
+// ---------- state ----------
+// page: settings, consent or upload. Each screen of the Screens menu sets the rest.
+const S = { page: 'settings', keys: 'list', apps: 'some', modal: null, mk: 0, ma: 0, consent: 'normal', up: 'ready', menu: false, hash: '', copied: '', snip: 'api',
+  cr: { name: '', sc: { read: true, backtests: true, models: false, publish: false }, exp: '90' }, cs: { read: true, backtests: true, models: true, publish: false }, anim: false };
+const isDark = () => document.documentElement.dataset.theme === 'dark';
+
+// ---------- header, sidebar, footer ----------
+function header(signedIn = true) {
+  return `<header class="ahdr"><div class="ahdr-in"><button type="button" class="home-link" aria-label="CandleStack dashboard">${LOGO}</button><div class="sp"></div>
+    <div class="r">${signedIn && S.page === 'settings' ? `<button type="button" class="btn pri" aria-label="New backtest">${ic('plus')}<span class="nb-t">New backtest</span></button>` : ''}
+    <button type="button" class="btn ghost icon" data-act="theme" aria-label="Switch theme">${ic(isDark() ? 'sun' : 'moon')}</button>
+    ${signedIn ? `<button type="button" class="av-btn" aria-label="Account"><span class="avatar">${ME.ini}</span></button>` : ''}</div></div></header>`;
+}
+const footer = () => '<footer class="afoot"><div><span>CandleStack</span><span>API docs</span><span>Status</span><span>candlestack.tech</span></div></footer>';
+function side() {
+  const items = [['dash', 'Dashboard', ''], ['runs', 'Backtests', 13], ['exp', 'Experiments', 24], ['models', 'Models', 4], ['inst', 'Instruments', ''], ['settings', 'Settings', '']];
+  return `<nav class="card dd-side" aria-label="Workspace">${items.map(([k, l, n]) => `<button type="button" class="dd-nav ${k === 'settings' ? 'on' : ''}" ${k === 'settings' ? 'aria-current="page"' : ''}>${ic(k)}<span>${l}</span>${n !== '' ? `<span class="dd-n">${n}</span>` : ''}</button>`).join('')}
+    <div class="dd-sfoot"><span class="eyebrow">Storage</span><span class="meter"><i style="width:26%"></i></span><span class="dd-s">26.4 MB of 100 MB models</span><span class="hint">Market data delayed 15 min</span></div></nav>`;
+}
+
+// ---------- Settings > API and MCP ----------
+const stHead = (k, title, right = '') => `<div class="sec-h"><div class="dd-h"><span class="dd-ic">${ic(k)}</span><h2>${title}</h2></div>${right}</div>`;
+const stRow = (label, ctl, hint, top) => `<div class="st-r ${top ? 'top' : ''}"><span class="st-l">${label}${hint ? `<span class="hint">${hint}</span>` : ''}</span><div class="st-c">${ctl}</div></div>`;
+const chips = sc => `<span class="chips">${sc.map(s => `<span class="chip">${s}</span>`).join('')}</span>`;
+const copyBtn = (id, label = 'Copy') => S.copied === id ? `<button type="button" class="btn sm done" data-act="copy" data-val="${id}">${ic('ok')}Copied</button>` : `<button type="button" class="btn sm" data-act="copy" data-val="${id}">${ic('copy')}${label}</button>`;
+
+function keyRow(k, i) {
+  const used = k.used ? `Last used ${k.used}` : '<span class="muted">Never used</span>';
+  const exp = k.gone ? `<span class="err">Expired ${k.exp}</span>` : k.soon ? `<span class="warn">Expires in 5 days</span>` : k.exp ? `Expires ${k.exp}` : 'No expiry';
+  return `<div class="kr ${k.gone ? 'off' : ''}"><span class="kr-ic">${ic('key')}</span>
+    <div class="kr-m"><div class="kr-n"><b>${esc(k.name)}</b><code>${k.pre}…</code>${k.gone ? '<span class="tag err">Expired</span>' : ''}</div>${chips(k.sc)}</div>
+    <div class="kr-t"><span>${used}</span><span class="hint">Created ${k.made} · ${exp}</span></div>
+    <button type="button" class="btn sm" data-act="revoke" data-val="${i}">${k.gone ? 'Delete' : 'Revoke'}</button></div>`;
+}
+function keysCard() {
+  const intro = '<p class="hint st-intro">Call the API from your scripts and agents. A key acts as you, so keep it secret.</p>';
+  const docs = stRow('Docs', `<a class="link" href="https://candlestack.tech/docs/api" target="_blank" rel="noopener">API guide${ic('ext')}</a>`, 'Instruments and candles work without a key');
+  if (S.keys === 'empty') {
+    return `<section class="card st-card" id="keys-card">${stHead('code', 'API keys')}${intro}
+      <div class="st-empty"><span class="dd-ic">${ic('key')}</span><b>No API keys yet</b><span class="hint">Create one for a script, Claude Code or Cursor.</span><button type="button" class="btn sm pri" data-act="go" data-val="#keys/create">${ic('plus')}Create key</button></div>${docs}</section>`;
+  }
+  const full = S.keys === 'limit';
+  const list = full ? [KEYS[0], KEYS[1], KEYS[2], ...MORE_KEYS] : KEYS;
+  const active = list.filter(k => !k.gone).length;
+  const right = `<div class="sec-r"><span class="count ${full ? 'full' : ''}">${active} of 10</span><button type="button" class="btn sm pri" data-act="go" data-val="#keys/create" ${full ? 'disabled title="10 keys is the most. Revoke one first."' : ''}>${ic('plus')}Create key</button></div>`;
+  const note = full ? `<div class="note warn">${ic('warn')}<span>You have 10 keys, the most there can be. Revoke one to create another.</span></div>` : '';
+  return `<section class="card st-card" id="keys-card">${stHead('code', 'API keys', right)}${intro}${note ? `${note}<div style="height:8px"></div>` : ''}
+    <div class="rows">${list.map((k, i) => keyRow(k, i)).join('')}</div>${docs}</section>`;
+}
+function appRow(a, i) {
+  return `<div class="kr"><span class="kr-ic app" aria-hidden="true">${a.ini}</span>
+    <div class="kr-m"><div class="kr-n"><b>${a.name}</b><span class="dom">${a.dom}</span></div>${chips(a.sc)}</div>
+    <div class="kr-t"><span>Last used ${a.used}</span><span class="hint">Connected ${a.made}</span></div>
+    <button type="button" class="btn sm" data-act="disconnect" data-val="${i}">Disconnect</button></div>`;
+}
+function mcpCard() {
+  const url = `${HOST}/mcp`;
+  const clients = `<div class="cl">${CLIENTS.map(([ini, n, how, slug]) => `<div class="cl-r"><span class="cl-ic" aria-hidden="true">${esc(ini)}</span><span class="w"><b style="font-weight:500">${n}</b><span>${how}</span></span><a class="link" href="https://candlestack.tech/docs/mcp/${slug}" target="_blank" rel="noopener">Guide${ic('ext')}</a></div>`).join('')}</div>`;
+  const none = S.apps === 'none';
+  const apps = none
+    ? `<div class="st-empty sm"><b>No apps connected</b><span class="hint">Add the server URL as a connector in Claude or ChatGPT. You sign in and choose what it can do.</span></div>`
+    : `<div class="rows">${APPS.map(appRow).join('')}</div>`;
+  return `<section class="card st-card" id="mcp-card">${stHead('plug', 'MCP server')}<p class="hint st-intro">Use CandleStack from Claude, ChatGPT, Cursor or any MCP client. Ask about your backtests, start new ones and compare them in a chat.</p>
+    ${stRow('Server URL', `<div class="urlbox"><code>${url}</code>${copyBtn('url')}</div>`)}
+    ${stRow('Connect', clients, 'Step by step for each app', true)}
+    <div class="st-sub"><h3>Connected apps <span class="n">${none ? 0 : APPS.length}</span></h3><span class="hint">Apps that signed in with your account. Keys are in the card above.</span></div>
+    ${apps}</section>`;
+}
+function pageSettings() {
+  const tabs = ['Profile', 'Sign-in', 'Backtest defaults', 'Appearance', 'Data and storage', 'API and MCP', 'Account'];
+  const nav = `<nav class="st-tabs" aria-label="Settings sections">${tabs.map(t => `<button type="button" class="${t === 'API and MCP' ? 'on' : ''}" ${t === 'API and MCP' ? 'aria-current="page"' : 'title="Not part of this design"'}>${t}</button>`).join('')}</nav>`;
+  const main = `<div class="ttl"><div><h1>Settings</h1><p>Your account and how new backtests start</p></div></div>${nav}<div class="st-one">${keysCard()}${mcpCard()}</div>`;
+  return `${header()}<main class="abody"><div class="dd-ws">${side()}<div class="dd-main">${main}</div></div></main>${footer()}`;
+}
+
+// ---------- the consent screen (the authorize step of OAuth) ----------
+const pair = () => `<div class="pair"><span class="app" aria-hidden="true">C</span><span class="dots"><i></i><i></i></span><span class="lk">${ic('link')}</span><span class="dots"><i></i><i></i></span>${MARK}</div>`;
+function scopeBox(list, state, act, plain) {
+  return `<div class="scs">${list.map(([k, l, d]) => {
+    const fixed = k === 'read', on = state[k];
+    return `<button type="button" class="sc ${on ? 'on' : ''} ${fixed ? 'fixed' : ''}" ${fixed ? '' : `data-act="${act}" data-val="${k}"`} role="checkbox" aria-checked="${on}" ${fixed ? 'aria-disabled="true"' : ''}>
+      <span class="box">${ic('ok')}</span><span class="w"><b>${plain ? d : l}${plain ? '' : `<code>${k}</code>`}</b>${plain ? '' : `<span>${d}</span>`}</span><span class="side">${fixed ? 'Always' : ''}</span></button>`;
+  }).join('')}</div>`;
+}
+function pageConsent() {
+  let card;
+  if (S.consent === 'out') {
+    card = `<div class="one mid in">${pair()}<div><h1>Sign in to connect Claude</h1><p class="intro">Claude wants access to your CandleStack account. Sign in first, then choose what it can do.</p></div>
+      <div class="si-btns"><button type="button" class="si-b gh" data-act="go" data-val="#consent">${GH}<span>Continue with GitHub</span></button><button type="button" class="si-b gg" data-act="go" data-val="#consent">${GG}<span>Continue with Google</span></button></div>
+      <p class="si-note"><span class="si-dot"></span>In beta, open to people on the beta list</p></div><p class="legal">We only get your name and email. No password is stored.</p>`;
+  } else if (S.consent === 'denied') {
+    card = `<div class="one mid in">${MARK}<div><h1>You are not on the beta list yet</h1><p class="intro"><b>you@example.com</b> cannot sign in during the beta, so Claude cannot connect. Ask the team for an invite, then try again.</p></div>
+      <div class="acts"><button type="button" class="btn" data-act="go" data-val="#consent/signed-out">Use another account</button><a class="btn ghost" href="https://candlestack.tech" target="_blank" rel="noopener">Contact the team</a></div></div>`;
+  } else {
+    card = `<div class="one in"><div class="cn-top">${pair()}<div><h1>Claude wants access to your CandleStack account</h1><p class="intro">From claude.ai. It acts as you with what you allow here.</p></div>
+      <span class="acct"><span class="avatar">${ME.ini}</span>Signed in as <b>${ME.email}</b><button type="button" class="link" data-act="go" data-val="#consent/signed-out">Not you?</button></span></div>
+      ${scopeBox(SCOPES, S.cs, 'cs', true)}
+      <p class="never">${ic('lock')}<span>Claude can never delete your account, change how you sign in or download your model files.</span></p>
+      <div class="acts"><button type="button" class="btn">Cancel</button><button type="button" class="btn pri">Allow</button></div>
+      <p class="hint" style="text-align:center">You go back to claude.ai. Disconnect it any time in Settings.</p></div>`;
+  }
+  return `${header(S.consent === 'normal')}<main class="cen">${card}</main>${footer()}`;
+}
+
+// ---------- the upload page of a one-time link (/upload/<token>) ----------
+const from = '<span class="ul-from"><span class="cl-ic" aria-hidden="true">C</span>Asked for by Claude 2 min ago</span>';
+const fileRow = (sub, right = '', err = false) => `<div class="file ${err ? 'err' : ''}">${fwTile()}<span class="w"><b>${FILE.name}</b><span>${sub}</span></span><span class="r">${right}</span></div>`;
+const meta = (left, right) => `<div class="ul-meta"><span>${left}</span><span>${right}</span></div>`;
+const ck = (st, t, s) => `<li class="ck-r ${st}"><span class="ck-i">${st === 'ok' ? ic('ok') : st === 'err' ? ic('x') : ''}</span><span>${t}${s ? `<span class="s">${s}</span>` : ''}</span></li>`;
+function stateCard(icon, tone, title, intro, acts) {
+  return `<div class="one mid ul in"><span class="st-ic ${tone}">${ic(icon)}</span><div><h1>${title}</h1><p class="intro">${intro}</p></div>${acts ? `<div class="acts">${acts}</div>` : ''}</div>`;
+}
+function pageUpload() {
+  const u = S.up;
+  const timeLeft = `${ic('clock')}Link works for 13 more min`;
+  const quota = `${FILE.size} of your 73.6 MB free`;
+  let card;
+  if (u === 'expired') card = stateCard('clock', 'warn', 'This link has expired', 'Links work for 15 minutes. Ask Claude for a new one and open it here.', `<button type="button" class="btn">Go to Models</button>`);
+  else if (u === 'used') card = stateCard('ok', '', 'This link was already used', `Each link takes one file. <b>${FILE.name}</b> came through it 4 min ago.`, `<button type="button" class="btn pri">Open the model</button><button type="button" class="btn">Go to Models</button>`);
+  else if (u === 'wrong') card = stateCard('user', 'warn', 'This link is for another account', `You are signed in as <b>${ME.email}</b>. Sign in with the account you use with Claude, then open the link again.`, `<button type="button" class="btn pri">Use another account</button><button type="button" class="btn">Go to Dashboard</button>`);
+  else {
+    let body, title = 'Upload your model', intro = 'Claude asked for this file. It goes from your computer straight to your account.', foot = meta(timeLeft, quota);
+    if (u === 'ready') {
+      body = `${fileRow(`${FILE.size} · Keras`, '<span class="tag">Expected</span>')}<button type="button" class="ul-drop" data-act="go" data-val="#upload/uploading"><span class="qi">${ic('up')}</span><b>Drop <code>${FILE.name}</code> here</b><span>or click to choose it</span></button>`;
+    } else if (u === 'wrong-file') {
+      body = `${fileRow(`${FILE.size} · Keras`, '<span class="tag">Expected</span>')}<div class="note err">${ic('x')}<span class="t"><b>Not the file Claude asked for</b><span>tsmixer-old.keras is 12.0 MB. Choose ${FILE.name}, or ask Claude for a new link.</span></span></div><button type="button" class="ul-drop" data-act="go" data-val="#upload/uploading"><span class="qi">${ic('up')}</span><b>Drop <code>${FILE.name}</code> here</b><span>or click to choose it</span></button>`;
+    } else if (u === 'uploading') {
+      body = `${fileRow('Keras', `<button type="button" class="btn sm" data-act="go" data-val="#upload/ready">Cancel</button>`)}<div class="ul-p"><div class="bar"><i style="width:46%"></i></div><div class="ln"><span>14.4 MB of ${FILE.size}</span><span>46 %</span></div></div><p class="hint">Keep this tab open until the upload ends.</p>`;
+    } else if (u === 'checking') {
+      body = `${fileRow(`${FILE.size} · Keras`)}<ul class="cks">${ck('ok', 'Uploaded')}${ck('run', 'Opens as a safe model')}${ck('no', 'Has trained weights')}</ul>`;
+      foot = meta(`${ic('clock')}Checks take a few seconds`, '');
+    } else if (u === 'done') {
+      title = 'Model uploaded'; intro = 'It is in your Models now. Go back to Claude to add the manifest and run a backtest.';
+      body = `${fileRow(`${FILE.size} · Keras · input 64 × 23`, '<span class="tag">New</span>')}<ul class="cks">${ck('ok', 'Uploaded')}${ck('ok', 'Opens as a safe model')}${ck('ok', 'Has trained weights')}</ul><div class="acts"><button type="button" class="btn pri">Open the model</button></div>`;
+      foot = meta(`${ic('ok')}You can close this tab`, `26.4 → 57.8 MB of 100 MB`);
+    } else if (u === 'failed') {
+      title = 'The model did not pass the checks'; intro = 'Nothing was added to your account. Fix the file, then ask Claude for a new link.';
+      body = `${fileRow(`${FILE.size} · Keras`, '', true)}<ul class="cks">${ck('ok', 'Uploaded')}${ck('err', 'Does not open as a safe model', 'The file holds a Lambda layer with Python code. CandleStack does not run code from model files. Rebuild the model without Lambda layers.')}${ck('no', 'Has trained weights', 'Not checked')}</ul><div class="acts"><a class="btn" href="https://candlestack.tech/docs/models" target="_blank" rel="noopener">Which models work${ic('ext')}</a></div>`;
+      foot = meta(`${ic('link')}This link is used up`, 'Nothing taken from your storage');
+    }
+    card = `<div class="one ul in"><div class="ul-top">${from}<h1>${title}</h1><p class="intro">${intro}</p></div>${body}${foot}</div>`;
+  }
+  return `${header()}<main class="cen">${card}</main>${footer()}`;
+}
+
+// ---------- dialogs ----------
+function shell(title, body, foot, size = '') {
+  return `<div class="mbg ${S.anim ? 'in' : ''}" data-act="close"><div class="mdl ${size}" role="dialog" aria-modal="true" aria-label="${esc(title)}" data-act="stay">
+    <div class="mdl-h"><h2>${title}</h2><button type="button" class="btn ghost icon" data-act="close" aria-label="Close">${ic('x')}</button></div>
+    <div class="mdl-b">${body}</div>${foot ? `<div class="mdl-f">${foot}</div>` : ''}</div></div>`;
+}
+const EXPIRY = [['30', '30 days', '8 Dec 2026'], ['90', '90 days', '6 Feb 2027'], ['365', '1 year', '8 Nov 2027'], ['never', 'Never', '']];
+const SNIPS = {
+  api: ['API', `<span class="c"># Who am I</span>\ncurl ${HOST}/api/v1/me \\\n  -H "Authorization: Bearer ${NEW_KEY}"`],
+  code: ['Claude Code', `claude mcp add --transport http candlestack ${HOST}/mcp \\\n  --header "Authorization: Bearer ${NEW_KEY}"`],
+  cursor: ['Cursor', `{\n  "mcpServers": {\n    "candlestack": {\n      "url": "${HOST}/mcp",\n      "headers": { "Authorization": "Bearer ${NEW_KEY}" }\n    }\n  }\n}`],
+};
+const MODALS = {
+  create() {
+    const c = S.cr, e = EXPIRY.find(x => x[0] === c.exp);
+    return shell('Create API key', `<div class="fld"><label class="fld-l" for="kn"><span>Name</span><span class="cnt">${c.name.length} / 40</span></label><input id="kn" class="inp" data-input="kn" value="${esc(c.name)}" maxlength="40" placeholder="Claude Code on my laptop" autocomplete="off"><span class="hint">So you know where it is used</span></div>
+      <div class="fld"><span class="fld-l"><span>What it can do</span></span>${scopeBox(SCOPES, c.sc, 'crSc', false)}</div>
+      <div class="fld"><span class="fld-l"><span>Expires</span></span><div class="seg">${EXPIRY.map(([k, l]) => `<button type="button" class="${c.exp === k ? 'on' : ''}" data-act="crExp" data-val="${k}">${l}</button>`).join('')}</div><span class="hint">${e[2] ? `On ${e[2]}. Create a new key then.` : 'Works until you revoke it.'}</span></div>`,
+      `<span class="hint">You see the key once, right after this</span><button type="button" class="btn" data-act="close">Cancel</button><button type="button" class="btn pri" data-act="go" data-val="#keys/shown">Create key</button>`, 'wide');
+  },
+  shown() {
+    const [, code] = SNIPS[S.snip];
+    return shell('Copy your new key', `<div class="note warn">${ic('warn')}<span class="t"><b>You will not see it again</b><span>Store it in a password manager or your app's secrets. Anyone with it can act as you.</span></span></div>
+      <div class="fld"><span class="fld-l"><span>Claude Code on my laptop</span><span class="cnt">read · backtests · 90 days</span></span><div class="secret"><code>${NEW_KEY}</code>${copyBtn('key')}</div></div>
+      <div class="fld"><span class="fld-l"><span>Try it</span></span><div class="seg">${Object.entries(SNIPS).map(([k, [l]]) => `<button type="button" class="${S.snip === k ? 'on' : ''}" data-act="snip" data-val="${k}">${l}</button>`).join('')}</div>
+      <div class="snip"><pre>${code}</pre><button type="button" class="btn sm" data-act="copy" data-val="snip" aria-label="Copy" title="Copy">${ic(S.copied === 'snip' ? 'ok' : 'copy')}</button></div></div>`,
+      `<a class="link" href="https://candlestack.tech/docs/api" target="_blank" rel="noopener" style="margin-right:auto">API guide${ic('ext')}</a><button type="button" class="btn pri" data-act="go" data-val="#keys">Done</button>`, 'wide');
+  },
+  revoke() {
+    const list = S.keys === 'limit' ? [KEYS[0], KEYS[1], KEYS[2], ...MORE_KEYS] : KEYS, k = list[S.mk] || KEYS[1];
+    const who = `<div class="who-k"><span class="kr-ic">${ic('key')}</span><span class="kr-m"><span class="kr-n"><b>${esc(k.name)}</b><code>${k.pre}…</code></span>${chips(k.sc)}</span></div>`;
+    if (k.gone) return shell(`Delete ${esc(k.name)}?`, `${who}<p>It expired on ${k.exp} and no longer works. This removes it from the list.</p>`, '<button type="button" class="btn" data-act="close">Cancel</button><button type="button" class="btn danger solid" data-act="close">Delete key</button>');
+    return shell(`Revoke ${esc(k.name)}?`, `${who}<p>Anything that uses this key stops working at once. ${k.used ? `It was last used ${k.used.toLowerCase().startsWith('today') || k.used.toLowerCase().startsWith('yesterday') ? k.used.toLowerCase() : k.used}.` : 'It was never used.'}</p><p class="muted">This cannot be undone. You can create a new key any time.</p>`,
+      '<button type="button" class="btn" data-act="close">Cancel</button><button type="button" class="btn danger solid" data-act="close">Revoke key</button>');
+  },
+  disconnect() {
+    const a = APPS[S.ma] || APPS[1];
+    return shell(`Disconnect ${a.name}?`, `<div class="who-k"><span class="kr-ic app" aria-hidden="true">${a.ini}</span><span class="kr-m"><span class="kr-n"><b>${a.name}</b><span class="dom">${a.dom}</span></span>${chips(a.sc)}</span></div><p>${a.name} loses access to your account at once. Its chats keep what they already show.</p><p class="muted">You can connect it again from ${a.name} any time.</p>`,
+      '<button type="button" class="btn" data-act="close">Cancel</button><button type="button" class="btn danger solid" data-act="close">Disconnect</button>');
+  },
+  notes() {
+    return shell('Notes for the review', `<div class="notes">
+      <div><h3>API keys card</h3><ul>
+        <li>One bordered row per key, like the providers of the Sign-in card. Name and the shown prefix <code>cs_7Hq2Lm9x…</code>, the scopes as mono chips, Last used over Created and Expires, Revoke.</li>
+        <li>Expiring within 7 days is amber. An expired key stays in the list, greyed with an Expired tag and Delete, until removed. It does not count toward the 10.</li>
+        <li>The count <code>3 of 10</code> sits next to Create key. At 10 the button is disabled with a tooltip and an amber note says to revoke one.</li>
+        <li>Create key asks for a name (1 to 40 characters), the four scopes with <code>read</code> always on and an expiry of 30 days, 90 days (default), 1 year or Never.</li>
+        <li>The key is shown once in its own dialog with Copy, an amber warning and Try it snippets (API, Claude Code, Cursor) with the key filled in. Done closes it. Copying is not required to close.</li>
+        <li>Revoke and Delete ask first, in red. Keys are managed only here with the session, never with a key.</li>
+      </ul></div>
+      <div><h3>MCP card</h3><ul>
+        <li>Server URL with Copy, then one line per client with its guide on <code>candlestack.tech/docs/mcp/&lt;client&gt;</code>. Clients get neutral letter tiles, not their logos.</li>
+        <li>Connected apps lists only OAuth apps (Claude, ChatGPT). Claude Code and Cursor use a key, so they show under API keys.</li>
+        <li>Disconnect asks first and ends the app's access at once.</li>
+      </ul></div>
+      <div><h3>Consent screen</h3><ul>
+        <li>One card on the grid like the sign-in page. The app's tile, a link, the CandleStack mark. The title says who wants what. The app's site (claude.ai) is named, since anyone can register an app called Claude.</li>
+        <li>Scopes in plain words with boxes. Read is always on, Run backtests and Manage models start on, Publish starts off. Cancel and Allow side by side.</li>
+        <li>Signed out shows the sign-in buttons on the same card and comes back here. Not on the beta list reuses the sign-in page's words.</li>
+      </ul></div>
+      <div><h3>Upload page</h3><ul>
+        <li>Signed in only. A signed-out visitor gets the normal sign-in page and returns here.</li>
+        <li>Shows who asked (the app or the key's name), the expected file and size, the time left and what it takes from the storage.</li>
+        <li>A file with another size is refused in the browser before sending, and the link stays usable.</li>
+        <li>A failed check uses the link up, as the link is single use. The page says to ask for a new one.</li>
+        <li>Expired, used and wrong account are short state cards with one way on.</li>
+      </ul></div>
+      <div><h3>Example data</h3><ul><li>Names, keys, dates and sizes are examples. The key on the Key shown once screen is not a real key.</li></ul></div>
+    </div>`, '<button type="button" class="btn pri" data-act="close">Close</button>', 'xl');
+  },
+};
+
+// ---------- the Screens menu (review tool) ----------
+const SCREENS = [
+  ['Settings, API keys', [['#keys', 'Keys list'], ['#keys/empty', 'No keys yet'], ['#keys/create', 'Create key dialog'], ['#keys/shown', 'Key shown once'], ['#keys/revoke', 'Revoke confirm'], ['#keys/delete', 'Delete an expired key'], ['#keys/limit', 'Limit of 10 reached']]],
+  ['Settings, MCP server', [['#mcp', 'Connected apps'], ['#mcp/none', 'No apps connected'], ['#mcp/disconnect', 'Disconnect confirm']]],
+  ['Consent screen', [['#consent', 'Allow access'], ['#consent/signed-out', 'Signed out'], ['#consent/denied', 'Not on the beta list']]],
+  ['Upload page of a one-time link', [['#upload/ready', 'Ready'], ['#upload/wrong-file', 'A different file'], ['#upload/uploading', 'Uploading'], ['#upload/checking', 'Checking'], ['#upload/done', 'Done'], ['#upload/failed', 'Check failed'], ['#upload/expired', 'Link expired'], ['#upload/used', 'Link used'], ['#upload/wrong', 'Wrong account']]],
+];
+function scrMenu() {
+  const items = SCREENS.map(([g, l]) => `<div class="scr-g">${g}</div>${l.map(([h, t]) => `<button type="button" class="scr-o ${S.hash === h ? 'on' : ''}" data-act="go" data-val="${h}">${t}<span class="k">${h}</span></button>`).join('')}`).join('');
+  return `<div class="scr">${S.menu ? `<div class="scr-p" role="menu"><div class="scr-f"><button type="button" class="btn sm" data-act="theme">${ic(isDark() ? 'sun' : 'moon')}${isDark() ? 'Light' : 'Dark'}</button><button type="button" class="btn sm" data-act="notes">${ic('note')}Notes</button></div>${items}</div>` : ''}<button type="button" class="scr-t" data-act="menu" aria-expanded="${S.menu}" title="Every screen and state">${ic('grid')}Screens</button></div>`;
+}
+
+// ---------- render ----------
+let lastPage = '';
+function render() {
+  const html = { settings: pageSettings, consent: pageConsent, upload: pageUpload }[S.page]();
+  if (html !== lastPage) { document.getElementById('app').innerHTML = html; lastPage = html; }
+  document.getElementById('ov').innerHTML = `${S.modal && MODALS[S.modal] ? MODALS[S.modal]() : ''}${scrMenu()}`;
+  document.title = `${{ settings: 'Settings', consent: 'Allow access', upload: 'Upload a model' }[S.page]} · CandleStack`;
+  S.anim = false;
+  if (S.focus) { const el = document.getElementById(S.focus); S.focus = null; if (el) el.focus(); }
+}
+
+// ---------- routes: every screen starts from the same example data ----------
+function route() {
+  const h = location.hash || '#keys', [a, b] = h.slice(1).split('/');
+  Object.assign(S, { hash: h, modal: null, menu: false, copied: '', keys: 'list', apps: 'some', snip: 'api', anim: true, mk: 1, ma: 1 });
+  S.cr = { name: '', sc: { read: true, backtests: true, models: false, publish: false }, exp: '90' };
+  S.cs = { read: true, backtests: true, models: true, publish: false };
+  let scroll = 0;
+  S.base = ['empty', 'limit', 'none'].includes(b) ? `#${a}/${b}` : `#${a}`;
+  if (a === 'keys') {
+    S.page = 'settings';
+    if (b === 'empty') S.keys = 'empty';
+    if (b === 'limit') S.keys = 'limit';
+    if (b === 'create') { S.modal = 'create'; S.focus = 'kn'; }
+    if (b === 'shown') S.modal = 'shown';
+    if (b === 'revoke') S.modal = 'revoke';
+    if (b === 'delete') { S.modal = 'revoke'; S.mk = 3; }
+  } else if (a === 'mcp') {
+    S.page = 'settings'; scroll = 'mcp-card';
+    if (b === 'none') S.apps = 'none';
+    if (b === 'disconnect') S.modal = 'disconnect';
+  } else if (a === 'consent') {
+    S.page = 'consent'; S.consent = b === 'signed-out' ? 'out' : b === 'denied' ? 'denied' : 'normal';
+  } else if (a === 'upload') {
+    S.page = 'upload'; S.up = b || 'ready';
+  } else if (a === 'notes') {
+    S.modal = 'notes';
+  } else { S.page = 'settings'; }
+  render();
+  if (scroll) { const el = document.getElementById(scroll); if (el) el.scrollIntoView({ block: 'start' }); } else if (a !== 'notes') window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', route);
+
+// ---------- actions: moving between screens, nothing more ----------
+const go = h => { if (location.hash === h) route(); else location.hash = h; };
+const ACT = {
+  go: (el, v) => { go(v); return false; },
+  theme: () => { document.documentElement.dataset.theme = isDark() ? 'light' : 'dark'; lastPage = ''; },
+  menu: () => { S.menu = !S.menu; },
+  notes: () => { S.modal = 'notes'; S.anim = true; S.menu = false; },
+  // A dialog opened from the Screens menu closes to its page, one opened on the page just closes
+  close: () => { if (S.base !== S.hash) { go(S.base); return false; } S.modal = null; },
+  stay: () => false,
+  copy: (el, v) => { S.copied = v; },
+  snip: (el, v) => { S.snip = v; S.copied = ''; },
+  revoke: (el, v) => { S.mk = +v; S.modal = 'revoke'; S.anim = true; },
+  disconnect: (el, v) => { S.ma = +v; S.modal = 'disconnect'; S.anim = true; },
+  crSc: (el, v) => { S.cr.sc[v] = !S.cr.sc[v]; },
+  crExp: (el, v) => { S.cr.exp = v; },
+  cs: (el, v) => { S.cs[v] = !S.cs[v]; lastPage = ''; },
+};
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (!el) { if (S.menu && !e.target.closest('.scr')) { S.menu = false; render(); } return; }
+  const a = el.dataset.act;
+  if (S.menu && !el.closest('.scr')) S.menu = false;
+  if (!ACT[a]) { render(); return; }
+  if (ACT[a](el, el.dataset.val) === false) return;
+  render();
+});
+document.addEventListener('input', e => {
+  if (e.target.dataset && e.target.dataset.input === 'kn') { S.cr.name = e.target.value; const c = e.target.closest('.fld').querySelector('.cnt'); if (c) c.textContent = `${S.cr.name.length} / 40`; }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && (S.modal || S.menu)) { if (S.modal) ACT.close() !== false && render(); else { S.menu = false; render(); } }
+});
+
+route();
+</script>
+</body>
+</html>
