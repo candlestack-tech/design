@@ -486,7 +486,7 @@ const href = h => PATHS[h] || (h.startsWith('http') ? h : '#none');
 // Code colors: strings, numbers, comments, flags
 function hl(code, lang) {
   if (lang === 'text') return esc(code);
-  const com = lang === 'js' ? '(^|\\s)(\\/\\/[^\\n]*)' : lang === 'json' ? '(?!)()' : '(^|\\s)(#[^\\n]*)';
+  const com = lang === 'js' ? '(^|\\s)(\\/\\/[^\\n]*)' : lang === 'json' ? '()(?!)()' : '(^|\\s)(#[^\\n]*)';
   const re = new RegExp(`${com}|("(?:[^"\\\\\\n]|\\\\.)*"|'(?:[^'\\\\\\n]|\\\\.)*')|(\\s--?[a-z][a-z-]*)|(\\b-?\\d+(?:\\.\\d+)?\\b)`, 'gm');
   let out = '', last = 0, m;
   while ((m = re.exec(code))) {
