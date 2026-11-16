@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CandleStack Home Update</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: the live home page column on the app's grid. The page is a size container, so the Phone switch shows the 390 px layout on a desktop screen. */
+:root {
+  --bg: #fafaf9; --ink: #141414; --muted: #686868; --rule: #e7e5e2; --accent: #0f766e; --on-accent: #fafaf9;
+  --down: #b42318; --up: #1a7f37; --grid: rgb(28 25 23 / 0.09);
+  --s0: #1d5fd1; --s1: #b86e00; --s2: #7a4fd0; --openai: #000000; --cursor: #26251e; --frame: #d6d3cf;
+  --surface: color-mix(in srgb, var(--ink) 5%, var(--bg));
+  --surface2: color-mix(in srgb, var(--ink) 9%, var(--bg));
+  --up-soft: color-mix(in srgb, var(--up) 14%, transparent);
+  --down-soft: color-mix(in srgb, var(--down) 14%, transparent);
+  --sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --mono: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d0f11; --ink: #ecedee; --muted: #9ba1a6; --rule: #23272b; --accent: #3cc7a6; --on-accent: #0d0f11;
+    --down: #f0616d; --up: #43b049; --grid: rgb(230 232 234 / 0.075);
+    --s0: #5b9cf6; --s1: #f2a33c; --s2: #b794f6; --openai: #ffffff; --cursor: #edecec; --frame: #2e3338;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d0f11; --ink: #ecedee; --muted: #9ba1a6; --rule: #23272b; --accent: #3cc7a6; --on-accent: #0d0f11;
+  --down: #f0616d; --up: #43b049; --grid: rgb(230 232 234 / 0.075);
+  --s0: #5b9cf6; --s1: #f2a33c; --s2: #b794f6; --openai: #ffffff; --cursor: #edecec; --frame: #2e3338;
+  color-scheme: dark;
+}
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
+*, *::before, *::after { box-sizing: border-box; }
+h1, h2, h3, p, ul, dl, dd { margin: 0; }
+ul { padding: 0; list-style: none; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Viewer bar, not part of the page */
+.viewer { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--surface); border-bottom: 1px solid var(--rule); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--surface); }
+.viewer .in { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-block: 8px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); font-size: 12.5px; color: var(--muted); }
+.viewer .in b { color: var(--ink); font-weight: 600; }
+.opts { display: inline-flex; border: 1px solid var(--rule); border-radius: 7px; overflow: hidden; background: var(--bg); }
+.opts button { appearance: none; border: 0; background: none; padding: 4px 11px; font-size: 12.5px; cursor: pointer; color: var(--muted); }
+.opts button + button { border-left: 1px solid var(--rule); }
+.opts button[aria-pressed="true"] { background: var(--surface2); color: var(--ink); font-weight: 600; }
+.stage { padding-block: 0; }
+body.phone .stage { padding-block: 24px 48px; background: var(--surface); }
+.page { container-type: inline-size; container-name: page; margin: 0 auto; background-color: var(--bg); background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 40px 40px; }
+body.phone .page { width: 390px; max-width: 100%; border: 1px solid var(--frame); border-radius: 18px; overflow: hidden; }
+
+.wrap { max-width: 1184px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.eyebrow { font: 500 11px/16px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+.h2 { margin-top: 6px; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; text-wrap: balance; }
+.lead { margin-top: 8px; color: var(--muted); max-width: 62ch; }
+
+/* Header */
+.top { border-bottom: 1px solid var(--rule); }
+.top .wrap { display: flex; align-items: center; gap: 24px; height: 56px; }
+.logo { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 16px; flex: none; }
+.logo i { width: 22px; height: 22px; border-radius: 5px; background: var(--accent); display: grid; place-items: center; }
+.nav { display: flex; gap: 18px; font-size: 13px; color: var(--muted); }
+.nav a[aria-current] { color: var(--ink); font-weight: 500; }
+.right { margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: 13px; }
+.ic { appearance: none; display: grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; }
+.ic:hover { background: var(--surface2); color: var(--ink); }
+.av { width: 26px; height: 26px; border-radius: 999px; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 22%, var(--bg)); color: var(--accent); font: 600 10.5px var(--sans); flex: none; }
+
+/* Buttons */
+.btn { appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--on-accent); font-weight: 500; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: color-mix(in srgb, var(--accent) 86%, var(--ink)); }
+.btn.ghost { background: var(--bg); color: var(--ink); border-color: var(--rule); }
+.btn.ghost:hover { background: var(--surface); }
+.btns { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.link { color: var(--accent); font-weight: 500; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+
+/* Hero + pipeline */
+.hero { padding-block: 56px 28px; }
+.hero h1 { font-size: 44px; line-height: 1.08; letter-spacing: -0.035em; font-weight: 700; max-width: 15ch; text-wrap: balance; }
+.hero > p { margin-top: 16px; color: var(--muted); font-size: 15.5px; max-width: 58ch; }
+.hero .btns { margin-top: 24px; }
+.pipe { margin-top: 28px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; padding: 22px 20px; background: var(--bg); border: 1px solid var(--rule); border-radius: 12px; }
+.pipe .st { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.pipe .box { height: 38px; display: flex; align-items: center; padding: 0 12px; border: 1px solid var(--rule); border-radius: 6px; font-weight: 600; font-size: 13.5px; background: var(--bg); }
+.pipe .box.l { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--bg)); }
+.pipe ul { font: 12px/1.6 var(--mono); color: var(--muted); padding-left: 2px; }
+
+/* Sections */
+.sec { padding-block: 40px; border-top: 1px solid var(--rule); }
+.split { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 36px; align-items: start; }
+.cards3 { margin-top: 20px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.card { background: var(--bg); border: 1px solid var(--rule); border-radius: 10px; padding: 18px; min-width: 0; }
+.card h3 { margin-top: 8px; font-size: 15px; font-weight: 600; }
+.card p { margin-top: 6px; color: var(--muted); font-size: 13px; }
+.badges { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+.badge { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border: 1px solid var(--rule); border-radius: 999px; font: 500 11.5px var(--mono); }
+.chk { display: flex; align-items: flex-start; gap: 9px; color: var(--muted); font-size: 13.5px; }
+.chk svg { flex: none; margin-top: 4px; }
+.chks { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.ex { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 8px; font-size: 11.5px; color: var(--muted); }
+.ex .eyebrow { padding: 2px 8px; border: 1px solid var(--rule); border-radius: 999px; font-size: 10px; }
+.panel { background: var(--bg); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+
+/* Instruments */
+.inst { width: 100%; border-collapse: collapse; font-size: 13px; }
+.inst th { text-align: left; font-weight: 500; font-size: 11.5px; color: var(--muted); padding: 9px 12px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.inst td { padding: 8px 12px; border-top: 1px solid var(--rule); white-space: nowrap; }
+.inst tr:first-child td { border-top: 0; }
+.inst .num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.sym { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.ti { width: 26px; height: 26px; border-radius: 6px; flex: none; display: grid; place-items: center; font: 700 10px var(--sans); color: #fff; }
+.spark { width: 96px; height: 22px; display: block; }
+
+/* Compare chart */
+.eqhead { padding: 14px 16px 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.legend i { width: 14px; height: 3px; border-radius: 2px; }
+.plot { display: flex; gap: 8px; padding: 0 16px; }
+.plot .area { position: relative; flex: 1; min-width: 0; height: 170px; }
+.plot .yax { position: relative; width: 46px; flex: none; height: 170px; }
+.plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.xax { display: flex; justify-content: space-between; padding: 8px 70px 12px 16px; font: 11px var(--mono); color: var(--muted); }
+.mrow { display: grid; grid-template-columns: minmax(96px, 1fr) repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--rule); }
+.mrow > div { padding: 8px 12px; min-width: 0; font-size: 13px; }
+.mrow .lb { color: var(--muted); }
+.mrow .v { font-family: var(--mono); font-size: 12.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.best { color: var(--up); background: var(--up-soft); font-weight: 600; }
+.worst { color: var(--down); background: var(--down-soft); font-weight: 600; }
+
+/* Agents */
+.clients { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 6px; }
+.client { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 10px 0 8px; border: 1px solid var(--rule); border-radius: 999px; background: var(--bg); font-size: 12.5px; font-weight: 500; }
+.client svg { width: 15px; height: 15px; flex: none; }
+.chat-h { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--rule); font-size: 12.5px; color: var(--muted); }
+.chat-h svg { width: 15px; height: 15px; }
+.dot { width: 7px; height: 7px; border-radius: 999px; background: var(--up); }
+.chat-b { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.msg-u { align-self: flex-end; max-width: 82%; padding: 10px 13px; border-radius: 12px 12px 4px 12px; background: var(--surface2); font-size: 13.5px; }
+.calls { display: flex; flex-direction: column; gap: 5px; }
+.call { display: flex; align-items: center; gap: 8px; font: 12px var(--mono); color: var(--muted); min-width: 0; }
+.call code { color: var(--ink); white-space: nowrap; }
+.call .arg { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.call svg { flex: none; }
+.msg-a { font-size: 13.5px; max-width: 64ch; }
+.mini { border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; font-size: 12.5px; }
+.mini .r { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--rule); }
+.mini .r:first-child { border-top: 0; color: var(--muted); font-size: 11.5px; }
+.mini .r > div { padding: 7px 10px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini .v { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* Experiments */
+.xcards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.xc { background: var(--bg); border: 1px solid var(--rule); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; min-width: 0; }
+.xc-t { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.xc-t .ti { width: 28px; height: 28px; }
+.xc-t h3 { font-size: 15px; line-height: 20px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.xc-t p { font: 11.5px var(--mono); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.xc-m { margin-top: 10px; font-size: 13px; font-weight: 500; display: flex; gap: 8px; align-items: baseline; min-width: 0; }
+.xc-m span { font: 11.5px var(--mono); color: var(--muted); white-space: nowrap; }
+.xc svg.sp { margin-top: 10px; width: 100%; height: 44px; display: block; }
+.xc-lg { margin-top: 3px; display: flex; justify-content: space-between; gap: 8px; font: 11px var(--mono); color: var(--muted); white-space: nowrap; }
+.xc-lg i { display: inline-block; width: 12px; vertical-align: middle; margin-right: 5px; }
+.xc-num { margin-block: 10px; display: grid; grid-template-columns: repeat(4, auto); justify-content: space-between; gap: 6px; }
+.xc-num dt { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.xc-num dd { font: 600 13px var(--mono); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.xc-num div:last-child { text-align: right; }
+.xc-f { margin-top: auto; padding-top: 9px; border-top: 1px solid var(--rule); display: flex; align-items: center; gap: 8px; font-size: 12.5px; min-width: 0; }
+.xc-f .av { width: 22px; height: 22px; font-size: 9.5px; }
+.xc-f em { margin-left: auto; font-style: normal; font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+.up { color: var(--up); } .down { color: var(--down); }
+
+footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 24px; padding-block: 22px 32px; border-top: 1px solid var(--rule); font-size: 12.5px; color: var(--muted); }
+footer nav { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+
+@container page (max-width: 980px) {
+  .split { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .pipe { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cards3, .xcards { grid-template-columns: minmax(0, 1fr); }
+}
+@container page (max-width: 560px) {
+  .hero { padding-block: 36px 20px; }
+  .hero h1 { font-size: 32px; }
+  .hero > p { font-size: 14.5px; }
+  .pipe { grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 16px; }
+  .nav a:not([aria-current]):not(.keep) { display: none; }
+  .nav { gap: 14px; }
+  .top .wrap { gap: 16px; }
+  .right .dash { display: none; }
+  .msg-u { max-width: 100%; }
+  .inst .ex-col, .inst .sp-col { display: none; }
+  .inst td, .inst th { padding-inline: 10px; }
+  .mrow { grid-template-columns: 74px repeat(3, minmax(0, 1fr)); }
+  .mrow > div { padding: 8px; }
+  .mrow .v { font-size: 11.5px; }
+  .xax { padding-right: 70px; }
+  .mini .r { grid-template-columns: minmax(0, 1.1fr) repeat(3, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<!-- Client logos are the brands' own marks, used only to name the client: Claude Spark in Clay
+     (Anthropic press kit), OpenAI Blossom (openai.com/brand), Cursor Cube 2D (cursor.com/brand),
+     VS Code (code.visualstudio.com/brand, drawn without its shading here). The app takes them from
+     the website's ClientLogos sprite. -->
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l4 4 10-10" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-tool" viewBox="0 0 24 24"><path d="M5 12l4 4 10-10" fill="none" stroke="var(--up)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="cl-claude" viewBox="0 0 94 94"><path fill="#D97757" d="M18.7657 62.4437L37.1822 52.1167L37.4857 51.2122L37.1822 50.7085H36.2715L33.1852 50.5208L22.6615 50.2391L13.5545 49.8636L4.70044 49.3942L2.47428 48.9248L0.399902 46.1553L0.602281 44.794L2.47428 43.5266L5.15579 43.7613L11.0754 44.1837L19.98 44.794L26.4055 45.1695L35.9679 46.1553H37.4857L37.6881 45.545L37.1822 45.1695L36.7774 44.794L27.5692 38.5508L17.6021 31.9791L12.3908 28.1769L9.60812 26.2524L8.19147 24.4686L7.58433 20.5256L10.1141 17.7091L13.5545 17.9438L14.4146 18.1785L17.9056 20.8542L25.343 26.6279L35.0572 33.7629L36.4739 34.9364L37.0443 34.5514L37.1316 34.2792L36.4739 33.1996L31.212 23.6706L25.596 13.9539L23.0663 9.91695L22.4086 7.52296C22.1538 6.51831 22.0038 5.68714 22.0038 4.65957L24.8877 0.716544L26.5067 0.200195L30.4025 0.716544L32.0215 2.12477L34.4501 7.66379L38.3458 16.3478L44.4172 28.1769L46.188 31.6975L47.1493 34.9364L47.5035 35.9222H48.1106V35.3589L48.6166 28.6933L49.5273 20.5256L50.438 10.0108L50.7415 7.05356L52.2088 3.48605L55.1433 1.56148L57.42 2.64112L59.292 5.31674L59.039 7.05356L57.926 14.2824L55.7504 25.5952L54.3337 33.1996H55.1433L56.1046 32.2138L59.9497 27.1442L66.3752 19.0704L69.2085 15.8784L72.5478 12.3579L74.6728 10.668H78.7203L81.6548 15.0804L80.3394 19.6337L76.1906 24.8911L72.7502 29.3504L67.8172 35.9595L64.7562 41.2734L65.0307 41.7118L65.7681 41.6489L76.8989 39.255L82.9197 38.1753L90.1041 36.9549L93.3422 38.457L93.6963 40.006L92.4315 43.151L84.7411 45.0287L75.7353 46.8594L62.3244 50.0164L62.1759 50.1358L62.3512 50.3958L68.399 50.9432L70.9794 51.084H77.3037L89.0922 51.9759L92.1785 53.9944L93.9999 56.4822L93.6963 58.4068L88.9404 60.8008L82.5655 59.2987L67.6401 55.7312L62.5301 54.4638H61.8217V54.8862L66.0717 59.064L73.9139 66.1051L83.6786 75.2116L84.1845 77.4648L82.9197 79.2485L81.6042 79.0608L73.0032 72.5829L69.6639 69.6726L62.1759 63.3356H61.67V63.9928L63.3902 66.5276L72.5478 80.2812L73.0032 84.5059L72.3454 85.8672L69.9675 86.7121L67.3871 86.2427L61.9735 78.6852L56.4587 70.2359L52.0064 62.6315L51.4687 62.971L48.8189 91.2654L47.6047 92.7206L44.7714 93.8002L42.3934 92.0164L41.1286 89.1061L42.3934 83.3324L43.9113 75.8219L45.1255 69.8604L46.2386 62.4437L46.9184 59.9661L46.8583 59.8003L46.3153 59.8916L40.7238 67.5603L32.2239 79.0608L25.4948 86.2427L23.8758 86.8999L21.0931 85.4447L21.3461 82.863L22.9145 80.5629L32.2239 68.7338L37.8399 61.3641L41.4594 57.1337L41.4242 56.5218L41.2244 56.5048L16.489 72.6299L12.0873 73.1932L10.1647 71.4094L10.4176 68.4991L11.3283 67.5603L18.7657 62.4437Z"/></symbol>
+    <symbol id="cl-openai" viewBox="176 176 364 364"><path fill="var(--openai)" d="M508.749 317.399C516.777 287.314 508.991 253.884 485.389 230.282C461.788 206.681 428.36 198.895 398.273 206.923C376.231 184.928 343.39 174.956 311.148 183.596C278.906 192.234 255.45 217.292 247.36 247.361C217.291 255.451 192.233 278.91 183.595 311.149C174.957 343.391 184.927 376.232 206.924 398.274C198.896 428.359 206.683 461.789 230.284 485.391C253.885 508.992 287.313 516.779 317.401 508.75C339.442 530.745 372.286 540.717 404.525 532.079C436.767 523.441 460.223 498.384 468.313 468.315C498.383 460.224 523.44 436.766 532.078 404.526C540.716 372.285 530.747 339.443 508.749 317.402V317.399ZM470.899 244.776C486.892 260.77 493.488 282.601 490.687 303.412L415.577 260.046C412.411 258.218 408.509 258.218 405.345 260.046L317.401 310.82V277.526C317.401 275.191 318.652 273.005 320.676 271.837L387.644 233.174C414.178 218.353 448.346 222.223 470.901 244.776H470.899ZM357.837 311.144L398.275 334.491V381.185L357.837 404.532L317.398 381.185V334.491L357.837 311.144ZM264.776 269.693C265.207 239.305 285.644 211.649 316.453 203.393C338.3 197.54 360.505 202.744 377.127 215.573L302.014 258.937C298.848 260.764 296.898 264.144 296.898 267.798V369.346L268.065 352.699C266.043 351.531 264.776 349.353 264.776 347.017V269.691V269.693ZM203.391 316.454C209.244 294.608 224.854 277.978 244.276 269.999V356.73C244.276 360.384 246.226 363.763 249.392 365.591L337.337 416.365L308.503 433.013C306.481 434.181 303.961 434.188 301.939 433.02L234.971 394.357C208.868 378.789 195.138 347.261 203.391 316.454ZM244.775 470.9C228.781 454.906 222.186 433.075 224.986 412.264L300.096 455.63C303.263 457.457 307.164 457.457 310.328 455.63L398.273 404.856V438.149C398.273 440.485 397.022 442.671 394.997 443.839L328.029 482.502C301.495 497.322 267.327 493.452 244.772 470.9H244.775ZM450.897 445.982C450.466 476.371 430.029 504.027 399.22 512.283C377.373 518.136 355.168 512.932 338.547 500.102L413.659 456.738C416.826 454.911 418.775 451.532 418.775 447.877V346.329L447.609 362.977C449.631 364.145 450.897 366.323 450.897 368.659V445.985V445.982ZM512.282 399.221C506.429 421.068 490.819 437.697 471.397 445.676V358.946C471.397 355.292 469.448 351.912 466.281 350.085L378.336 299.311L407.17 282.663C409.192 281.495 411.712 281.487 413.734 282.655L480.702 321.318C506.805 336.887 520.536 368.415 512.282 399.221Z"/></symbol>
+    <symbol id="cl-cursor" viewBox="0 0 466.73 532.09"><path fill="var(--cursor)" d="M457.43,125.94L244.42,2.96c-6.84-3.95-15.28-3.95-22.12,0L9.3,125.94c-5.75,3.32-9.3,9.46-9.3,16.11v247.99c0,6.65,3.55,12.79,9.3,16.11l213.01,122.98c6.84,3.95,15.28,3.95,22.12,0l213.01-122.98c5.75-3.32,9.3-9.46,9.3-16.11v-247.99c0-6.65-3.55-12.79-9.3-16.11h-.01ZM444.05,151.99l-205.63,356.16c-1.39,2.4-5.06,1.42-5.06-1.36v-233.21c0-4.66-2.49-8.97-6.53-11.31L24.87,145.67c-2.4-1.39-1.42-5.06,1.36-5.06h411.26c5.84,0,9.49,6.33,6.57,11.39h-.01Z"/></symbol>
+    <symbol id="cl-vscode" viewBox="0 0 100 100"><path fill="#0065A9" d="M96.46 10.8 75.86.88a6.24 6.24 0 0 0-7.11 1.2L1.3 63.58a4.17 4.17 0 0 0 0 6.16l5.51 5.01a4.17 4.17 0 0 0 5.32.24L93.36 13.37c2.73-2.07 6.64-.12 6.64 3.3v-.24a6.250 6.25 0 0 0-3.54-5.63Z"/><path fill="#007ACC" d="m96.46 89.2-20.6 9.92a6.24 6.24 0 0 1-7.11-1.2L1.3 36.42a4.17 4.17 0 0 1 0-6.16l5.51-5.01a4.17 4.17 0 0 1 5.32-.24l81.23 61.62c2.73 2.07 6.64.12 6.64-3.3v.24a6.25 6.25 0 0 1-3.54 5.63Z"/><path fill="#1F9CF0" d="M75.86 99.13a6.24 6.24 0 0 1-7.11-1.21c2.31 2.31 6.25.67 6.25-2.59V4.67c0-3.26-3.94-4.9-6.25-2.59a6.24 6.24 0 0 1 7.11-1.2l20.6 9.9A6.25 6.25 0 0 1 100 16.41v67.18a6.25 6.25 0 0 1-3.54 5.63l-20.6 9.91Z"/></symbol>
+  </defs>
+</svg>
+
+<div class="viewer" role="region" aria-label="Mockup controls">
+  <div class="in">
+    <b>Home page update</b><span>candlestack#477</span>
+    <span style="flex:1"></span>
+    <div class="opts" id="size"><button type="button" data-v="desktop" aria-pressed="true">Desktop</button><button type="button" data-v="phone" aria-pressed="false">Phone</button></div>
+    <button type="button" class="ic" id="theme" aria-label="Change the theme"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg></button>
+  </div>
+</div>
+
+<div class="stage">
+<div class="page">
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#"><i><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v4M7 17v4M17 6v3M17 15v4" stroke="var(--on-accent)" stroke-width="2" stroke-linecap="round"/><rect x="4.5" y="7" width="5" height="10" rx="1" fill="var(--on-accent)"/><rect x="14.5" y="9" width="5" height="6" rx="1" fill="var(--on-accent)"/></svg></i>CandleStack</a>
+    <nav class="nav" aria-label="Main"><a href="#" aria-current="page">Product</a><a href="#">Instruments</a><a href="#" class="keep">Docs</a><a href="#">API</a></nav>
+    <div class="right">
+      <a href="#" class="dash" style="font-weight:500">Dashboard</a>
+      <button type="button" class="ic theme" aria-label="Change the theme"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg></button>
+      <span class="av" aria-hidden="true">AL</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="wrap hero">
+    <h1>Backtest your models and compare every experiment</h1>
+    <p>Run a trained model on real stock and crypto candles, try different configurations and see which one holds up. Change how prices are represented, which model predicts or how its predictions become trades. Every run is measured the same way. Or let your AI agent run it for you.</p>
+    <div class="btns"><a class="btn" href="#">Try Backtest</a><a class="btn ghost" href="#agents">Connect an agent</a></div>
+
+    <div class="pipe" aria-label="Pipeline">
+      <div class="st"><span class="eyebrow">Input</span><div class="box">Market data</div><ul><li>14,000+ stocks and pairs</li><li>1m to 1d candles</li><li>since 2016</li></ul></div>
+      <div class="st"><span class="eyebrow">Layer 1</span><div class="box l">Representation</div><ul><li>Renko · Kagi</li><li>Time windows</li><li>Normalized indicators</li></ul></div>
+      <div class="st"><span class="eyebrow">Layer 2</span><div class="box l">Model</div><ul><li>Your trained model</li><li>Keras, ONNX</li><li>Input shape check</li></ul></div>
+      <div class="st"><span class="eyebrow">Layer 3</span><div class="box l">Decision</div><ul><li>Threshold · Hysteresis</li><li>K-means</li><li>Stop loss, sizing</li></ul></div>
+      <div class="st"><span class="eyebrow">Output</span><div class="box">Results</div><ul><li>Return, Sharpe</li><li>Drawdown</li><li>Trades on the chart</li></ul></div>
+    </div>
+  </section>
+
+  <section class="wrap sec">
+    <span class="eyebrow">How a run works</span>
+    <h2 class="h2">Three layers you can swap</h2>
+    <p class="lead">Every backtest takes the same path from candles to trades. The three layers in the middle are what you change and compare.</p>
+    <div class="cards3">
+      <div class="card"><span class="eyebrow">Layer 1 · Representation</span><h3>How prices become input</h3><p>Turn raw candles into what your model reads. Windows, Renko bricks or Kagi lines, with normalized indicators.</p><div class="badges"><span class="badge">Time windows</span><span class="badge">Renko</span><span class="badge">Kagi</span></div></div>
+      <div class="card"><span class="eyebrow">Layer 2 · Model</span><h3>What predicts</h3><p>Bring your own trained model. We check that it fits the input before it runs.</p><div class="badges"><span class="badge">Keras</span><span class="badge">ONNX</span></div></div>
+      <div class="card"><span class="eyebrow">Layer 3 · Decision</span><h3>How predictions become trades</h3><p>Pick a rule, then set direction, stop loss, smoothing, position size and costs.</p><div class="badges"><span class="badge">Threshold</span><span class="badge">Hysteresis</span><span class="badge">K-means</span></div></div>
+    </div>
+  </section>
+
+  <section class="wrap sec">
+    <div class="split">
+      <div>
+        <span class="eyebrow">Instruments</span>
+        <h2 class="h2">US stocks and crypto pairs, candles from 1m to 1d</h2>
+        <p class="lead">Every US exchange through Alpaca since 2016, Binance spot pairs since their listing.</p>
+        <div class="btns" style="margin-top:20px"><a class="btn ghost" href="#">Browse instruments</a></div>
+      </div>
+      <div>
+        <div class="panel" style="overflow-x:auto">
+          <table class="inst">
+            <thead><tr><th>Symbol</th><th class="ex-col">Exchange</th><th class="sp-col">10d</th><th class="num">Price</th><th class="num">24h</th></tr></thead>
+            <tbody id="inst"></tbody>
+          </table>
+        </div>
+        <div class="ex"><span class="eyebrow">Example</span><span>Sample figures, not market data</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap sec">
+    <div class="split">
+      <div>
+        <span class="eyebrow">Compare</span>
+        <h2 class="h2">See which setup holds up</h2>
+        <p class="lead">Put up to 4 backtests side by side. Every run gets the same metrics, so the best and the worst value stand out.</p>
+        <ul class="chks">
+          <li class="chk"><svg width="14" height="14" aria-hidden="true"><use href="#i-check"/></svg>Equity and drawdown on one chart</li>
+          <li class="chk"><svg width="14" height="14" aria-hidden="true"><use href="#i-check"/></svg>Any model, rule and position size</li>
+        </ul>
+        <div class="btns" style="margin-top:20px"><a class="btn" href="#">Try Backtest</a></div>
+      </div>
+      <div>
+        <div class="panel">
+          <div class="eqhead"><span style="font-size:14px;font-weight:600">Equity</span><div class="legend" id="legend"></div></div>
+          <div class="plot"><div class="area" id="area"></div><div class="yax" id="yax"></div></div>
+          <div class="xax"><span>Year 1</span><span>Year 2</span><span>Year 3</span></div>
+          <div id="metrics"></div>
+        </div>
+        <div class="ex"><span class="eyebrow">Example</span><span>Sample figures, not market data</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap sec" id="agents">
+    <div class="split">
+      <div>
+        <span class="eyebrow">Agents</span>
+        <h2 class="h2">Let your AI agent run the backtests</h2>
+        <p class="lead">Connect your AI client to the CandleStack MCP server and ask in plain words. The agent finds the data, runs your models and explains what it found.</p>
+        <div class="clients" aria-label="Supported clients">
+          <span class="client"><svg aria-hidden="true"><use href="#cl-claude"/></svg>Claude Code</span>
+          <span class="client"><svg aria-hidden="true"><use href="#cl-claude"/></svg>claude.ai</span>
+          <span class="client"><svg aria-hidden="true"><use href="#cl-openai"/></svg>ChatGPT</span>
+          <span class="client"><svg aria-hidden="true"><use href="#cl-openai"/></svg>Codex</span>
+          <span class="client"><svg aria-hidden="true"><use href="#cl-cursor"/></svg>Cursor</span>
+          <span class="client"><svg aria-hidden="true"><use href="#cl-vscode"/></svg>VS Code</span>
+        </div>
+        <ul class="chks">
+          <li class="chk"><svg width="14" height="14" aria-hidden="true"><use href="#i-check"/></svg>Run backtests and sweeps over a grid of settings</li>
+          <li class="chk"><svg width="14" height="14" aria-hidden="true"><use href="#i-check"/></svg>Upload a model through a one-time link</li>
+          <li class="chk"><svg width="14" height="14" aria-hidden="true"><use href="#i-check"/></svg>Compare results and publish the best one</li>
+          <li class="chk"><svg width="14" height="14" aria-hidden="true"><use href="#i-check"/></svg>The same actions in the API for your scripts</li>
+        </ul>
+        <div class="btns" style="margin-top:20px"><a class="btn ghost" href="#">Install the server</a><a class="link" href="#">API reference <svg width="14" height="14" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+      </div>
+      <div>
+        <div class="panel">
+          <div class="chat-h"><svg aria-hidden="true"><use href="#cl-claude"/></svg>Claude · candlestack<span style="margin-left:auto;display:inline-flex;align-items:center;gap:6px"><i class="dot"></i>Connected</span></div>
+          <div class="chat-b">
+            <div class="msg-u">Run my two LSTMs on AAPL 1h over 2025, the Renko one and the Kagi one, and tell me which holds up.</div>
+            <div class="calls">
+              <div class="call"><svg width="13" height="13" aria-hidden="true"><use href="#i-tool"/></svg><code>start_backtest</code><span class="arg">lstm-renko · AAPL · 1h</span></div>
+              <div class="call"><svg width="13" height="13" aria-hidden="true"><use href="#i-tool"/></svg><code>start_backtest</code><span class="arg">lstm-kagi · AAPL · 1h</span></div>
+              <div class="call"><svg width="13" height="13" aria-hidden="true"><use href="#i-tool"/></svg><code>wait_for_backtest</code><span class="arg">2 done in 41 s</span></div>
+              <div class="call"><svg width="13" height="13" aria-hidden="true"><use href="#i-tool"/></svg><code>compare_backtests</code><span class="arg">2 backtests</span></div>
+            </div>
+            <div class="msg-a">The Kagi model holds up better. It made more with a smaller drawdown. The Renko one traded twice as often, so fees took a bigger share.</div>
+            <div class="mini" role="table" aria-label="Example comparison">
+              <div class="r" role="row"><div role="columnheader"></div><div role="columnheader">Return</div><div role="columnheader">Max DD</div><div role="columnheader">Sharpe</div></div>
+              <div class="r" role="row"><div role="cell">lstm-kagi</div><div class="v best" role="cell">+18.4 %</div><div class="v best" role="cell">−7.9 %</div><div class="v best" role="cell">1.21</div></div>
+              <div class="r" role="row"><div role="cell">lstm-renko</div><div class="v worst" role="cell">+11.2 %</div><div class="v worst" role="cell">−12.6 %</div><div class="v worst" role="cell">0.74</div></div>
+            </div>
+            <a class="link" href="#">Open the comparison in CandleStack <svg width="14" height="14" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          </div>
+        </div>
+        <div class="ex"><span class="eyebrow">Example</span><span>Sample session, not market data</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap sec">
+    <div class="split">
+      <div>
+        <span class="eyebrow">Experiments</span>
+        <h2 class="h2">See what others published</h2>
+        <p class="lead">Backtests their authors chose to share, each with its instrument, representation, model and decision settings and the same metrics. Open one to see its trades and what the model reads.</p>
+        <ul class="chks">
+          <li class="chk"><svg width="14" height="14" aria-hidden="true"><use href="#i-check"/></svg>Filter by market, representation and timeframe</li>
+          <li class="chk"><svg width="14" height="14" aria-hidden="true"><use href="#i-check"/></svg>Add any of them to your Compare</li>
+        </ul>
+        <div class="btns" style="margin-top:20px"><a class="btn ghost" href="#">Open Experiments</a></div>
+      </div>
+      <div>
+        <div class="xcards" id="xcards"></div>
+        <div class="ex"><span class="eyebrow">Example</span><span>Sample figures, not market data</span></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <nav aria-label="Footer"><a href="#">CandleStack</a><a href="#">Docs</a><a href="#">API docs</a><a href="#">Status</a><a href="#">candlestack.tech</a></nav>
+    <span>Charts by TradingView Lightweight Charts™ · Logos provided by Logo.dev</span>
+  </div>
+</footer>
+</div>
+</div>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  function flip() {
+    var dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark ? 'light' : 'dark';
+  }
+  document.getElementById('theme').addEventListener('click', flip);
+  document.querySelectorAll('.theme').forEach(function (b) { b.addEventListener('click', flip); });
+  var size = document.getElementById('size');
+  size.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    size.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    document.body.classList.toggle('phone', b.dataset.v === 'phone');
+  });
+
+  // Example figures, written here: market data is for signed-in accounts only.
+  function rand(seed) { var x = seed; return function () { x = (x * 1664525 + 1013904223) % 4294967296; return x / 4294967296; }; }
+  function walk(seed, drift, vol, n) {
+    var r = rand(seed), eq = 1, out = [1];
+    for (var i = 1; i < n; i++) { eq *= 1 + drift + vol * (r() + r() - 1) * 1.7; out.push(eq); }
+    return out;
+  }
+  var pct = function (v) { return (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v * 100).toFixed(1) + ' %'; };
+
+  // Instruments: ten daily candles per row.
+  var INST = [
+    ['BTCUSDT', 'Binance', '#f7931a', '₿', '68,240.00', 0.021, 3],
+    ['AAPL', 'NASDAQ', '#555555', 'A', '214.30', 0.008, 8],
+    ['ETHUSDT', 'Binance', '#627eea', 'Ξ', '3,520.00', -0.014, 15],
+    ['TSLA', 'NASDAQ', '#e31937', 'T', '251.70', 0.032, 21],
+    ['SPY', 'ARCA', '#2c3e8f', 'SPY', '548.90', 0.005, 34]
+  ];
+  document.getElementById('inst').innerHTML = INST.map(function (s) {
+    var r = rand(s[6]), p = 10, bars = '';
+    for (var i = 0; i < 10; i++) {
+      var o = p, c = o + (r() - 0.5 + s[5] * 8) * 2.4, hi = Math.max(o, c) + r() * 0.8, lo = Math.min(o, c) - r() * 0.8;
+      p = c;
+      var col = c >= o ? 'var(--up)' : 'var(--down)', x = 4 + i * 9.5, y = function (v) { return (22 - (v - 4) * 1.1).toFixed(1); };
+      bars += '<line x1="' + x + '" x2="' + x + '" y1="' + y(hi) + '" y2="' + y(lo) + '" stroke="' + col + '" stroke-width="1"/><rect x="' + (x - 2) + '" y="' + Math.min(y(o), y(c)) + '" width="4" height="' + Math.max(1.5, Math.abs(y(o) - y(c))).toFixed(1) + '" fill="' + col + '"/>';
+    }
+    var up = s[5] >= 0;
+    return '<tr><td><span class="sym"><span class="ti" style="background:' + s[2] + '">' + s[3] + '</span>' + s[0] + '</span></td><td class="ex-col muted">' + s[1] + '</td>' +
+      '<td class="sp-col"><svg class="spark" viewBox="0 0 96 22" preserveAspectRatio="none" aria-hidden="true">' + bars + '</svg></td>' +
+      '<td class="num">' + s[4] + '</td><td class="num ' + (up ? 'up' : 'down') + '">' + (up ? '▲' : '▼') + Math.abs(s[5] * 100).toFixed(2) + '%</td></tr>';
+  }).join('');
+
+  // Compare: three runs over three years.
+  var N = 80;
+  var RUNS = [
+    { name: 'LSTM · Threshold', short: 'LSTM', color: '--s0', eq: walk(11, 0.0072, 0.032, N), sharpe: 1.18, win: 0.541, fees: 0.031 },
+    { name: 'TSMixer · K-means', short: 'TSMixer', color: '--s1', eq: walk(29, 0.0121, 0.058, N), sharpe: 0.87, win: 0.503, fees: 0.062 },
+    { name: 'GRU · Hysteresis', short: 'GRU', color: '--s2', eq: walk(77, -0.0012, 0.03, N), sharpe: -0.24, win: 0.462, fees: 0.044 }
+  ];
+  RUNS.forEach(function (r) { var peak = 0, worst = 0; r.eq.forEach(function (v) { peak = Math.max(peak, v); worst = Math.min(worst, v / peak - 1); }); r.ret = r.eq[N - 1] - 1; r.dd = Math.abs(worst); });
+  var all = [0]; RUNS.forEach(function (r) { r.eq.forEach(function (v) { all.push(v - 1); }); });
+  var lo = Math.floor(Math.min.apply(null, all) * 2) / 2, hi = Math.ceil(Math.max.apply(null, all) * 2) / 2;
+  var area = '', yax = '';
+  for (var v = lo; v <= hi + 0.01; v += 0.5) {
+    var top = ((1 - (v - lo) / (hi - lo)) * 100).toFixed(2);
+    area += '<div style="position:absolute;left:0;right:0;top:' + top + '%;height:1px;background:var(' + (Math.abs(v) < 0.001 ? '--muted' : '--grid') + ')"></div>';
+    yax += '<span style="position:absolute;right:0;top:' + top + '%;transform:translateY(-50%);font:11px var(--mono);color:var(--muted);white-space:nowrap">' + (v < -0.001 ? '−' : '') + Math.abs(v * 100).toFixed(0) + ' %</span>';
+  }
+  RUNS.forEach(function (r) {
+    var d = r.eq.map(function (e, i) { return (i ? 'L' : 'M') + (i / (N - 1) * 1000).toFixed(1) + ' ' + ((1 - (e - 1 - lo) / (hi - lo)) * 240).toFixed(1); }).join('');
+    area += '<svg viewBox="0 0 1000 240" preserveAspectRatio="none" aria-hidden="true"><path d="' + d + '" fill="none" stroke="var(' + r.color + ')" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>';
+  });
+  document.getElementById('area').innerHTML = area;
+  document.getElementById('yax').innerHTML = yax;
+  document.getElementById('legend').innerHTML = RUNS.map(function (r) { return '<span><i style="background:var(' + r.color + ')"></i>' + r.name + '</span>'; }).join('');
+  var ROWS = [
+    ['Total return', function (r) { return r.ret; }, 1, pct],
+    ['Max drawdown', function (r) { return r.dd; }, -1, function (v) { return '−' + (v * 100).toFixed(1) + ' %'; }],
+    ['Sharpe', function (r) { return r.sharpe; }, 1, function (v) { return (v < 0 ? '−' : '') + Math.abs(v).toFixed(2); }],
+    ['Win rate', function (r) { return r.win; }, 1, function (v) { return (v * 100).toFixed(1) + ' %'; }],
+    ['Fees paid', function (r) { return r.fees; }, -1, function (v) { return (v * 100).toFixed(1) + ' %'; }]
+  ];
+  var m = '<div class="mrow"><div class="lb"></div>' + RUNS.map(function (r) { return '<div style="display:flex;align-items:center;gap:6px;font-weight:600;white-space:nowrap;overflow:hidden"><span style="width:8px;height:8px;border-radius:999px;background:var(' + r.color + ');flex:none"></span>' + r.short + '</div>'; }).join('') + '</div>';
+  ROWS.forEach(function (row) {
+    var vals = RUNS.map(row[1]), best = (row[2] > 0 ? Math.max : Math.min).apply(null, vals), worst = (row[2] > 0 ? Math.min : Math.max).apply(null, vals);
+    m += '<div class="mrow"><div class="lb">' + row[0] + '</div>' + vals.map(function (val) { return '<div class="v ' + (val === best ? 'best' : val === worst ? 'worst' : '') + '">' + row[3](val) + '</div>'; }).join('') + '</div>';
+  });
+  document.getElementById('metrics').innerHTML = m;
+
+  // Experiments: three published backtests.
+  var X = [
+    { name: 'Quiet Otter', desc: 'AAPL · Kagi · 1h', tile: '#555555', t: 'A', model: 'lstm-kagi-v3', input: 'in 25 × 6', ret: '+18.4 %', sh: '1.21', dd: '−7.9 %', tr: '142', au: 'Jana Kováčová', ini: 'JK', day: 'Today', s: [11, 0.004, 0.03], bh: '+12.0 %' },
+    { name: 'Bright Falcon', desc: 'BTCUSDT · Renko · 15m', tile: '#f7931a', t: '₿', model: 'tsmixer-renko', input: 'in 32 × 8', ret: '+27.9 %', sh: '0.94', dd: '−18.3 %', tr: '611', au: 'Tomáš Bielik', ini: 'TB', day: 'Yesterday', s: [29, 0.006, 0.06], bh: '+31.5 %' },
+    { name: 'Calm Lynx', desc: 'SPY · Candles · 1d', tile: '#2c3e8f', t: 'SPY', model: 'conv1d-v2', input: 'in 60 × 5', ret: '+9.6 %', sh: '0.88', dd: '−6.2 %', tr: '37', au: 'Eva Molnárová', ini: 'EM', day: '14 Nov', s: [77, 0.0025, 0.025], bh: '+14.2 %' }
+  ];
+  function path(s, lo, hi) { return s.map(function (v, i) { return (i ? 'L' : 'M') + (i / (s.length - 1) * 300).toFixed(1) + ' ' + (40 - (v - lo) / (hi - lo) * 36 - 2).toFixed(1); }).join(''); }
+  document.getElementById('xcards').innerHTML = X.map(function (c) {
+    var s = walk(c.s[0], c.s[1], c.s[2], 60), b = walk(c.s[0] + 7, c.s[1] * 0.8, c.s[2] * 0.7, 60);
+    var both = s.concat(b), l = Math.min.apply(null, both), h = Math.max.apply(null, both);
+    var tone = c.ret.charAt(0) === '−' ? 'down' : 'up';
+    return '<article class="xc"><div class="xc-t"><span class="ti" style="background:' + c.tile + '">' + c.t + '</span><div style="min-width:0"><h3>' + c.name + '</h3><p>' + c.desc + '</p></div></div>' +
+      '<div class="xc-m">' + c.model + '<span>' + c.input + '</span></div>' +
+      '<svg class="sp" viewBox="0 0 300 40" preserveAspectRatio="none" aria-hidden="true"><path d="' + path(b, l, h) + '" fill="none" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/><path d="' + path(s, l, h) + '" fill="none" stroke="var(--' + tone + ')" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>' +
+      '<div class="xc-lg"><span><i style="border-top:1.5px solid var(--' + tone + ')"></i>Strategy</span><span><i style="border-top:1px dashed var(--muted)"></i>Buy and hold ' + c.bh + '</span></div>' +
+      '<dl class="xc-num"><div><dt>Return</dt><dd class="' + tone + '">' + c.ret + '</dd></div><div><dt>Sharpe</dt><dd>' + c.sh + '</dd></div><div><dt>Max DD</dt><dd class="down">' + c.dd + '</dd></div><div><dt>Trades</dt><dd>' + c.tr + '</dd></div></dl>' +
+      '<div class="xc-f"><span class="av">' + c.ini + '</span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + c.au + '</span><em>' + c.day + '</em></div></article>';
+  }).join('');
+})();
+</script>
+</body>
+</html>
